@@ -4,7 +4,7 @@
 
 - Status: **Approved — implementation in progress.**
 - Planning date: 2026-11-02.
-- Implementation progress: **4 of 8 steps completed.**
+- Implementation progress: **5 of 8 steps completed.**
 - The user explicitly approved phase 1 and authorized implementation on 2026-11-02. Application scaffolding, Docker configuration, dependency installation, and development service startup are now authorized within this plan.
 - Completion requires a separate review and explicit approval from the user after implementation. Documentation and graph closeout follow that approval.
 - This file is the only current plan. Update and commit it whenever its content or progress changes.
@@ -143,7 +143,7 @@ Initial plan approval has been received. Report each completed step as **step N 
 2. [x] **Create the monorepo skeleton.** Scaffold Laravel and Nuxt/Vuetify, commit dependency lockfiles, add ignore rules, and establish environment templates and shared development commands. Keep backend and frontend commits separate.
 3. [x] **Build containerized development runtime.** Add Dockerfiles, Compose services/networking, source mounts, dependency volumes, health checks, startup ordering and development commands with the required internal ports.
 4. [x] **Initialize PostgreSQL, Redis and pgAdmin.** Implement isolated roles/databases, persistent volumes, Laravel cache/session connectivity and pgAdmin access through 8082; verify database isolation and repeat startup behavior.
-5. [ ] **Configure Nginx and Keycloak.** Implement the 8081 application gateway, HMR forwarding, the 8083 administration entry, realm/client bootstrap and minimal Laravel login/logout flow; verify canonical issuer and same-origin redirects.
+5. [x] **Configure Nginx and Keycloak.** Implement the 8081 application gateway, HMR forwarding, the 8083 administration entry, realm/client bootstrap and minimal Laravel login/logout flow; verify canonical issuer and same-origin redirects.
 6. [ ] **Configure Camunda.** Add the selected Orchestration Cluster, PostgreSQL secondary storage, engine persistence, Keycloak client/configuration and 8084 management proxy. Verify a disposable process deployment/execution through its internal API.
 7. [ ] **Complete and verify the integrated baseline.** Finish the minimal Persian Vuetify shell and local assets/theme modes. Run the full acceptance matrix below; fix failures, and present the working phase for user review. Await explicit completion approval and apply requested revisions.
 8. [ ] **Close the approved phase.** After completion approval, create English technical documentation and Persian usage guides in `docs/`, update the graph using the verified workflow for `https://www.graphify.ai/`, finish separately scoped frontend/backend/infrastructure/documentation commits, and report final validation and commit IDs.
@@ -193,7 +193,7 @@ Record commands, outcomes and any environment constraints here as implementation
 ### Step 1 — prerequisites and release matrix
 
 - Docker Engine 29.5.3 and Compose 5.1.4 are available through the environment permission mechanism; ports 8081–8084 were free. Host: 15 GiB RAM, approximately 5 GiB available, 282 GiB free disk. Scope runtime memory for this development host.
-- Selected versions: PHP 8.4.21 CLI (Bookworm), Laravel framework 13.39.0 (skeleton 13.11.0), Composer 2.10.3, Node 24.22.1 (Bookworm slim), Nuxt 4.6.3, Vue 3.5.34, Vuetify 3.13.7, vite-plugin-vuetify 2.1.3, Keycloak 26.7.3, Camunda 8.9.27, PostgreSQL 17.6 Alpine, Redis 8.2.2 Alpine, Nginx 1.28.0 Alpine, pgAdmin 9.10. Image pulls and compatibility checks continue before runtime validation.
+- Selected versions: PHP 8.4.21 CLI (Bookworm), Laravel framework 13.39.0 (skeleton 13.11.0), Composer 2.10.3, Node 24.22.1 (Bookworm slim), Nuxt 4.6.3, Vue 3.5.44, Vuetify 3.13.7, vite-plugin-vuetify 2.1.3, Keycloak 26.7.3, Camunda 8.9.27, PostgreSQL 17.6 Alpine, Redis 8.2.2 Alpine, Nginx 1.28.0 Alpine, pgAdmin 9.10. Image pulls and compatibility checks continue before runtime validation.
 - Official Camunda 8.9 distribution downloaded for configuration reference; it supports PostgreSQL secondary storage without Elasticsearch. The development environment uses the applicable non-production evaluation terms.
 - Graphify identity is confirmed. Its public page provides organization signup/login and KPI visualization, but no verified code-graph API/CLI or authenticated project access is available. Graph closeout remains an explicit dependency; no graph update is claimed.
 - Phase approval recorded in commit `8e7e4c2`.
@@ -215,3 +215,10 @@ Record commands, outcomes and any environment constraints here as implementation
 - PostgreSQL/Redis/pgAdmin are healthy. Real connection checks passed for all three own-database connections and all six cross-database denials. The application database contains only `migrations`.
 - Laravel readiness verifies a real database query and Redis cache set/read/delete on port 8081. Containerized PHPUnit now passes all 8 authentication tests and 47 assertions with explicit test-environment isolation.
 - Browser login to pgAdmin through 8082 succeeds and the registered development server is present. Redis-backed browser session verification and restart persistence are included in the remaining integrated review.
+
+### Step 5 — gateway and application identity
+
+- Browser login using the generated demo identity completed through Keycloak and returned to the authenticated Persian shell on 8081. Logout cleared the session and returned to the anonymous shell on the same origin. No application login redirect uses 8083/8084.
+- Keycloak admin login through 8083 succeeds. Discovery exposes the exact canonical issuer and public endpoints on 8081. The shared network has no published database/frontend/backend service ports.
+- Nuxt type checking and production compilation pass after increasing its development memory limit to 2 GiB. Vue is aligned to Nuxt's 3.5.44 requirement to avoid duplicate runtimes.
+- Camunda's canonical issuer discovery is routed through the private Nginx HTTP gateway using JVM proxy settings (with loopback bypass disabled); issuer validation remains enabled, and explicit internal token/JWKS endpoints are configured. No host-network communication is needed.
