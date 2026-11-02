@@ -21,7 +21,7 @@
 - Only after the user explicitly approves completion, create or update phase documentation in `docs/`.
 - Technical documentation must be English Markdown and cover database changes, business behavior, and API contracts. Explicitly record when a category has no changes.
 - Usage and operational guides must be Persian Markdown.
-- Use the user-requested getgraphify tool and update the project graph at the end of every phase. Verify the intended tool and its supported workflow; do not silently substitute a different graph product or claim an update that did not happen.
+- Use Graphify at `https://www.graphify.ai/`, explicitly confirmed by the user, and update the project graph at the end of every phase. Verify its supported workflow and required account access; do not substitute getgraphify.com, Graphify-Labs, or another graph product, or claim an update that did not happen.
 - Commit the final phase changes. Keep frontend and backend changes in separate commits, using multiple commits when useful. Keep shared infrastructure, documentation, and graph updates clearly scoped as well.
 - Report actual validation results and any incomplete items honestly. Never claim a commit exists when Git operations are blocked.
 

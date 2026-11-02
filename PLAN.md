@@ -58,7 +58,7 @@ scripts/                     Bootstrap and smoke-check commands
 docs/                        Added after phase completion approval
 ```
 
-Graph output location and regeneration commands will be recorded after the requested graph tool has been identified. Generated dependency directories, local secrets, database files, and runtime volumes are not committed.
+The user confirmed Graphify at `https://www.graphify.ai/`. Record the supported graph-update workflow and any export location after verifying its capabilities and account access; do not assume that a local CLI or repository graph export exists. Generated dependency directories, local secrets, database files, and runtime volumes are not committed.
 
 ## 4. Implementation method
 
@@ -139,14 +139,14 @@ Use one PostgreSQL development instance with isolated logical databases and non-
 
 All steps below are pending and blocked on initial plan approval. Report each completed step as **step N of 8** and update/commit this plan.
 
-1. [ ] **Confirm prerequisites and pin versions.** Check Git, Docker/Compose, host resources and port availability; record the compatible release matrix and graph-tool identity. Resolve Git metadata access. Escalate material architecture changes for approval before proceeding.
+1. [ ] **Confirm prerequisites and pin versions.** Check Git, Docker/Compose, host resources and port availability; record the compatible release matrix. Verify the confirmed Graphify service's graph-update capabilities and required account access. Escalate material architecture changes for approval before proceeding.
 2. [ ] **Create the monorepo skeleton.** Scaffold Laravel and Nuxt/Vuetify, commit dependency lockfiles, add ignore rules, and establish environment templates and shared development commands. Keep backend and frontend commits separate.
 3. [ ] **Build containerized development runtime.** Add Dockerfiles, Compose services/networking, source mounts, dependency volumes, health checks, startup ordering and development commands with the required internal ports.
 4. [ ] **Initialize PostgreSQL, Redis and pgAdmin.** Implement isolated roles/databases, persistent volumes, Laravel cache/session connectivity and pgAdmin access through 8082; verify database isolation and repeat startup behavior.
 5. [ ] **Configure Nginx and Keycloak.** Implement the 8081 application gateway, HMR forwarding, the 8083 administration entry, realm/client bootstrap and minimal Laravel login/logout flow; verify canonical issuer and same-origin redirects.
 6. [ ] **Configure Camunda.** Add the selected Orchestration Cluster, PostgreSQL secondary storage, engine persistence, Keycloak client/configuration and 8084 management proxy. Verify a disposable process deployment/execution through its internal API.
 7. [ ] **Complete and verify the integrated baseline.** Finish the minimal Persian Vuetify shell and local assets/theme modes. Run the full acceptance matrix below; fix failures, and present the working phase for user review. Await explicit completion approval and apply requested revisions.
-8. [ ] **Close the approved phase.** After completion approval, create English technical documentation and Persian usage guides in `docs/`, update the graph using the confirmed getgraphify workflow, finish separately scoped frontend/backend/infrastructure/documentation commits, and report final validation and commit IDs.
+8. [ ] **Close the approved phase.** After completion approval, create English technical documentation and Persian usage guides in `docs/`, update the graph using the verified workflow for `https://www.graphify.ai/`, finish separately scoped frontend/backend/infrastructure/documentation commits, and report final validation and commit IDs.
 
 Do not mark step 7 complete until the review handoff is ready. Step 8 cannot begin before the user's explicit phase-completion approval. Never mark the entire phase complete with missing runtime verification or a missing required graph update.
 
@@ -176,8 +176,8 @@ Record commands, outcomes and any environment constraints here as implementation
 ## 9. Review decisions and current constraints
 
 - **Camunda proposal:** 8.9 with PostgreSQL secondary storage; approval of this plan includes this architecture choice. Exact patch versions are recorded in step 1 after compatibility checks.
-- **Graph tool identity:** Neither `getgraphify` nor `graphify` is currently available as a command/tool in this workspace. The name is ambiguous: `getgraphify.com` and the Graphify-Labs code-graph project are different products. Confirm the intended product before installing/configuring it; this does not block review of the infrastructure plan but must be resolved before graph closeout.
-- **Git:** The workspace initially had no usable repository. Git initialization succeeded using the environment's approved permission mechanism; rules and this draft plan are prepared for the initial planning commit. Never delete or replace protected metadata as a workaround.
+- **Graph tool confirmed:** The user explicitly selected `https://www.graphify.ai/`. Its public page describes KPI tracking and visualization, not a source-code knowledge-graph CLI. Supported graph updates, account access, and any export/API capabilities remain to be verified before integration; do not install a similarly named product or promise an unsupported automation. This clarification is not approval to start phase implementation.
+- **Git:** The workspace initially had no usable repository. Git initialization succeeded using the environment's approved permission mechanism; the initial rules and draft plan were committed as `5acef50`. Never delete or replace protected metadata as a workaround.
 - **Approval record:** Initial plan approval: pending. Phase completion approval: pending.
 
 ## 10. Official references used for this proposal
@@ -186,5 +186,4 @@ Record commands, outcomes and any environment constraints here as implementation
 - [Keycloak hostname and administration URL configuration](https://www.keycloak.org/server/hostname)
 - [Camunda 8.9 Docker Compose development configuration](https://docs.camunda.io/docs/8.9/self-managed/quickstart/developer-quickstart/docker-compose/configuration/)
 - [Camunda 8.9 PostgreSQL secondary storage](https://docs.camunda.io/docs/8.9/self-managed/quickstart/developer-quickstart/docker-compose/secondary-storage/)
-- [Graphify Help Center](https://docs.getgraphify.com/docs/get-started)
-- [Graphify-Labs code graph repository](https://github.com/Graphify-Labs/graphify)
+- [Graphify — user-confirmed service](https://www.graphify.ai/)
