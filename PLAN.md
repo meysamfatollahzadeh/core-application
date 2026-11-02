@@ -4,7 +4,7 @@
 
 - Status: **Approved — implementation in progress.**
 - Planning date: 2026-11-02.
-- Implementation progress: **5 of 8 steps completed.**
+- Implementation progress: **6 of 8 steps completed.**
 - The user explicitly approved phase 1 and authorized implementation on 2026-11-02. Application scaffolding, Docker configuration, dependency installation, and development service startup are now authorized within this plan.
 - Completion requires a separate review and explicit approval from the user after implementation. Documentation and graph closeout follow that approval.
 - This file is the only current plan. Update and commit it whenever its content or progress changes.
@@ -144,7 +144,7 @@ Initial plan approval has been received. Report each completed step as **step N 
 3. [x] **Build containerized development runtime.** Add Dockerfiles, Compose services/networking, source mounts, dependency volumes, health checks, startup ordering and development commands with the required internal ports.
 4. [x] **Initialize PostgreSQL, Redis and pgAdmin.** Implement isolated roles/databases, persistent volumes, Laravel cache/session connectivity and pgAdmin access through 8082; verify database isolation and repeat startup behavior.
 5. [x] **Configure Nginx and Keycloak.** Implement the 8081 application gateway, HMR forwarding, the 8083 administration entry, realm/client bootstrap and minimal Laravel login/logout flow; verify canonical issuer and same-origin redirects.
-6. [ ] **Configure Camunda.** Add the selected Orchestration Cluster, PostgreSQL secondary storage, engine persistence, Keycloak client/configuration and 8084 management proxy. Verify a disposable process deployment/execution through its internal API.
+6. [x] **Configure Camunda.** Add the selected Orchestration Cluster, PostgreSQL secondary storage, engine persistence, Keycloak client/configuration and 8084 management proxy. Verify a disposable process deployment/execution through its internal API.
 7. [ ] **Complete and verify the integrated baseline.** Finish the minimal Persian Vuetify shell and local assets/theme modes. Run the full acceptance matrix below; fix failures, and present the working phase for user review. Await explicit completion approval and apply requested revisions.
 8. [ ] **Close the approved phase.** After completion approval, create English technical documentation and Persian usage guides in `docs/`, update the graph using the verified workflow for `https://www.graphify.ai/`, finish separately scoped frontend/backend/infrastructure/documentation commits, and report final validation and commit IDs.
 
@@ -222,3 +222,10 @@ Record commands, outcomes and any environment constraints here as implementation
 - Keycloak admin login through 8083 succeeds. Discovery exposes the exact canonical issuer and public endpoints on 8081. The shared network has no published database/frontend/backend service ports.
 - Nuxt type checking and production compilation pass after increasing its development memory limit to 2 GiB. Vue is aligned to Nuxt's 3.5.44 requirement to avoid duplicate runtimes.
 - Camunda's canonical issuer discovery is routed through the private Nginx HTTP gateway using JVM proxy settings (with loopback bypass disabled); issuer validation remains enabled, and explicit internal token/JWKS endpoints are configured. No host-network communication is needed.
+
+### Step 6 — Camunda integration
+
+- Camunda is healthy with PostgreSQL secondary storage (44 service-owned tables) and persistent primary engine volumes. No H2 or Elasticsearch service is used.
+- Internal service-account authentication, rejection of unauthenticated API access, disposable BPMN deployment, synchronous process completion and definition cleanup pass.
+- Browser login using the shared Keycloak demo identity reaches Operate at `http://localhost:8084/operate`. The page renders without browser errors and its navigation remains on the management origin.
+- Normal startup uses private Nginx routing for canonical issuer discovery and separate internal backchannel endpoints.
