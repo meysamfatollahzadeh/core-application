@@ -2,10 +2,10 @@
 
 ## Status and approval gate
 
-- Status: **Draft — awaiting user approval.**
+- Status: **Approved — implementation in progress.**
 - Planning date: 2026-11-02.
 - Implementation progress: **0 of 8 steps completed.**
-- Authorized work so far: record project rules and prepare this plan. No application scaffolding, Docker configuration, dependency installation, or service startup is authorized until plan approval.
+- The user explicitly approved phase 1 and authorized implementation on 2026-11-02. Application scaffolding, Docker configuration, dependency installation, and development service startup are now authorized within this plan.
 - Completion requires a separate review and explicit approval from the user after implementation. Documentation and graph closeout follow that approval.
 - This file is the only current plan. Update and commit it whenever its content or progress changes.
 
@@ -137,7 +137,7 @@ Use one PostgreSQL development instance with isolated logical databases and non-
 
 ## 7. Ordered implementation steps
 
-All steps below are pending and blocked on initial plan approval. Report each completed step as **step N of 8** and update/commit this plan.
+Initial plan approval has been received. Report each completed step as **step N of 8** and update/commit this plan.
 
 1. [ ] **Confirm prerequisites and pin versions.** Check Git, Docker/Compose, host resources and port availability; record the compatible release matrix. Verify the confirmed Graphify service's graph-update capabilities and required account access. Escalate material architecture changes for approval before proceeding.
 2. [ ] **Create the monorepo skeleton.** Scaffold Laravel and Nuxt/Vuetify, commit dependency lockfiles, add ignore rules, and establish environment templates and shared development commands. Keep backend and frontend commits separate.
@@ -178,7 +178,7 @@ Record commands, outcomes and any environment constraints here as implementation
 - **Camunda proposal:** 8.9 with PostgreSQL secondary storage; approval of this plan includes this architecture choice. Exact patch versions are recorded in step 1 after compatibility checks.
 - **Graph tool confirmed:** The user explicitly selected `https://www.graphify.ai/`. Its public page describes KPI tracking and visualization, not a source-code knowledge-graph CLI. Supported graph updates, account access, and any export/API capabilities remain to be verified before integration; do not install a similarly named product or promise an unsupported automation. This clarification is not approval to start phase implementation.
 - **Git:** The workspace initially had no usable repository. Git initialization succeeded using the environment's approved permission mechanism; the initial rules and draft plan were committed as `5acef50`. Never delete or replace protected metadata as a workaround.
-- **Approval record:** Initial plan approval: pending. Phase completion approval: pending.
+- **Approval record:** Initial plan approval: received on 2026-11-02 (user: "پلن فاز اول رو تأیید می‌کنم، پیاده‌سازی رو شروع کن."). Phase completion approval: pending.
 
 ## 10. Official references used for this proposal
 
