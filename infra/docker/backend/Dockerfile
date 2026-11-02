@@ -10,4 +10,4 @@ RUN composer install --no-interaction --prefer-dist --no-scripts
 WORKDIR /app
 COPY infra/docker/backend/entrypoint.sh /usr/local/bin/development-entrypoint
 ENTRYPOINT ["development-entrypoint"]
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000", "--no-reload"]
