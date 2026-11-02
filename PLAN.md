@@ -4,7 +4,7 @@
 
 - Status: **Approved — implementation in progress.**
 - Planning date: 2026-11-02.
-- Implementation progress: **1 of 8 steps completed.**
+- Implementation progress: **2 of 8 steps completed.**
 - The user explicitly approved phase 1 and authorized implementation on 2026-11-02. Application scaffolding, Docker configuration, dependency installation, and development service startup are now authorized within this plan.
 - Completion requires a separate review and explicit approval from the user after implementation. Documentation and graph closeout follow that approval.
 - This file is the only current plan. Update and commit it whenever its content or progress changes.
@@ -140,7 +140,7 @@ Use one PostgreSQL development instance with isolated logical databases and non-
 Initial plan approval has been received. Report each completed step as **step N of 8** and update/commit this plan.
 
 1. [x] **Confirm prerequisites and pin versions.** Check Git, Docker/Compose, host resources and port availability; record the compatible release matrix. Verify the confirmed Graphify service's graph-update capabilities and required account access. Escalate material architecture changes for approval before proceeding.
-2. [ ] **Create the monorepo skeleton.** Scaffold Laravel and Nuxt/Vuetify, commit dependency lockfiles, add ignore rules, and establish environment templates and shared development commands. Keep backend and frontend commits separate.
+2. [x] **Create the monorepo skeleton.** Scaffold Laravel and Nuxt/Vuetify, commit dependency lockfiles, add ignore rules, and establish environment templates and shared development commands. Keep backend and frontend commits separate.
 3. [ ] **Build containerized development runtime.** Add Dockerfiles, Compose services/networking, source mounts, dependency volumes, health checks, startup ordering and development commands with the required internal ports.
 4. [ ] **Initialize PostgreSQL, Redis and pgAdmin.** Implement isolated roles/databases, persistent volumes, Laravel cache/session connectivity and pgAdmin access through 8082; verify database isolation and repeat startup behavior.
 5. [ ] **Configure Nginx and Keycloak.** Implement the 8081 application gateway, HMR forwarding, the 8083 administration entry, realm/client bootstrap and minimal Laravel login/logout flow; verify canonical issuer and same-origin redirects.
@@ -197,3 +197,9 @@ Record commands, outcomes and any environment constraints here as implementation
 - Official Camunda 8.9 distribution downloaded for configuration reference; it supports PostgreSQL secondary storage without Elasticsearch. The development environment uses the applicable non-production evaluation terms.
 - Graphify identity is confirmed. Its public page provides organization signup/login and KPI visualization, but no verified code-graph API/CLI or authenticated project access is available. Graph closeout remains an explicit dependency; no graph update is claimed.
 - Phase approval recorded in commit `8e7e4c2`.
+
+### Step 2 — monorepo skeleton
+
+- Laravel skeleton and OIDC/session infrastructure committed separately in `18eb4bc`; 8 focused authentication tests passed with 47 assertions. Pint formatting and Composer validation pass. No application user/password tables or frontend build system are retained in the backend.
+- Nuxt/Vuetify skeleton, npm lockfile, local Vazirmatn font/license, local SVG icon dependencies and Persian shell are prepared. `npm install` using Node 24.22.1 completed and `nuxt prepare` generated types. Browser validation remains pending.
+- Environment examples, private generated secrets and development command scaffolding are prepared. No phase-completion documentation has been created.
