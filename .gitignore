@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+**/node_modules/
+**/vendor/
+**/.nuxt/
+**/.output/
+**/.cache/
+**/test-results/
+**/playwright-report/
+**/*.log
+**/.DS_Store
+.runtime/
