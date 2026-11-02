@@ -1,0 +1,60 @@
+spring:
+  profiles:
+    active: admin,operate,tasklist,broker,consolidated-auth
+server:
+  address: 0.0.0.0
+  forward-headers-strategy: framework
+management:
+  server:
+    port: 9600
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+camunda:
+  system:
+    cpu-thread-count: 2
+    io-thread-count: 2
+  backup:
+    webapps:
+      enabled: false
+  persistent:
+    sessions:
+      enabled: false
+  security:
+    authentication:
+      method: oidc
+      unprotectedApi: false
+      oidc:
+        client-id: organization-process
+        client-secret: ${CAMUNDA_CLIENT_SECRET}
+        issuer-uri: http://localhost:8081/auth/realms/organization-dev
+        authorization-uri: http://localhost:8081/auth/realms/organization-dev/protocol/openid-connect/auth
+        token-uri: http://keycloak:8080/auth/realms/organization-dev/protocol/openid-connect/token
+        jwk-set-uri: http://keycloak:8080/auth/realms/organization-dev/protocol/openid-connect/certs
+        redirect-uri: http://localhost:8084/sso-callback
+        audiences:
+          - organization-process
+        username-claim: preferred_username
+        client-id-claim: azp
+    authorizations:
+      enabled: true
+    initialization:
+      defaultRoles:
+        admin:
+          users:
+            - ${DEMO_USERNAME}
+          clients:
+            - organization-process
+  data:
+    secondary-storage:
+      type: rdbms
+      rdbms:
+        url: jdbc:postgresql://postgres:5432/camunda
+        username: camunda
+        password: ${CAMUNDA_DB_PASSWORD}
+        flushInterval: PT0.5S

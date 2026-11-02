@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+case "${1:-up}" in
+  up)
+    python3 scripts/bootstrap.py
+    docker compose up -d --build --wait --wait-timeout 360
+    ;;
+  down) docker compose down ;;
+  restart) docker compose restart ;;
+  logs) shift; docker compose logs -f "$@" ;;
+  status) docker compose ps ;;
+  test) docker compose exec -T backend php artisan test --compact; python3 scripts/smoke.py; docker compose exec -T backend php < scripts/process-smoke.php ;;
+  reset)
+    if [ "${2:-}" != "--delete-development-data" ]; then
+      echo 'Reset deletes this project’s development volumes. Use: ./scripts/dev reset --delete-development-data' >&2
+      exit 1
+    fi
+    docker compose down --volumes
+    ;;
+  *) echo 'Usage: ./scripts/dev {up|down|restart|logs|status|test|reset --delete-development-data}' >&2; exit 1 ;;
+esac

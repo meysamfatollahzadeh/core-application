@@ -1,0 +1,65 @@
+{
+  "realm": "organization-dev",
+  "enabled": true,
+  "displayName": "Organization Development",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "loginWithEmailAllowed": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["fa", "en"],
+  "defaultLocale": "fa",
+  "accessTokenLifespan": 900,
+  "users": [
+    {
+      "username": "demo",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "demo@example.org",
+      "firstName": "کاربر",
+      "lastName": "آزمایشی",
+      "credentials": [{ "type": "password", "value": "", "temporary": false }]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "organization-backend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["http://localhost:8081/api/auth/callback"],
+      "webOrigins": ["http://localhost:8081"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8081/"
+      },
+      "defaultClientScopes": ["profile", "email", "roles", "web-origins", "acr"]
+    },
+    {
+      "clientId": "organization-process",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "redirectUris": ["http://localhost:8084/sso-callback"],
+      "webOrigins": ["http://localhost:8084"],
+      "attributes": { "post.logout.redirect.uris": "http://localhost:8084/*" },
+      "defaultClientScopes": ["profile", "email", "roles", "web-origins", "acr"],
+      "protocolMappers": [
+        {
+          "name": "process-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": { "included.client.audience": "organization-process", "id.token.claim": "true", "access.token.claim": "true" }
+        }
+      ]
+    }
+  ]
+}
