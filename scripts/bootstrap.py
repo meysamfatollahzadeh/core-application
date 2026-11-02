@@ -17,6 +17,10 @@ if not env_path.exists():
         values = values.replace(key + '=\n', key + '=' + secrets.token_hex(24) + '\n')
     env_path.write_text(values)
     env_path.chmod(0o600)
+backend_env = root / 'backend/.env'
+if not backend_env.exists():
+    backend_env.write_text((root / 'backend/.env.example').read_text())
+    backend_env.chmod(0o600)
 values = {}
 for line in env_path.read_text().splitlines():
     if line and not line.startswith('#') and '=' in line:
