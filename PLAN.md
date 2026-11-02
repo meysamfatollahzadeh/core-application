@@ -4,7 +4,7 @@
 
 - Status: **Approved — implementation in progress.**
 - Planning date: 2026-11-02.
-- Implementation progress: **3 of 8 steps completed.**
+- Implementation progress: **4 of 8 steps completed.**
 - The user explicitly approved phase 1 and authorized implementation on 2026-11-02. Application scaffolding, Docker configuration, dependency installation, and development service startup are now authorized within this plan.
 - Completion requires a separate review and explicit approval from the user after implementation. Documentation and graph closeout follow that approval.
 - This file is the only current plan. Update and commit it whenever its content or progress changes.
@@ -142,7 +142,7 @@ Initial plan approval has been received. Report each completed step as **step N 
 1. [x] **Confirm prerequisites and pin versions.** Check Git, Docker/Compose, host resources and port availability; record the compatible release matrix. Verify the confirmed Graphify service's graph-update capabilities and required account access. Escalate material architecture changes for approval before proceeding.
 2. [x] **Create the monorepo skeleton.** Scaffold Laravel and Nuxt/Vuetify, commit dependency lockfiles, add ignore rules, and establish environment templates and shared development commands. Keep backend and frontend commits separate.
 3. [x] **Build containerized development runtime.** Add Dockerfiles, Compose services/networking, source mounts, dependency volumes, health checks, startup ordering and development commands with the required internal ports.
-4. [ ] **Initialize PostgreSQL, Redis and pgAdmin.** Implement isolated roles/databases, persistent volumes, Laravel cache/session connectivity and pgAdmin access through 8082; verify database isolation and repeat startup behavior.
+4. [x] **Initialize PostgreSQL, Redis and pgAdmin.** Implement isolated roles/databases, persistent volumes, Laravel cache/session connectivity and pgAdmin access through 8082; verify database isolation and repeat startup behavior.
 5. [ ] **Configure Nginx and Keycloak.** Implement the 8081 application gateway, HMR forwarding, the 8083 administration entry, realm/client bootstrap and minimal Laravel login/logout flow; verify canonical issuer and same-origin redirects.
 6. [ ] **Configure Camunda.** Add the selected Orchestration Cluster, PostgreSQL secondary storage, engine persistence, Keycloak client/configuration and 8084 management proxy. Verify a disposable process deployment/execution through its internal API.
 7. [ ] **Complete and verify the integrated baseline.** Finish the minimal Persian Vuetify shell and local assets/theme modes. Run the full acceptance matrix below; fix failures, and present the working phase for user review. Await explicit completion approval and apply requested revisions.
@@ -209,3 +209,9 @@ Record commands, outcomes and any environment constraints here as implementation
 - Both PHP and Nuxt development images built successfully from pinned base versions and committed lockfiles. Compose configuration validation passes. Source binds, separate dependency volumes, health checks, restart policies and bounded `up --wait` are configured.
 - `scripts/dev` provides bootstrap/start, stop, restart, logs, status, test and explicit destructive reset commands. Python bootstrap creates ignored local credentials without printing them; service initialization is separate from normal runtime commands.
 - PostgreSQL, Redis, Keycloak, pgAdmin and the gateway are running. Laravel readiness responds through port 8081. Nuxt runtime and full browser checks are being completed next.
+
+### Step 4 — data services
+
+- PostgreSQL/Redis/pgAdmin are healthy. Real connection checks passed for all three own-database connections and all six cross-database denials. The application database contains only `migrations`.
+- Laravel readiness verifies a real database query and Redis cache set/read/delete on port 8081. Containerized PHPUnit now passes all 8 authentication tests and 47 assertions with explicit test-environment isolation.
+- Browser login to pgAdmin through 8082 succeeds and the registered development server is present. Redis-backed browser session verification and restart persistence are included in the remaining integrated review.
