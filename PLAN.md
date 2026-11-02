@@ -4,7 +4,7 @@
 
 - Status: **Approved — implementation in progress.**
 - Planning date: 2026-11-02.
-- Implementation progress: **0 of 8 steps completed.**
+- Implementation progress: **1 of 8 steps completed.**
 - The user explicitly approved phase 1 and authorized implementation on 2026-11-02. Application scaffolding, Docker configuration, dependency installation, and development service startup are now authorized within this plan.
 - Completion requires a separate review and explicit approval from the user after implementation. Documentation and graph closeout follow that approval.
 - This file is the only current plan. Update and commit it whenever its content or progress changes.
@@ -139,7 +139,7 @@ Use one PostgreSQL development instance with isolated logical databases and non-
 
 Initial plan approval has been received. Report each completed step as **step N of 8** and update/commit this plan.
 
-1. [ ] **Confirm prerequisites and pin versions.** Check Git, Docker/Compose, host resources and port availability; record the compatible release matrix. Verify the confirmed Graphify service's graph-update capabilities and required account access. Escalate material architecture changes for approval before proceeding.
+1. [x] **Confirm prerequisites and pin versions.** Check Git, Docker/Compose, host resources and port availability; record the compatible release matrix. Verify the confirmed Graphify service's graph-update capabilities and required account access. Escalate material architecture changes for approval before proceeding.
 2. [ ] **Create the monorepo skeleton.** Scaffold Laravel and Nuxt/Vuetify, commit dependency lockfiles, add ignore rules, and establish environment templates and shared development commands. Keep backend and frontend commits separate.
 3. [ ] **Build containerized development runtime.** Add Dockerfiles, Compose services/networking, source mounts, dependency volumes, health checks, startup ordering and development commands with the required internal ports.
 4. [ ] **Initialize PostgreSQL, Redis and pgAdmin.** Implement isolated roles/databases, persistent volumes, Laravel cache/session connectivity and pgAdmin access through 8082; verify database isolation and repeat startup behavior.
@@ -187,3 +187,13 @@ Record commands, outcomes and any environment constraints here as implementation
 - [Camunda 8.9 Docker Compose development configuration](https://docs.camunda.io/docs/8.9/self-managed/quickstart/developer-quickstart/docker-compose/configuration/)
 - [Camunda 8.9 PostgreSQL secondary storage](https://docs.camunda.io/docs/8.9/self-managed/quickstart/developer-quickstart/docker-compose/secondary-storage/)
 - [Graphify — user-confirmed service](https://www.graphify.ai/)
+
+## Implementation evidence
+
+### Step 1 — prerequisites and release matrix
+
+- Docker Engine 29.5.3 and Compose 5.1.4 are available through the environment permission mechanism; ports 8081–8084 were free. Host: 15 GiB RAM, approximately 5 GiB available, 282 GiB free disk. Scope runtime memory for this development host.
+- Selected versions: PHP 8.4.21 CLI (Bookworm), Laravel framework 13.39.0 (skeleton 13.11.0), Composer 2.10.3, Node 24.22.1 (Bookworm slim), Nuxt 4.6.3, Vue 3.5.34, Vuetify 3.13.7, vite-plugin-vuetify 2.1.3, Keycloak 26.7.3, Camunda 8.9.27, PostgreSQL 17.6 Alpine, Redis 8.2.2 Alpine, Nginx 1.28.0 Alpine, pgAdmin 9.10. Image pulls and compatibility checks continue before runtime validation.
+- Official Camunda 8.9 distribution downloaded for configuration reference; it supports PostgreSQL secondary storage without Elasticsearch. The development environment uses the applicable non-production evaluation terms.
+- Graphify identity is confirmed. Its public page provides organization signup/login and KPI visualization, but no verified code-graph API/CLI or authenticated project access is available. Graph closeout remains an explicit dependency; no graph update is claimed.
+- Phase approval recorded in commit `8e7e4c2`.
