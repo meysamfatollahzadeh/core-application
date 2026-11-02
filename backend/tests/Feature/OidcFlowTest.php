@@ -64,7 +64,7 @@ class OidcFlowTest extends TestCase
 
     public function test_identity_with_wrong_issuer_audience_nonce_or_expiration_is_rejected(): void
     {
-        foreach ([['iss' => 'http://untrusted.example'], ['aud' => 'other-client'], ['nonce' => 'wrong'], ['exp' => time() - 100]] as $override) {
+        foreach ([['iss' => 'http://untrusted.example'], ['aud' => 'other-client'], ['nonce' => 'wrong'], ['exp' => time() - 100], ['azp' => 'other-client'], ['aud' => [config('oidc.client_id'), 'other-client']], ['iat' => time() + 60]] as $override) {
             $this->fakeProvider($override);
             $this->withSession(['oidc' => $this->pending()])->get('/api/auth/callback?code=code&state=state')
                 ->assertRedirect('http://localhost:8081/?auth_error=invalid_identity')->assertSessionMissing('identity');
