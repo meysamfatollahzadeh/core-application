@@ -9,7 +9,7 @@ import urllib.request
 root = Path(__file__).resolve().parents[1]
 
 def get(url):
-    with urllib.request.urlopen(url, timeout=30) as response:
+    with urllib.request.urlopen(urllib.request.Request(url, headers={"Accept": "text/html"} if url.startswith("http://localhost:8084") else {}), timeout=30) as response:
         return response.status, response.read(), response.geturl()
 
 def compose(*args, success=True):
