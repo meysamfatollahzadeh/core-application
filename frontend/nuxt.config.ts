@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   build: { transpile: ['vuetify'] },
   vite: {
     plugins: [vuetify({ autoImport: true })],
-    server: { hmr: { clientPort: 8081 } },
+    server: { ws: { clientPort: 8081 } },
   },
   app: {
     head: {
