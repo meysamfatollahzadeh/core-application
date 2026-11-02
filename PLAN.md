@@ -229,3 +229,11 @@ Record commands, outcomes and any environment constraints here as implementation
 - Internal service-account authentication, rejection of unauthenticated API access, disposable BPMN deployment, synchronous process completion and definition cleanup pass.
 - Browser login using the shared Keycloak demo identity reaches Operate at `http://localhost:8084/operate`. The page renders without browser errors and its navigation remains on the management origin.
 - Normal startup uses private Nginx routing for canonical issuer discovery and separate internal backchannel endpoints.
+
+### Step 7 — integrated verification in progress
+
+- Browser checks passed for light/dark/system modes, live device-theme changes, saved theme preference, Persian RTL, local Vazirmatn, absence of external frontend asset requests and a 390 px mobile layout without horizontal overflow. Local review screenshots are in ignored `output/playwright/`.
+- Gateway WebSocket HMR and immediate Laravel PHP source updates passed using temporary changes that were restored. Nuxt type checking and production build passed; Vite 8 WebSocket configuration now uses the supported `server.ws` API.
+- Operate, Tasklist and Camunda Admin render on 8084 using the shared Keycloak identity. All requested management entry points and database isolation smoke checks passed.
+- Authentication tests now cover additional authorized-party, multi-audience and future-issued token rejection: 8 tests / 56 assertions pass.
+- Fresh-checkout testing identified Artisan Serve's environment filtering when a local `.env` exists. The container now adds `--no-reload` to retain Compose-provided environment variables; PHP source reload remains automatic per request. Fresh bootstrap and original-volume persistence checks are being rerun before review handoff.
