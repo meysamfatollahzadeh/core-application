@@ -4,7 +4,7 @@
 
 - Status: **Approved — implementation in progress.**
 - Revision date: 2026-11-03.
-- Revision implementation progress: **1 of 9 steps completed.**
+- Revision implementation progress: **2 of 9 steps completed.**
 - The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
 - This revision replaces the previous current plan, not the existing infrastructure. Earlier commits preserve the baseline plan and evidence. Do not create a competing active plan or mark the phase complete.
 - The user explicitly approved implementation and requested textual UserSource slugs on 2026-11-03. All implementation steps below are authorized; completion still requires a separate review approval.
@@ -160,7 +160,7 @@ Use API Resources and validation requests within the module. Define consistent m
 The revised plan is approved; implementation may proceed. Report **step N of 9 completed** and commit each plan update. Preserve separate backend/frontend/shared-infrastructure commits.
 
 1. [x] **Establish the Login module and token-only API foundation.** Add compatible Sanctum, register the module, move routes to API middleware and remove application session authentication without leaving a fallback.
-2. [ ] **Implement the schema and source configuration.** Add UserSource/Member/User and extended Sanctum migrations, relationships, secret handling, source validation and factories; verify migration/rollback on disposable data.
+2. [x] **Implement the schema and source configuration.** Add UserSource/Member/User and extended Sanctum migrations, relationships, secret handling, source validation and factories; verify migration/rollback on disposable data.
 3. [ ] **Register sources and import memberships.** Implement validated source/import commands, pagination, repeat-safe imports, dry-run and explicit identity mapping. Bootstrap/import the first development source.
 4. [ ] **Implement source-bound login and token lifecycle.** Build PKCE/state/nonce callbacks, imported-member authorization, token issuing/expiry, refresh locking and source/config invalidation.
 5. [ ] **Implement logout and upstream verification.** Add verified backchannel handling, replay protection, per-request upstream validity checks, RP logout and failure semantics.
@@ -206,3 +206,9 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 - Approved slug-based revision recorded in `94522aa`. Installed compatible Sanctum 4.3.3 with a committed lockfile.
 - Registered the Login module provider and API-only routes. Removed the old session-based controller/service and `/api/auth/session` route. Sanctum has no session-guard fallback or stateful SPA configuration.
 - Focused foundation test checks the route middleware, missing/old-cookie credential rejection and removal of the old session endpoint. Application session variables were removed from Compose and the backend environment example.
+
+### Step 2
+
+- Added the three requested domain models and the extended Sanctum token table. UserSource.slug is unique/immutable; Member's foreign key and uniqueness constraint use user_source_slug. Source JSONB secret values and token grant data are encrypted; public serialization hides configuration and internal source IDs.
+- Added factories and schema tests. Five foundation/schema tests passed (18 assertions), including same subject in separate sources, foreign-key relationships, encrypted settings and immutable slugs.
+- Tests use a separate organization_test database and refuse non-test database names. Additive application migration was applied without resetting existing service data; rollback/re-apply is checked only against disposable test data.
