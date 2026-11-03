@@ -2,12 +2,12 @@
 
 ## Status, baseline and approval
 
-- Status: **Revised design — awaiting explicit user approval before implementation.**
+- Status: **Approved — implementation in progress.**
 - Revision date: 2026-11-03.
 - Revision implementation progress: **0 of 9 steps completed.**
 - The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
 - This revision replaces the previous current plan, not the existing infrastructure. Earlier commits preserve the baseline plan and evidence. Do not create a competing active plan or mark the phase complete.
-- Authorized now: record the revised requirements and design. Do not install Sanctum, add migrations, change application routes/UI or start the proposed extra identity service until this revised plan is approved.
+- The user explicitly approved implementation and requested textual UserSource slugs on 2026-11-03. All implementation steps below are authorized; completion still requires a separate review approval.
 - Preserve the approved monorepo, Laravel/PHP runtime on internal 8000, Nuxt dev runtime on internal 3000, Redis/PostgreSQL, Camunda, local frontend assets, and gateway/management ports 8081–8084.
 - After implementation, pause for user review. Only after explicit phase-completion approval create English technical Markdown and Persian usage guides in `docs/`, update Graphify, and close the phase with separately scoped commits.
 
@@ -68,13 +68,14 @@ The three domain models requested by the user are retained. Standard timestamps 
 
 | Table | Fields and constraints |
 | --- | --- |
-| `user_sources` | `id` bigint PK; `title` varchar(255) NOT NULL; `is_active` boolean NOT NULL default false; `data` JSONB NOT NULL; timestamps |
+| `user_sources` | `id` bigint PK; `slug` varchar(63) UNIQUE NOT NULL; `title` varchar(255) NOT NULL; `is_active` boolean NOT NULL default false; `data` JSONB NOT NULL; timestamps |
 | `users` | `id` bigint PK; `name` varchar(255) NOT NULL; timestamps |
-| `members` | `id` bigint PK; `uuid` varchar(255) NOT NULL; `user_source_id` FK; `user_id` FK; timestamps; UNIQUE (`user_source_id`, `uuid`); index on `user_id` |
+| `members` | `id` bigint PK; `uuid` varchar(255) NOT NULL; `user_source_slug` varchar(63) FK to `user_sources.slug`; `user_id` FK; timestamps; UNIQUE (`user_source_slug`, `uuid`); index on `user_id` |
 | `personal_access_tokens` | Sanctum's normal tokenable/hash/abilities/expiry fields plus `member_id` FK, `provider_sid` nullable varchar(255), `provider_config_hash` varchar(64), encrypted `oidc_data` TEXT; index (`member_id`, `provider_sid`) |
 
 ### Identity relationships
 
+- UserSource retains an internal numeric primary key, but its immutable lowercase URL-safe slug is the relationship and public identifier. Validate slugs with `[a-z0-9]+(-[a-z0-9]+)*`, maximum 63 characters, and never rename an existing source implicitly. All `{source}` route parameters bind by slug; source resources and import/source commands use slugs, not numeric source IDs.
 - A User has many Members. A Member belongs to one User and one UserSource. A UserSource has many Members.
 - `uuid` stores Keycloak's exact subject/user ID as an opaque string. A SQL UUID type or globally unique subject constraint would reject some federated IDs or incorrectly conflate different sources.
 - Two different sources may use the same `uuid` without identifying the same local User.
@@ -84,7 +85,7 @@ The three domain models requested by the user are retained. Standard timestamps 
 ### UserSource.data
 
 - Keep all provider settings in JSONB: exact public issuer, realm/base URLs, trusted internal backchannel endpoints, OIDC client ID/secret, allowed signing algorithms, fixed callback/logout URIs, import service-account settings, pagination/timeouts and source-specific display configuration where needed.
-- Encrypt secret values individually inside the JSON object using the application encryption key; do not use Laravel's whole-value encrypted-array cast on a JSONB column. Hide `data` from default serialization. Public resources return only source ID and title.
+- Encrypt secret values individually inside the JSON object using the application encryption key; do not use Laravel's whole-value encrypted-array cast on a JSONB column. Hide `data` from default serialization. Public resources return only source slug and title.
 - Validate configured endpoints and provider discovery against the trusted operator configuration. Never choose issuer/JWKS/token URLs from browser callback parameters or unverified token claims. Preserve strict issuer/audience/signature validation.
 - Bind pending transactions and issued tokens to a fingerprint of the authentication-relevant source configuration. Changed issuer/client settings invalidate old transactions and credentials rather than rebinding them to a different provider.
 - Inactive sources cannot start/complete login or authorize existing API tokens.
@@ -99,7 +100,7 @@ The three domain models requested by the user are retained. Standard timestamps 
 ## 5. Source registration and import
 
 - Proposed command: `php artisan login:sources:upsert --config-file=/private/source.json`. Validate settings, encrypt secret fields and avoid printing credentials. The initial configured development source is seeded from private bootstrap configuration, not committed credentials.
-- Proposed import: `php artisan login:import-members --source=ID [--dry-run] [--mapping-file=/private/member-map.json]`.
+- Proposed import: `php artisan login:import-members --source=SLUG [--dry-run] [--mapping-file=/private/member-map.json]`.
 - Use the selected source's Admin API with a separate least-privilege service account, not an administrator's username/password. Read all pages with bounded retry and report imported/skipped/error counts without sensitive output.
 - Import enabled human users by default and skip service accounts/disabled identities. Re-import finds Member by `(source, uuid)` and does not create duplicates or change an existing explicit User association.
 - For a new external identity, create one User and its Member transactionally. Choose the initial display name from configured Keycloak name claims, falling back to username. Re-import does not overwrite an existing shared User's name.
@@ -118,7 +119,7 @@ The three domain models requested by the user are retained. Standard timestamps 
 
 | Laravel API route | Contract |
 | --- | --- |
-| `GET /api/login/sources` | Public, rate-limited active source IDs/titles only |
+| `GET /api/login/sources` | Public, rate-limited active source slugs/titles only |
 | `POST /api/login/sources/{source}/authorize` | Start a bound OIDC transaction and return the source authorization URL/transaction handoff |
 | `POST /api/login/sources/{source}/callback` | Validate one callback and imported membership; server-to-server credential response |
 | `GET /api/login/me` | Bearer protected; sanitized local User and current source/membership display data |
@@ -156,7 +157,7 @@ Use API Resources and validation requests within the module. Define consistent m
 
 ## 9. Ordered implementation steps
 
-Each step is pending revised-plan approval. Report **step N of 9 completed** and commit each plan update. Preserve separate backend/frontend/shared-infrastructure commits.
+The revised plan is approved; implementation may proceed. Report **step N of 9 completed** and commit each plan update. Preserve separate backend/frontend/shared-infrastructure commits.
 
 1. [ ] **Establish the Login module and token-only API foundation.** Add compatible Sanctum, register the module, move routes to API middleware and remove application session authentication without leaving a fallback.
 2. [ ] **Implement the schema and source configuration.** Add UserSource/Member/User and extended Sanctum migrations, relationships, secret handling, source validation and factories; verify migration/rollback on disposable data.
@@ -189,7 +190,7 @@ Each step is pending revised-plan approval. Report **step N of 9 completed** and
 - Proposed browser transport: Nuxt's protected credential cookie with Bearer forwarding. This is necessary to let SSR receive browser credentials without a Laravel session; no browser-readable token store is used.
 - Proposed logout display bound: 15-second visible-page recheck, plus immediate server revocation on a valid backchannel event and checks on requests/focus. A push-based instantaneous display update is not included.
 - Graphify remains the user-confirmed `https://www.graphify.ai/`. No update is claimed; authenticated access and its supported update workflow are still required for closeout.
-- Revised-plan approval: **pending**. Phase-completion approval: **pending**.
+- Revised-plan approval: **received on 2026-11-03**, including slug-based relationships and URLs. Phase-completion approval: **pending**.
 
 ## 12. Primary references
 
