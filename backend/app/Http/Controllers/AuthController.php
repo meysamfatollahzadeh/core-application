@@ -43,7 +43,7 @@ class AuthController extends Controller
             'redirect_uri' => config('app.url').'/api/auth/callback',
             'response_type' => 'code',
             'scope' => 'openid profile email',
-            'kc_locale' => 'fa',
+            'ui_locales' => 'fa',
             'state' => $state,
             'nonce' => $nonce,
             'code_challenge' => rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '='),
