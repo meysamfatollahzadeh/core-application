@@ -2,9 +2,9 @@
 
 ## Status and approval gate
 
-- Status: **Approved — implementation in progress.**
+- Status: **Implementation verified — awaiting user review and phase-completion approval.**
 - Planning date: 2026-11-02.
-- Implementation progress: **6 of 8 steps completed.**
+- Implementation progress: **7 of 8 steps completed.**
 - The user explicitly approved phase 1 and authorized implementation on 2026-11-02. Application scaffolding, Docker configuration, dependency installation, and development service startup are now authorized within this plan.
 - Completion requires a separate review and explicit approval from the user after implementation. Documentation and graph closeout follow that approval.
 - This file is the only current plan. Update and commit it whenever its content or progress changes.
@@ -145,7 +145,7 @@ Initial plan approval has been received. Report each completed step as **step N 
 4. [x] **Initialize PostgreSQL, Redis and pgAdmin.** Implement isolated roles/databases, persistent volumes, Laravel cache/session connectivity and pgAdmin access through 8082; verify database isolation and repeat startup behavior.
 5. [x] **Configure Nginx and Keycloak.** Implement the 8081 application gateway, HMR forwarding, the 8083 administration entry, realm/client bootstrap and minimal Laravel login/logout flow; verify canonical issuer and same-origin redirects.
 6. [x] **Configure Camunda.** Add the selected Orchestration Cluster, PostgreSQL secondary storage, engine persistence, Keycloak client/configuration and 8084 management proxy. Verify a disposable process deployment/execution through its internal API.
-7. [ ] **Complete and verify the integrated baseline.** Finish the minimal Persian Vuetify shell and local assets/theme modes. Run the full acceptance matrix below; fix failures, and present the working phase for user review. Await explicit completion approval and apply requested revisions.
+7. [x] **Complete and verify the integrated baseline.** Finish the minimal Persian Vuetify shell and local assets/theme modes. Run the full acceptance matrix below; fix failures, and present the working phase for user review. Await explicit completion approval and apply requested revisions.
 8. [ ] **Close the approved phase.** After completion approval, create English technical documentation and Persian usage guides in `docs/`, update the graph using the verified workflow for `https://www.graphify.ai/`, finish separately scoped frontend/backend/infrastructure/documentation commits, and report final validation and commit IDs.
 
 Do not mark step 7 complete until the review handoff is ready. Step 8 cannot begin before the user's explicit phase-completion approval. Never mark the entire phase complete with missing runtime verification or a missing required graph update.
@@ -230,10 +230,21 @@ Record commands, outcomes and any environment constraints here as implementation
 - Browser login using the shared Keycloak demo identity reaches Operate at `http://localhost:8084/operate`. The page renders without browser errors and its navigation remains on the management origin.
 - Normal startup uses private Nginx routing for canonical issuer discovery and separate internal backchannel endpoints.
 
-### Step 7 — integrated verification in progress
+### Step 7 — integrated verification completed; ready for review
 
 - Browser checks passed for light/dark/system modes, live device-theme changes, saved theme preference, Persian RTL, local Vazirmatn, absence of external frontend asset requests and a 390 px mobile layout without horizontal overflow. Local review screenshots are in ignored `output/playwright/`.
 - Gateway WebSocket HMR and immediate Laravel PHP source updates passed using temporary changes that were restored. Nuxt type checking and production build passed; Vite 8 WebSocket configuration now uses the supported `server.ws` API.
 - Operate, Tasklist and Camunda Admin render on 8084 using the shared Keycloak identity. All requested management entry points and database isolation smoke checks passed.
 - Authentication tests now cover additional authorized-party, multi-audience and future-issued token rejection: 8 tests / 56 assertions pass.
-- Fresh-checkout testing identified Artisan Serve's environment filtering when a local `.env` exists. The container now adds `--no-reload` to retain Compose-provided environment variables; PHP source reload remains automatic per request. Fresh bootstrap and original-volume persistence checks are being rerun before review handoff.
+- Fresh-checkout testing identified Artisan Serve's environment filtering when a local `.env` exists. The container now adds `--no-reload` to retain Compose-provided environment variables; PHP source reload remains automatic per request. Fresh bootstrap and original-volume persistence checks subsequently passed, as recorded below.
+
+### Final review handoff — 2026-11-03
+
+- A fresh archive checkout with new isolated volumes starts successfully with `./scripts/dev up`. The initial failures found by this check were fixed: Artisan environment forwarding and a PHPUnit reference to an empty, untracked Unit directory.
+- In that fresh checkout, `./scripts/dev test` passed all 8 backend tests / 56 assertions, the HTTP/data-isolation/port/style smoke checks, and authenticated internal Camunda process execution and cleanup. Frontend type checking and production compilation also passed.
+- The disposable validation stack was removed and the main `organization-dev` stack restored with its original volumes. All eight runtime services are healthy. The original Redis marker survived full container recreation, and the original Keycloak demo identity remains present with its earlier creation timestamp.
+- A new browser login after restoration succeeded on 8081. The standard OIDC `ui_locales=fa` hint renders Persian Keycloak login. The authenticated application session survived a subsequent restart of both Laravel and Redis. The temporary Redis marker was removed.
+- Generated local secrets are absent from tracked files. Source formatting, Compose validation, frontend type checking and Git whitespace checks pass. Frontend, backend and infrastructure changes are in separately scoped commits.
+- The development services are left running for user review: application 8081, pgAdmin 8082, Keycloak administration 8083, Camunda management 8084. Local credentials are in ignored root `.env`; `DEMO_USERNAME`/`DEMO_PASSWORD` are for application/Camunda login.
+- **Review gate:** implementation steps 1–7 are complete. Step 8 has not started. Await the user's review, requested adjustments and explicit phase-completion approval before producing `docs/` technical documentation and Persian guides.
+- **Graphify closeout dependency:** no graph update has been performed. The confirmed service is `https://www.graphify.ai/`; authenticated access and its supported update workflow still need to be established for step 8. The phase is not marked complete.
