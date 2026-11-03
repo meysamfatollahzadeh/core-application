@@ -1,250 +1,199 @@
-# Current Plan — Phase 1: Monorepo and Development Infrastructure
+# Current Plan — Phase 1 Revision: Modular Multi-Source Login
 
-## Status and approval gate
+## Status, baseline and approval
 
-- Status: **Implementation verified — awaiting user review and phase-completion approval.**
-- Planning date: 2026-11-02.
-- Implementation progress: **7 of 8 steps completed.**
-- The user explicitly approved phase 1 and authorized implementation on 2026-11-02. Application scaffolding, Docker configuration, dependency installation, and development service startup are now authorized within this plan.
-- Completion requires a separate review and explicit approval from the user after implementation. Documentation and graph closeout follow that approval.
-- This file is the only current plan. Update and commit it whenever its content or progress changes.
+- Status: **Revised design — awaiting explicit user approval before implementation.**
+- Revision date: 2026-11-03.
+- Revision implementation progress: **0 of 9 steps completed.**
+- The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
+- This revision replaces the previous current plan, not the existing infrastructure. Earlier commits preserve the baseline plan and evidence. Do not create a competing active plan or mark the phase complete.
+- Authorized now: record the revised requirements and design. Do not install Sanctum, add migrations, change application routes/UI or start the proposed extra identity service until this revised plan is approved.
+- Preserve the approved monorepo, Laravel/PHP runtime on internal 8000, Nuxt dev runtime on internal 3000, Redis/PostgreSQL, Camunda, local frontend assets, and gateway/management ports 8081–8084.
+- After implementation, pause for user review. Only after explicit phase-completion approval create English technical Markdown and Persian usage guides in `docs/`, update Graphify, and close the phase with separately scoped commits.
 
-## 1. Subject and intended outcome
+## 1. Subject and outcome
 
-Build the initial monorepo and a reproducible Docker Compose development environment for Laravel, Nuxt/Vuetify, PostgreSQL, Redis, Keycloak, Camunda, pgAdmin, and Nginx.
+Replace the session-based single-provider prototype with a modular Login API using Sanctum Bearer tokens, multiple Keycloak sources, pre-imported local memberships, server-rendered Nuxt authentication and bidirectional logout.
 
-The application opens at `http://localhost:8081`. Its frontend, backend API, and identity flow share this origin. Separate management entry points exist on ports 8082–8084. All inter-service communication uses Docker networking, not host-published service ports.
+Only the Login business module is developed. Source registration/import commands are included; source/user administration screens, roles/permissions, unrelated business modules and automatic account linking are excluded.
 
-## 2. Scope
+## 2. Architectural decisions
 
-### Included
+### Laravel API and the meaning of stateless
 
-- Laravel and Nuxt skeletons, Dockerfiles, Compose configuration, reverse proxy, environment templates, lockfiles, and development commands.
-- PostgreSQL databases and service roles, Redis cache configuration, persistent volumes, health checks, and repeatable initialization.
-- Keycloak development realm and clients; a minimal login/logout verification path through port 8081. This verifies infrastructure and does not introduce business authorization features.
-- Camunda runtime and management UI, persistence, Keycloak integration, and an ephemeral process deployment/execution smoke check.
-- A minimal Persian RTL Vuetify landing page with local Vazirmatn, local assets, and light/dark/system theme selection.
-- Automated infrastructure smoke checks and browser verification where appropriate.
+- Install Sanctum in API-token mode. Configure token-only authentication (`auth:sanctum` without a session guard fallback) and route the module through Laravel's API middleware group.
+- Remove application authentication routes from the `web` middleware, the session endpoint, StartSession-dependent logic, session cookies and Redis login-session configuration. Old application session cookies are explicitly expired during the transition; do not flush unrelated Redis data.
+- Sanctum stores token hashes in PostgreSQL to support lookup, expiry and revocation. This is token-based API authentication without Laravel sessions; it is not a promise of zero server-side persistence.
+- Redis remains available for cache, throttling, short-lived single-use OIDC transactions, replay protection and refresh locks. None of these becomes a replacement browser login session.
+- Keycloak remains the identity provider. Sanctum is the application's API credential; it does not replace OIDC or validate a Keycloak JWT as though it were a Sanctum token.
 
-### Excluded
+### Nuxt credential transport and SSR
 
-- Business modules, organizational database entities, production deployment, Kubernetes, production TLS, and production availability architecture.
-- Full user administration screens, business roles and permissions, user synchronization, custom Keycloak themes, and business BPMN processes.
-- Camunda Optimize, Web Modeler, and other optional products unless explicitly added to this plan.
+- Use a thin Nuxt server gateway: browser requests to `/gateway/login/*` are forwarded internally to Laravel `/api/login/*` with a Bearer header. Direct Laravel API consumers can still call `/api/login/*` with their own Bearer header.
+- Nuxt stores the browser's application credential in an encrypted, HttpOnly, SameSite=Lax cookie, with Secure enabled on HTTPS and a development HTTP exception. The cookie transports the token for SSR; it is not a Laravel session ID. No Nuxt session store is introduced.
+- Browser JavaScript never receives the Sanctum Bearer or Keycloak access/refresh tokens. Do not put credentials in localStorage/sessionStorage, callback URLs, logs or serialized Nuxt payloads.
+- Resolve `/api/login/me` on the Nuxt server and await it before rendering. Serialize only sanitized user/source display data in request-scoped Nuxt state. Never cache authenticated HTML or share identity state between SSR requests.
+- SSR renders the correct authenticated or anonymous control in its first HTML response. Hydration must preserve it, without a mounted login-to-logout switch.
+- A 401 clears the browser credential and produces an anonymous result. An upstream outage produces an unavailable state/503, not a false successful login or an automatic anonymous flash.
+- Nuxt cookie-authenticated mutation routes validate Origin and CSRF proof without a session store. Laravel API authentication remains Bearer-only; the signed provider webhook has its own protocol validation.
 
-## 3. Proposed monorepo layout
+## 3. Login module structure
 
 ```text
-AGENTS.md
-PLAN.md
-compose.yaml
-.env.example
-.gitignore
-backend/                      Laravel application and its lockfile
-frontend/                     Nuxt/Vuetify application and its lockfile
-  assets/styles/              Shared CSS and theme styles
-  public/fonts/               Locally stored Vazirmatn files and license
-  public/icons/               Local icons, where needed
-  public/images/              Local images, where needed
-infra/
-  docker/backend/             Development PHP image and entrypoint
-  docker/frontend/            Development Node image and entrypoint
-  nginx/                     Gateway and management listeners
-  postgres/                  Database/role initialization
-  keycloak/                  Realm/client bootstrap templates
-  camunda/                   Runtime and identity configuration
-  pgadmin/                   Local server registration
-scripts/                     Bootstrap and smoke-check commands
-docs/                        Added after phase completion approval
+backend/app/Modules/Login/
+  Models/                    UserSource, Member, User, PersonalAccessToken
+  Actions/                   StartLogin, CompleteLogin, Logout, ImportMembers
+  Services/                  Per-source OIDC/admin clients, token validation
+  Http/Controllers/
+  Http/Requests/
+  Http/Resources/
+  Http/Middleware/            Membership/source/upstream token checks
+  Console/Commands/
+  Database/Migrations/
+  Database/Factories/
+  Providers/LoginServiceProvider.php
+  Routes/api.php
+backend/tests/Feature/Login/  Module-focused integration tests
+frontend/server/routes/gateway/login/
+frontend/server/routes/login/  Callback and logout continuation
+frontend/app/components/login/ Source-selection dialog
+frontend/app/composables/     Request-scoped authentication state
 ```
 
-The user confirmed Graphify at `https://www.graphify.ai/`. Record the supported graph-update workflow and any export location after verifying its capabilities and account access; do not assume that a local CLI or repository graph export exists. Generated dependency directories, local secrets, database files, and runtime volumes are not committed.
+Register only the Login module provider at the application composition root. Its provider loads routes, migrations and commands. Keep the generic infrastructure health endpoint outside business logic. Move the existing OIDC prototype into the module and replace its session behavior; do not leave two competing authentication paths.
 
-## 4. Implementation method
+## 4. Database design
 
-### Runtime selection
+The three domain models requested by the user are retained. Standard timestamps are added. No local email/password/reset tables are introduced.
 
-- Select compatible, maintained Laravel/PHP and Nuxt/Node/Vuetify releases from official documentation during step 1; record exact versions before scaffolding.
-- Proposed process engine: **Camunda 8.9 Self-Managed**, minimal Orchestration Cluster (Zeebe, Operate, Tasklist and administration), with PostgreSQL secondary storage and persistent engine state. Do not substitute Camunda 7 without a revised approved plan.
-- Integrate Camunda directly with the project's Keycloak where supported by the pinned release; do not start an unrelated second identity provider.
-- Use exact image versions and committed Composer/npm lockfiles; no floating `latest` tags. Verify the selected Camunda release's development terms and PostgreSQL compatibility.
-- Do not switch to H2, SQLite, Elasticsearch, or an additional infrastructure component to bypass a compatibility issue. Report the issue and revise the plan before changing architecture.
-
-### Containers and networking
-
-- Services: `nginx`, `backend`, `frontend`, `postgres`, `redis`, `keycloak`, `camunda`, and `pgadmin`. Add a one-shot bootstrap/migration service if needed for deterministic startup.
-- Use a private application network with service DNS names. Only Nginx publishes host ports; it proxies all four entry points to the relevant containers. Bind development entry points to loopback by default.
-- Laravel runs `php artisan serve --host=0.0.0.0 --port=8000`.
-- Nuxt runs `npm run dev`, configured to listen on `0.0.0.0:3000`; forward WebSocket upgrades through Nginx for HMR.
-- Mount source code for editing and isolate container dependency directories from host dependencies. Enable polling only when the host requires it.
-- Start services based on actual readiness, use bounded retries for dependency startup, and persist PostgreSQL, Redis where configured, Keycloak data in PostgreSQL, Camunda engine state, and pgAdmin configuration.
-- Provide one documented bootstrap/start command, safe stop/restart commands, and an explicitly destructive reset command. Normal restarts must preserve data.
-
-### Gateway and public routes
-
-| Host entry point | Destination and behavior |
+| Table | Fields and constraints |
 | --- | --- |
-| `http://localhost:8081/` | Nuxt frontend on internal port 3000 |
-| `http://localhost:8081/api/*` | Laravel API on internal port 8000; preserve Laravel's API prefix |
-| `http://localhost:8081/auth/*` | Keycloak public realm/login endpoints under `/auth` |
-| `http://localhost:8081/api/auth/*` | Minimal application authentication routes handled by Laravel |
-| `http://localhost:8082/` | pgAdmin management |
-| `http://localhost:8083/` | Keycloak administration, with path-aware redirects to its admin console |
-| `http://localhost:8084/` | Camunda management entry, landing on Operate; Tasklist/admin also reachable here |
+| `user_sources` | `id` bigint PK; `title` varchar(255) NOT NULL; `is_active` boolean NOT NULL default false; `data` JSONB NOT NULL; timestamps |
+| `users` | `id` bigint PK; `name` varchar(255) NOT NULL; timestamps |
+| `members` | `id` bigint PK; `uuid` varchar(255) NOT NULL; `user_source_id` FK; `user_id` FK; timestamps; UNIQUE (`user_source_id`, `uuid`); index on `user_id` |
+| `personal_access_tokens` | Sanctum's normal tokenable/hash/abilities/expiry fields plus `member_id` FK, `provider_sid` nullable varchar(255), `provider_config_hash` varchar(64), encrypted `oidc_data` TEXT; index (`member_id`, `provider_sid`) |
 
-The more-specific application auth routes take precedence over generic routing. Application browser requests must never use Docker hostnames or ports 8000, 3000, 5432, 6379, 8083, or 8084.
+### Identity relationships
 
-### Identity and origin handling
+- A User has many Members. A Member belongs to one User and one UserSource. A UserSource has many Members.
+- `uuid` stores Keycloak's exact subject/user ID as an opaque string. A SQL UUID type or globally unique subject constraint would reject some federated IDs or incorrectly conflate different sources.
+- Two different sources may use the same `uuid` without identifying the same local User.
+- One User can deliberately link several Members. Linking requires an explicit operator-provided mapping; matching names or email claims never links accounts automatically.
+- Domain deletes use restrictive foreign keys in this revision; destructive user/source management is outside scope. Revoking a credential deletes its token record. The token owner must match `member.user_id`.
 
-- Canonical public Keycloak issuer: `http://localhost:8081/auth/realms/organization-dev`.
-- Configure Keycloak's proxy headers, relative path, and separate administration URL consistently. Nginx overwrites forwarded headers; test actual generated redirects, discovery metadata, cookies, and asset URLs.
-- Use a Laravel confidential OIDC client with Authorization Code flow and PKCE, state and nonce validation, server-side token storage, and an HttpOnly application session cookie. Keep secrets out of Nuxt public configuration and browser storage.
-- Proposed callback: `http://localhost:8081/api/auth/callback`. Register exact redirect/logout URIs and allowed origins; avoid wildcard redirects.
-- Keep login and logout redirects on port 8081. The management URL on 8083 must not appear in the application login flow.
-- Preserve one issuer identity for browser and server validation. Configure supported internal backchannel access or explicit internal routing to the canonical issuer; never treat container `localhost` as the host or disable issuer validation.
-- SSR uses internal backend URLs; browser API requests use relative `/api` URLs. Forward cookies deliberately for SSR.
-- Give Camunda its own Keycloak client and audience. Its management UI uses 8084, while its identity redirects use the same Keycloak gateway on 8081. Backend-to-Camunda calls stay internal.
-- The application shell remains on 8081; users opening the explicitly requested management consoles may use their respective management ports.
+### UserSource.data
 
-## 5. Database design
+- Keep all provider settings in JSONB: exact public issuer, realm/base URLs, trusted internal backchannel endpoints, OIDC client ID/secret, allowed signing algorithms, fixed callback/logout URIs, import service-account settings, pagination/timeouts and source-specific display configuration where needed.
+- Encrypt secret values individually inside the JSON object using the application encryption key; do not use Laravel's whole-value encrypted-array cast on a JSONB column. Hide `data` from default serialization. Public resources return only source ID and title.
+- Validate configured endpoints and provider discovery against the trusted operator configuration. Never choose issuer/JWKS/token URLs from browser callback parameters or unverified token claims. Preserve strict issuer/audience/signature validation.
+- Bind pending transactions and issued tokens to a fingerprint of the authentication-relevant source configuration. Changed issuer/client settings invalidate old transactions and credentials rather than rebinding them to a different provider.
+- Inactive sources cannot start/complete login or authorize existing API tokens.
 
-Use one PostgreSQL development instance with isolated logical databases and non-superuser service roles:
+### Token and upstream grant data
 
-| Database | Owner role | Purpose / schema owner |
-| --- | --- | --- |
-| `organization_app` | `organization_app` | Laravel migrations and framework metadata |
-| `keycloak` | `keycloak` | Keycloak-managed identity schema |
-| `camunda` | `camunda` | Camunda-managed PostgreSQL secondary storage |
+- A Sanctum token belongs to User and records the Member used for that login. Store its associated provider session ID and encrypted access/refresh/ID tokens with upstream expiry in `oidc_data`.
+- Use finite token expiry (proposed maximum 24 hours), additionally bounded by upstream validity. Perform safe refresh before upstream access-token expiry; use a per-grant lock to avoid concurrent refresh rotation races.
+- Unknown Members, changed source configuration, expired/revoked grants and invalid upstream identities do not receive application access.
+- Existing business data is not deleted. These are additive application migrations; Keycloak/Camunda continue to own their own schemas. No default Laravel users/password-reset migration is used.
 
-- Bootstrap creates roles/databases idempotently where practical. Service roles cannot access other service databases. A separate bootstrap administrator is not used as an application runtime role.
-- Use PostgreSQL UTF-8 encoding and consistent UTC timestamps. Localization belongs at presentation boundaries.
-- No business tables or business relationships are introduced in phase 1.
-- Laravel initially requires only its migration ledger. Use Redis for cache and sessions; keep unused skeleton user/password-reset/database-session tables out of initial migrations.
-- Keycloak owns users, credentials, groups, and identity configuration. The minimal application login uses the verified `iss` and `sub` claims in its session without copying credentials or creating an application user table.
-- Future application user profiles and foreign keys to business entities require a later approved database design.
-- Keycloak and Camunda initialize and migrate their own schemas using their supported tools. Laravel migrations must never modify those databases.
-- Camunda PostgreSQL storage does not replace Zeebe's primary engine state: persist the engine's required data directory separately.
-- Redis uses distinct prefixes for cache and application sessions; persistence and invalidation behavior are documented. Redis is not the source of truth for users or business records.
-- Credentials are configurable through ignored environment files; commit examples/placeholders only.
+## 5. Source registration and import
 
-## 6. Frontend baseline
+- Proposed command: `php artisan login:sources:upsert --config-file=/private/source.json`. Validate settings, encrypt secret fields and avoid printing credentials. The initial configured development source is seeded from private bootstrap configuration, not committed credentials.
+- Proposed import: `php artisan login:import-members --source=ID [--dry-run] [--mapping-file=/private/member-map.json]`.
+- Use the selected source's Admin API with a separate least-privilege service account, not an administrator's username/password. Read all pages with bounded retry and report imported/skipped/error counts without sensitive output.
+- Import enabled human users by default and skip service accounts/disabled identities. Re-import finds Member by `(source, uuid)` and does not create duplicates or change an existing explicit User association.
+- For a new external identity, create one User and its Member transactionally. Choose the initial display name from configured Keycloak name claims, falling back to username. Re-import does not overwrite an existing shared User's name.
+- An optional explicit map associates a provider subject with an existing local `user_id`; validate both sides. No automatic email/name merge is performed.
+- Import does not copy passwords and does not grant API tokens. The login callback remains responsible for verifying the provider and the imported membership.
+- Do not delete local users or memberships just because one import page fails or an account disappears remotely. Upstream validity checks prevent disabled/revoked identities from authorizing API access.
 
-- Build only an infrastructure landing page showing the application shell, theme selector, and login/logout state; do not invent business modules.
-- Configure Persian language and RTL, Vuetify, locally stored Vazirmatn and its license, and local icon assets.
-- Put all custom CSS and theme styling in dedicated files. No Vue component styles or inline style bindings.
-- Provide light, dark, and system modes. Remember an explicit user choice and follow live device-theme changes in system mode without hydration errors.
-- Use restrained organization-appropriate colors, readable text, visible focus, and comfortable spacing for long sessions.
+## 6. Login flow and API contract
 
-## 7. Ordered implementation steps
+1. Clicking Login opens a Vuetify dialog listing active sources. Loading/error/empty states are explicit. Selecting a source starts the redirect flow; the selection popup is not an extra browser window.
+2. Nuxt initiates login through the API and stores a short-lived HttpOnly transaction-binding cookie. Laravel creates a five-minute transaction in Redis with source/config fingerprint, random state, nonce, PKCE verifier and fixed callback target. This is a temporary protocol transaction, not a Laravel session.
+3. The browser visits the selected provider through its approved gateway URL. Credentials are entered only at Keycloak.
+4. Keycloak returns to Nuxt `/login/callback/{source}` on port 8081. Nuxt forwards code/state and the browser-binding proof internally to Laravel. Consume the matching transaction atomically once; reject expired, replayed, cross-source or mismatched callbacks.
+5. Laravel exchanges the code with that source, validates the identity, and finds the existing Member using the verified subject and selected source. If absent, return a clear access-denied result; do not auto-create User/Member here.
+6. Issue the finite Sanctum token for the Member's User. Return the credential only to the Nuxt server, which sets its protected credential cookie, removes the temporary transaction cookie and redirects to the application.
 
-Initial plan approval has been received. Report each completed step as **step N of 8** and update/commit this plan.
-
-1. [x] **Confirm prerequisites and pin versions.** Check Git, Docker/Compose, host resources and port availability; record the compatible release matrix. Verify the confirmed Graphify service's graph-update capabilities and required account access. Escalate material architecture changes for approval before proceeding.
-2. [x] **Create the monorepo skeleton.** Scaffold Laravel and Nuxt/Vuetify, commit dependency lockfiles, add ignore rules, and establish environment templates and shared development commands. Keep backend and frontend commits separate.
-3. [x] **Build containerized development runtime.** Add Dockerfiles, Compose services/networking, source mounts, dependency volumes, health checks, startup ordering and development commands with the required internal ports.
-4. [x] **Initialize PostgreSQL, Redis and pgAdmin.** Implement isolated roles/databases, persistent volumes, Laravel cache/session connectivity and pgAdmin access through 8082; verify database isolation and repeat startup behavior.
-5. [x] **Configure Nginx and Keycloak.** Implement the 8081 application gateway, HMR forwarding, the 8083 administration entry, realm/client bootstrap and minimal Laravel login/logout flow; verify canonical issuer and same-origin redirects.
-6. [x] **Configure Camunda.** Add the selected Orchestration Cluster, PostgreSQL secondary storage, engine persistence, Keycloak client/configuration and 8084 management proxy. Verify a disposable process deployment/execution through its internal API.
-7. [x] **Complete and verify the integrated baseline.** Finish the minimal Persian Vuetify shell and local assets/theme modes. Run the full acceptance matrix below; fix failures, and present the working phase for user review. Await explicit completion approval and apply requested revisions.
-8. [ ] **Close the approved phase.** After completion approval, create English technical documentation and Persian usage guides in `docs/`, update the graph using the verified workflow for `https://www.graphify.ai/`, finish separately scoped frontend/backend/infrastructure/documentation commits, and report final validation and commit IDs.
-
-Do not mark step 7 complete until the review handoff is ready. Step 8 cannot begin before the user's explicit phase-completion approval. Never mark the entire phase complete with missing runtime verification or a missing required graph update.
-
-## 8. Acceptance and verification matrix
-
-| Check | Required result |
+| Laravel API route | Contract |
 | --- | --- |
-| Clean bootstrap | A fresh checkout plus environment setup starts with the documented command; all required services become ready |
-| Compose validation | Configuration resolves without missing variables; images and application dependencies are pinned |
-| Port exposure | Only loopback host ports 8081, 8082, 8083, 8084 are published; service ports remain private |
-| Main gateway | Frontend and Laravel API respond through 8081, including Nuxt HMR WebSockets |
-| Identity flow | Login, callback, authenticated session and logout work; application redirects remain on 8081 |
-| OIDC consistency | Discovery issuer and token `iss` match; server and browser can reach their intended endpoints without weakening validation |
-| Management consoles | pgAdmin on 8082, Keycloak admin on 8083, and Camunda Operate/Tasklist/admin on 8084 render with working assets and navigation |
-| Database isolation | Each runtime role can access its database and is denied access to other service databases |
-| Redis | Laravel cache set/get and session continuity work; application cache/session settings use Redis |
-| Camunda | Authenticated internal API access, disposable process execution, and management visibility work |
-| Restart | Normal stop/start preserves databases, identity configuration and Camunda state; initialization does not duplicate objects |
-| Frontend | Persian RTL, local Vazirmatn/icons, responsive shell, three theme modes, and live system-theme switching work |
-| Asset/style policy | Browser performs no CDN asset requests; source scan finds no component style blocks or inline styles authored by the project |
-| Developer changes | Editing Laravel/Nuxt source is reflected without rebuilding images for every edit |
-| Secret handling | Real secrets, tokens, local env files and volume data are absent from Git |
-| Closeout | User completion approval, English technical docs, Persian guide, graph refresh and scoped commits are recorded |
+| `GET /api/login/sources` | Public, rate-limited active source IDs/titles only |
+| `POST /api/login/sources/{source}/authorize` | Start a bound OIDC transaction and return the source authorization URL/transaction handoff |
+| `POST /api/login/sources/{source}/callback` | Validate one callback and imported membership; server-to-server credential response |
+| `GET /api/login/me` | Bearer protected; sanitized local User and current source/membership display data |
+| `POST /api/login/logout` | Bearer protected; revoke local grant and create the bounded RP logout handoff |
+| `POST /api/login/sources/{source}/backchannel-logout` | Signed OIDC logout notification; no browser cookie/session required |
 
-Record commands, outcomes and any environment constraints here as implementation progresses. Use focused smoke checks and actual browser evidence; do not report planned tests as passed.
+Use API Resources and validation requests within the module. Define consistent machine-readable errors; use 401 for invalid credentials, 403 for an unimported identity, 422 for bad input, 429 for throttling, and 503 for an unavailable provider. Never return provider secrets in errors.
 
-## 9. Review decisions and current constraints
+## 7. Bidirectional logout and current validity
 
-- **Camunda proposal:** 8.9 with PostgreSQL secondary storage; approval of this plan includes this architecture choice. Exact patch versions are recorded in step 1 after compatibility checks.
-- **Graph tool confirmed:** The user explicitly selected `https://www.graphify.ai/`. Its public page describes KPI tracking and visualization, not a source-code knowledge-graph CLI. Supported graph updates, account access, and any export/API capabilities remain to be verified before integration; do not install a similarly named product or promise an unsupported automation. This clarification is not approval to start phase implementation.
-- **Git:** The workspace initially had no usable repository. Git initialization succeeded using the environment's approved permission mechanism; the initial rules and draft plan were committed as `5acef50`. Never delete or replace protected metadata as a workaround.
-- **Approval record:** Initial plan approval: received on 2026-11-02 (user: "پلن فاز اول رو تأیید می‌کنم، پیاده‌سازی رو شروع کن."). Phase completion approval: pending.
+### Keycloak to application
 
-## 10. Official references used for this proposal
+- Register a reachable backchannel logout URL per source/client. Docker providers use the private backend route; externally operated providers require an externally reachable approved URL.
+- Validate logout-token signature, exact issuer, expected audience, issue time, event claim, absence of nonce and `sid`/`sub`; protect against replay using `jti`.
+- Revoke matching application grants for the same source and provider session. If the valid event identifies only a subject, revoke that subject's grants within that source. Never revoke an unrelated source because its subject/session string happens to match.
+- Validate the upstream grant on every protected API request and SSR `/me` without a positive validity cache in this revision. Refresh when appropriate; reject invalid grants. An unavailable provider fails closed with 503. This also covers missed logout delivery.
+- Already open pages recheck authentication while visible every 15 seconds and on focus; 401 clears displayed authentication. Server access is revoked on the valid event/next validity check; idle-page visual feedback is bounded by the polling interval, not claimed to be instantaneous.
 
-- [Keycloak reverse proxy configuration](https://www.keycloak.org/server/reverseproxy)
-- [Keycloak hostname and administration URL configuration](https://www.keycloak.org/server/hostname)
-- [Camunda 8.9 Docker Compose development configuration](https://docs.camunda.io/docs/8.9/self-managed/quickstart/developer-quickstart/docker-compose/configuration/)
-- [Camunda 8.9 PostgreSQL secondary storage](https://docs.camunda.io/docs/8.9/self-managed/quickstart/developer-quickstart/docker-compose/secondary-storage/)
-- [Graphify — user-confirmed service](https://www.graphify.ai/)
+### Application to Keycloak
 
-## Implementation evidence
+- Revoke the local token immediately and complete standards-based RP-Initiated Logout for its originating Keycloak session. Preserve the minimal encrypted logout handoff briefly while removing the local grant.
+- Use the provider logout endpoint and a validated return to port 8081. Prefer a POST handoff to avoid putting ID-token hints in URL history. Any ID-token hint is only a short-lived protocol form value; access/refresh/Sanctum tokens never enter browser JavaScript or URLs.
+- Make retries/idempotent provider notifications safe. A failed remote logout must not restore local access or be reported as successful remote logout.
+- Logout covers the originating provider session and grants bound to it. It is not an unrequested global logout from every independent source/device linked to the local User.
 
-### Step 1 — prerequisites and release matrix
+## 8. Multi-provider development and gateway
 
-- Docker Engine 29.5.3 and Compose 5.1.4 are available through the environment permission mechanism; ports 8081–8084 were free. Host: 15 GiB RAM, approximately 5 GiB available, 282 GiB free disk. Scope runtime memory for this development host.
-- Selected versions: PHP 8.4.21 CLI (Bookworm), Laravel framework 13.39.0 (skeleton 13.11.0), Composer 2.10.3, Node 24.22.1 (Bookworm slim), Nuxt 4.6.3, Vue 3.5.44, Vuetify 3.13.7, vite-plugin-vuetify 2.1.3, Keycloak 26.7.3, Camunda 8.9.27, PostgreSQL 17.6 Alpine, Redis 8.2.2 Alpine, Nginx 1.28.0 Alpine, pgAdmin 9.10. Image pulls and compatibility checks continue before runtime validation.
-- Official Camunda 8.9 distribution downloaded for configuration reference; it supports PostgreSQL secondary storage without Elasticsearch. The development environment uses the applicable non-production evaluation terms.
-- Graphify identity is confirmed. Its public page provides organization signup/login and KPI visualization, but no verified code-graph API/CLI or authenticated project access is available. Graph closeout remains an explicit dependency; no graph update is claimed.
-- Phase approval recorded in commit `8e7e4c2`.
+- Keep the existing provider under `/auth` and preserve its management access on 8083 and Camunda's integration.
+- Add a second independent development Keycloak instance for acceptance testing, with a separate PostgreSQL database/role and persistent data. Use the same pinned Keycloak version. This proves different providers, not merely two clients in one realm.
+- Propose the second provider's public base at `http://localhost:8081/identity/secondary`, with path/hostname/proxy settings configured consistently. Route its admin console under a distinct path on existing management port 8083; do not publish a fifth host port.
+- Keep Nuxt callbacks under `/login/*` and browser gateway calls under `/gateway/login/*` so they do not collide with Keycloak's `/auth/*` routes or Laravel's `/api/*` routes.
+- Bootstrap the added database/role idempotently on both existing and fresh PostgreSQL volumes. Do not reset existing databases or replace the primary Keycloak realm.
+- Configured providers in this phase must support the approved public gateway URLs. Do not silently rewrite an independently operated provider's issuer if it cannot be configured this way; resolve that integration constraint in the plan first.
+- Verify SSR, refresh, callbacks and logout under the same application origin. Recheck existing pgAdmin/Keycloak/Camunda management entry points after routing changes.
 
-### Step 2 — monorepo skeleton
+## 9. Ordered implementation steps
 
-- Laravel skeleton and OIDC/session infrastructure committed separately in `18eb4bc`; 8 focused authentication tests passed with 47 assertions. Pint formatting and Composer validation pass. No application user/password tables or frontend build system are retained in the backend.
-- Nuxt/Vuetify skeleton, npm lockfile, local Vazirmatn font/license, local SVG icon dependencies and Persian shell are prepared. `npm install` using Node 24.22.1 completed and `nuxt prepare` generated types. Browser validation remains pending.
-- Environment examples, private generated secrets and development command scaffolding are prepared. No phase-completion documentation has been created.
+Each step is pending revised-plan approval. Report **step N of 9 completed** and commit each plan update. Preserve separate backend/frontend/shared-infrastructure commits.
 
-### Step 3 — development runtime
+1. [ ] **Establish the Login module and token-only API foundation.** Add compatible Sanctum, register the module, move routes to API middleware and remove application session authentication without leaving a fallback.
+2. [ ] **Implement the schema and source configuration.** Add UserSource/Member/User and extended Sanctum migrations, relationships, secret handling, source validation and factories; verify migration/rollback on disposable data.
+3. [ ] **Register sources and import memberships.** Implement validated source/import commands, pagination, repeat-safe imports, dry-run and explicit identity mapping. Bootstrap/import the first development source.
+4. [ ] **Implement source-bound login and token lifecycle.** Build PKCE/state/nonce callbacks, imported-member authorization, token issuing/expiry, refresh locking and source/config invalidation.
+5. [ ] **Implement logout and upstream verification.** Add verified backchannel handling, replay protection, per-request upstream validity checks, RP logout and failure semantics.
+6. [ ] **Implement Nuxt SSR and source selection.** Add credential transport/gateway, awaited SSR identity, dialog, logout handoff, visible-page/focus rechecks and appropriate unavailable states. Preserve local assets/RTL/themes and external CSS rules.
+7. [ ] **Validate two independent providers in Docker.** Add the second provider/database and same-origin routing, register/import both sources and verify cross-source identity isolation while preserving management services.
+8. [ ] **Complete integrated acceptance and hand off for review.** Run the matrix below, fix failures, update the plan and present the working revision. Await explicit phase-completion approval and apply review adjustments.
+9. [ ] **Close the approved phase.** Only after approval, write English database/business/API documentation and Persian operational guides, update Graphify using its verified accessible workflow, and finish separately scoped commits.
 
-- Both PHP and Nuxt development images built successfully from pinned base versions and committed lockfiles. Compose configuration validation passes. Source binds, separate dependency volumes, health checks, restart policies and bounded `up --wait` are configured.
-- `scripts/dev` provides bootstrap/start, stop, restart, logs, status, test and explicit destructive reset commands. Python bootstrap creates ignored local credentials without printing them; service initialization is separate from normal runtime commands.
-- PostgreSQL, Redis, Keycloak, pgAdmin and the gateway are running. Laravel readiness responds through port 8081. Nuxt runtime and full browser checks are being completed next.
+## 10. Acceptance matrix
 
-### Step 4 — data services
+- Protected Laravel endpoints accept a valid Sanctum Bearer, reject missing/expired/revoked credentials, and cannot authenticate through a Laravel session cookie. No StartSession/session-based Sanctum SPA middleware is used by application API routes.
+- The source-selection dialog lists only active sources and never exposes provider configuration or secrets. A disabled source rejects both new login and existing API access.
+- An enabled imported identity logs in; an equally valid unimported Keycloak identity receives 403 and creates no User/Member/token.
+- Re-import across multiple pages creates no duplicates; a dry-run changes nothing. Identical subjects in two providers remain distinct. Explicit mappings allow two Members to share one User without automatic merging.
+- Code/state/nonce/PKCE validation, expiry, replay, wrong source/issuer/audience/signature and changed configuration fail safely.
+- The initial SSR HTML already has the correct user and login/logout control, including after a reload. Test with JavaScript disabled and concurrent different-user SSR requests. Authenticated responses/payloads never leak credentials or another user's data.
+- Signed provider logout invalidates the correct grants; forged/replayed/wrong-source events cannot revoke others. Missed notifications are caught by upstream verification. Provider outages yield 503 without silently accepting stale credentials or unnecessarily destroying valid local credentials.
+- Expired access tokens refresh safely once under concurrency. Invalid/revoked refresh grants revoke application access. Local token expiry cannot be extended without an approved lifecycle action.
+- Application logout clears local access and actually terminates the originating Keycloak SSO login. A visible idle tab reflects remote logout within 15 seconds; focus/request/SSR checks also detect it.
+- Browser transport remains HttpOnly; mutating Nuxt gateway routes enforce Origin/CSRF checks. No Sanctum Bearer, Keycloak access/refresh token or provider secret is present in localStorage, URLs, logs or SSR payloads.
+- Two distinct Keycloak instances work through 8081; pgAdmin 8082, Keycloak admin 8083 and Camunda 8084 remain functional. Only the original four host ports are published.
+- Fresh bootstrap, upgrade of existing development data, ordinary restart persistence, focused backend tests, frontend type checking/build and real browser checks pass. Do not delete existing volumes to make upgrades pass.
 
-- PostgreSQL/Redis/pgAdmin are healthy. Real connection checks passed for all three own-database connections and all six cross-database denials. The application database contains only `migrations`.
-- Laravel readiness verifies a real database query and Redis cache set/read/delete on port 8081. Containerized PHPUnit now passes all 8 authentication tests and 47 assertions with explicit test-environment isolation.
-- Browser login to pgAdmin through 8082 succeeds and the registered development server is present. Redis-backed browser session verification and restart persistence are included in the remaining integrated review.
+## 11. Review decisions and closeout dependencies
 
-### Step 5 — gateway and application identity
+- Proposed default linking policy: explicit mapping only. The supplied model has no shared verified identifier that could safely deduplicate one person across different providers.
+- Proposed browser transport: Nuxt's protected credential cookie with Bearer forwarding. This is necessary to let SSR receive browser credentials without a Laravel session; no browser-readable token store is used.
+- Proposed logout display bound: 15-second visible-page recheck, plus immediate server revocation on a valid backchannel event and checks on requests/focus. A push-based instantaneous display update is not included.
+- Graphify remains the user-confirmed `https://www.graphify.ai/`. No update is claimed; authenticated access and its supported update workflow are still required for closeout.
+- Revised-plan approval: **pending**. Phase-completion approval: **pending**.
 
-- Browser login using the generated demo identity completed through Keycloak and returned to the authenticated Persian shell on 8081. Logout cleared the session and returned to the anonymous shell on the same origin. No application login redirect uses 8083/8084.
-- Keycloak admin login through 8083 succeeds. Discovery exposes the exact canonical issuer and public endpoints on 8081. The shared network has no published database/frontend/backend service ports.
-- Nuxt type checking and production compilation pass after increasing its development memory limit to 2 GiB. Vue is aligned to Nuxt's 3.5.44 requirement to avoid duplicate runtimes.
-- Camunda's canonical issuer discovery is routed through the private Nginx HTTP gateway using JVM proxy settings (with loopback bypass disabled); issuer validation remains enabled, and explicit internal token/JWKS endpoints are configured. No host-network communication is needed.
+## 12. Primary references
 
-### Step 6 — Camunda integration
-
-- Camunda is healthy with PostgreSQL secondary storage (44 service-owned tables) and persistent primary engine volumes. No H2 or Elasticsearch service is used.
-- Internal service-account authentication, rejection of unauthenticated API access, disposable BPMN deployment, synchronous process completion and definition cleanup pass.
-- Browser login using the shared Keycloak demo identity reaches Operate at `http://localhost:8084/operate`. The page renders without browser errors and its navigation remains on the management origin.
-- Normal startup uses private Nginx routing for canonical issuer discovery and separate internal backchannel endpoints.
-
-### Step 7 — integrated verification completed; ready for review
-
-- Browser checks passed for light/dark/system modes, live device-theme changes, saved theme preference, Persian RTL, local Vazirmatn, absence of external frontend asset requests and a 390 px mobile layout without horizontal overflow. Local review screenshots are in ignored `output/playwright/`.
-- Gateway WebSocket HMR and immediate Laravel PHP source updates passed using temporary changes that were restored. Nuxt type checking and production build passed; Vite 8 WebSocket configuration now uses the supported `server.ws` API.
-- Operate, Tasklist and Camunda Admin render on 8084 using the shared Keycloak identity. All requested management entry points and database isolation smoke checks passed.
-- Authentication tests now cover additional authorized-party, multi-audience and future-issued token rejection: 8 tests / 56 assertions pass.
-- Fresh-checkout testing identified Artisan Serve's environment filtering when a local `.env` exists. The container now adds `--no-reload` to retain Compose-provided environment variables; PHP source reload remains automatic per request. Fresh bootstrap and original-volume persistence checks subsequently passed, as recorded below.
-
-### Final review handoff — 2026-11-03
-
-- A fresh archive checkout with new isolated volumes starts successfully with `./scripts/dev up`. The initial failures found by this check were fixed: Artisan environment forwarding and a PHPUnit reference to an empty, untracked Unit directory.
-- In that fresh checkout, `./scripts/dev test` passed all 8 backend tests / 56 assertions, the HTTP/data-isolation/port/style smoke checks, and authenticated internal Camunda process execution and cleanup. Frontend type checking and production compilation also passed.
-- The disposable validation stack was removed and the main `organization-dev` stack restored with its original volumes. All eight runtime services are healthy. The original Redis marker survived full container recreation, and the original Keycloak demo identity remains present with its earlier creation timestamp.
-- A new browser login after restoration succeeded on 8081. The standard OIDC `ui_locales=fa` hint renders Persian Keycloak login. The authenticated application session survived a subsequent restart of both Laravel and Redis. The temporary Redis marker was removed.
-- Generated local secrets are absent from tracked files. Source formatting, Compose validation, frontend type checking and Git whitespace checks pass. Frontend, backend and infrastructure changes are in separately scoped commits.
-- The development services are left running for user review: application 8081, pgAdmin 8082, Keycloak administration 8083, Camunda management 8084. Local credentials are in ignored root `.env`; `DEMO_USERNAME`/`DEMO_PASSWORD` are for application/Camunda login.
-- **Review gate:** implementation steps 1–7 are complete. Step 8 has not started. Await the user's review, requested adjustments and explicit phase-completion approval before producing `docs/` technical documentation and Persian guides.
-- **Graphify closeout dependency:** no graph update has been performed. The confirmed service is `https://www.graphify.ai/`; authenticated access and its supported update workflow still need to be established for step 8. The phase is not marked complete.
+- [Laravel 13 Sanctum: API tokens, expiry, revocation and custom token models](https://github.com/laravel/docs/blob/13.x/sanctum.md)
+- [Keycloak OIDC endpoints and introspection](https://www.keycloak.org/securing-apps/oidc-layers)
+- [OpenID Connect Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)
+- [OpenID Connect RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html)

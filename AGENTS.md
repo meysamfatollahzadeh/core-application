@@ -4,7 +4,7 @@
 
 - Maintain one monorepo for the integrated organizational system.
 - Use Laravel for the backend, Redis for caching, PostgreSQL for relational data, Keycloak for identity and user management, Camunda for process management, and Nuxt with Vuetify for the frontend.
-- Keycloak owns credentials and identity lifecycle. Do not introduce independent application password management without an approved phase design.
+- Keycloak owns credentials and identity lifecycle. Support multiple independently configured Keycloak user sources. Do not introduce independent application password management without an approved phase design.
 
 ## Phase approval and planning
 
@@ -24,6 +24,18 @@
 - Use Graphify at `https://www.graphify.ai/`, explicitly confirmed by the user, and update the project graph at the end of every phase. Verify its supported workflow and required account access; do not substitute getgraphify.com, Graphify-Labs, or another graph product, or claim an update that did not happen.
 - Commit the final phase changes. Keep frontend and backend changes in separate commits, using multiple commits when useful. Keep shared infrastructure, documentation, and graph updates clearly scoped as well.
 - Report actual validation results and any incomplete items honestly. Never claim a commit exists when Git operations are blocked.
+
+## Backend and authentication architecture
+
+- Build the Laravel backend as a modular API. Keep each business module's routes, models, actions/services, requests, resources, migrations, commands, providers and tests together. The current authorized business scope is the Login module only.
+- Use Laravel Sanctum API token authentication with `Authorization: Bearer ...`. Do not use Laravel sessions, the `web` guard, or Sanctum's session-based SPA authentication for application login.
+- Stateless means no server-side browser login session; Sanctum token persistence/revocation and short-lived OIDC protocol transactions are still required. Do not describe Sanctum personal access tokens as storage-free JWT authentication.
+- Use `UserSource`, `Member` and `User` for source configuration, external identity membership and local users. Identify a Keycloak account by `(user_source_id, uuid)`; never assume a subject is unique across sources or automatically merge people by name/email.
+- The login callback must match a pre-existing imported Member and its User before issuing an application token. Do not auto-register unknown identities during callback.
+- Nuxt must resolve authentication on the server before rendering the initial HTML. Do not render an anonymous login control first and replace it after a mounted/client-only authentication check.
+- Keep Laravel authentication bearer-only. If Nuxt uses a protected browser cookie to transport credentials for SSR, exchange it for a Bearer header only on the Nuxt server; do not introduce a Laravel authentication session or expose bearer credentials in browser storage, URLs or SSR payloads.
+- Present active user sources in a frontend selection dialog when Login is clicked.
+- Synchronize application logout and the originating Keycloak login using verified OIDC logout mechanisms and current upstream validity checks. Never rely only on local token expiration to detect upstream logout.
 
 ## Frontend rules
 
