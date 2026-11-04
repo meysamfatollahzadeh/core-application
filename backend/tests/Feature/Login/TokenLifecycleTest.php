@@ -133,6 +133,38 @@ class TokenLifecycleTest extends TestCase
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
+    public function test_wrong_issuer_audience_signature_and_expired_transactions_are_rejected(): void
+    {
+        Member::factory()->create(['user_source_slug' => 'primary', 'uuid' => 'external-subject']);
+        $original = $this->identity;
+        foreach (['iss' => 'https://untrusted.example/realm', 'aud' => 'other-client', 'exp' => time() - 60] as $claim => $value) {
+            $this->identity = $original;
+            $state = $this->start();
+            $this->identity[$claim] = $value;
+            $this->complete($state)->assertUnauthorized();
+        }
+        $this->identity = $original;
+        $state = $this->start();
+        $forgedKey = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+        openssl_pkey_export($forgedKey, $this->privateKey);
+        $this->complete($state)->assertUnauthorized();
+        $state = $this->start();
+        Cache::forget('login:transaction:'.$state);
+        $this->complete($state)->assertUnauthorized();
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
+    public function test_expired_local_tokens_and_changed_source_settings_cannot_authorize(): void
+    {
+        $bearer = $this->login();
+        PersonalAccessToken::firstOrFail()->update(['expires_at' => now()->subMinute()]);
+        $this->withToken($bearer)->getJson('/api/login/me')->assertUnauthorized();
+        PersonalAccessToken::firstOrFail()->update(['expires_at' => now()->addHour()]);
+        $this->source->update(['data' => array_merge($this->source->data, ['client_secret' => 'rotated-secret'])]);
+        $this->withToken($bearer)->getJson('/api/login/me')->assertUnauthorized();
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
     public function test_refresh_and_current_validity_are_checked_without_positive_cache(): void
     {
         $this->accessTtl = 1;

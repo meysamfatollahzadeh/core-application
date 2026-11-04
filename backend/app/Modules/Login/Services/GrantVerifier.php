@@ -13,7 +13,7 @@ class GrantVerifier
     public function verify(PersonalAccessToken $token): PersonalAccessToken
     {
         try {
-            return Cache::lock('login:grant:'.$token->id, 60)->block(5, function () use ($token): PersonalAccessToken {
+            return Cache::lock('login:grant:'.$token->id, 180)->block(5, function () use ($token): PersonalAccessToken {
                 $token = $token->fresh(['member.userSource']);
                 if (! $token) {
                     throw new LoginFailure('unauthenticated');
