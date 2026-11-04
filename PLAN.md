@@ -2,7 +2,7 @@
 
 ## Status, baseline and approval
 
-- Status: **Approved review revision in progress — Member source foreign key.**
+- Status: **Implementation and verification complete — awaiting user review.**
 - Revision date: 2026-11-03.
 - Revision implementation progress: **8 of 9 steps completed.**
 - The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
@@ -70,7 +70,7 @@ The three domain models requested by the user are retained. Standard timestamps 
 | --- | --- |
 | `user_sources` | `id` bigint PK; `slug` varchar(63) UNIQUE NOT NULL; `title` varchar(255) NOT NULL; `is_active` boolean NOT NULL default false; `data` JSONB NOT NULL; timestamps |
 | `users` | `id` bigint PK; `name` varchar(255) NOT NULL; timestamps |
-| `members` | `id` bigint PK; `uuid` varchar(255) NOT NULL; `user_source_id` bigint FK to `user_sources.id`; `user_id` FK; timestamps; UNIQUE (`uuid`, `user_source_id`); indexes on `user_source_id` and `user_id` |
+| `members` | `id` bigint PK; `uuid` varchar(255) NOT NULL; `user_source_id` bigint FK to `user_sources.id`; `user_id` FK; timestamps; UNIQUE (`uuid`, `user_source_id`); index on `user_source_id` |
 | `personal_access_tokens` | Sanctum's normal tokenable/hash/abilities/expiry fields plus `member_id` FK, `provider_sid` nullable varchar(255), `provider_config_hash` varchar(64), encrypted `oidc_data` TEXT; index (`member_id`, `provider_sid`) |
 
 ### Identity relationships
@@ -258,13 +258,20 @@ The user's review instruction explicitly authorizes this correction. This supers
 - Preserve Member/User primary keys, identity associations and existing Sanctum token relationships. Update model relations/factories, imports, callbacks, source invalidation, logout queries and acceptance scripts to use the numeric relationship internally.
 - Verification: focused PostgreSQL schema/data migration round-trip and duplicate/orphan constraints; existing Login regression suite; apply the upgrade to current development data and verify repeat import and real two-provider login/logout. Frontend API contracts remain unchanged, so no frontend implementation is needed.
 - Acceptance: members contain numeric source IDs and no stored source slug; duplicate (`uuid`, `user_source_id`) is rejected while the same uuid across different sources remains allowed; existing data and login/logout behavior are preserved.
-- Progress: **2 of 3 review-revision steps completed**. Overall phase closeout remains pending; this request is not approval of phase completion.
+- Progress: **3 of 3 review-revision steps completed**. Overall phase closeout remains pending; this request is not approval of phase completion.
 
 1. [x] Migrate Member storage and update internal relationships/queries/factories/scripts.
 2. [x] Verify migration round-trip, integrity constraints and Login regression behavior; upgrade existing development data.
-3. [ ] Verify real provider flows, commit the scoped revision and return to the phase-review gate.
+3. [x] Verify real provider flows, commit the scoped revision and return to the phase-review gate.
 
 ### Numeric Member source revision — step 2 evidence
 
 - All 20 backend tests passed (137 assertions), including schema integrity, uniqueness, unknown/null source rejection and a populated migration rollback/upgrade round-trip preserving User/Member/token associations.
 - Applied the additive migration to the existing development database. Private before/after snapshots confirmed identical Member IDs, subjects, User/source associations and token foreign keys; temporary snapshots were removed. PostgreSQL confirms no member slug column and UNIQUE (`uuid`, `user_source_id`). Repeat imports for both source slugs each reported zero new members.
+
+### Numeric Member source revision — step 3 evidence
+
+- Real two-provider acceptance passed after the upgrade: source-slug commands and URLs, concurrent SSR identity isolation, three-worker single refresh, application logout and signed provider backchannel logout all work with numeric Member source relationships.
+- Scoped the backchannel acceptance query to this run's provider session. The first run exposed a pre-existing expired grant from another session; that record is unrelated to the current logout and was preserved. The corrected acceptance run passed before the next /me request.
+- Backend implementation/tests and shared acceptance-script changes were committed separately. AGENTS.md and this current plan now describe numeric Member storage and slug-based public identifiers consistently. No frontend change was required.
+- Review revision complete: **3 of 3 steps**. Overall phase remains **8 of 9 steps**, awaiting the user's phase-completion review; documentation/Graphify closeout remains pending.
