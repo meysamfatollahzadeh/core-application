@@ -291,3 +291,16 @@ The user explicitly approved the reviewed changes and subsequently removed the e
 - Documentation checks passed for local links, balanced code fences, valid JSON examples, language placement, Laravel/Sanctum lockfile versions and Login route contracts. Reference checks confirm the canceled integration is absent from the current rules, plan and documentation.
 - No application code or database changes were needed for this closeout correction. The previously completed 20-test/137-assertion suite and real acceptance results remain recorded as historical evidence; they were not rerun for documentation-only changes.
 - Phase implementation and review corrections are approved. Documentation and final scoped changes are committed. **All 9 of 9 phase steps are complete; no closeout work remains.**
+
+## Authorized maintenance — remove development assistant dependency
+
+- Status: explicitly requested by the user; implementation authorized. The approved Phase 1 remains complete.
+- Subject/scope: uninstall the backend development assistant package and its unused transitive dependencies; remove its generated configuration/instructions and any repository-local integration references. Preserve unrelated dependencies and the user's project development rules.
+- Method: use Composer in the project's PHP container to update composer.json/composer.lock and installed vendor packages, regenerate package discovery, rebuild backend dependency images and verify the running development application.
+- Database design: no table, migration or data changes. Login business rules and public API contracts do not change.
+- Acceptance: the package/config/generated instructions are absent from the repository and installed project runtime; Composer validates; focused Login tests and API readiness pass; future Docker initialization cannot reinstall it from an old dependency image.
+- Progress: **0 of 3 maintenance steps completed**.
+
+1. [ ] Remove the package, generated files and repository-local integration references.
+2. [ ] Rebuild/synchronize backend dependency images and validate Composer, package absence, Login regressions and readiness.
+3. [ ] Commit the backend maintenance and final plan progress, then return the result for review.
