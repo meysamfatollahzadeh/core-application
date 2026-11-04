@@ -121,6 +121,11 @@ def main():
     identities = [first.login('primary'), second.login('secondary')]
     created_sessions = {session['id'] for session in provider_sessions('primary')} - prior_sessions
     assert created_sessions, 'New primary SSO session was not observed'
+    with (ROOT / 'scripts/refresh-smoke.php').open() as fixture:
+        refresh = subprocess.run(['docker', 'compose', 'exec', '-T', 'backend', 'php', '/dev/stdin', next(iter(created_sessions))], stdin=fixture, cwd=ROOT, capture_output=True, text=True)
+    assert refresh.returncode == 0, 'Real concurrent upstream refresh failed'
+    print('PASS: three separate PHP workers serialize one real upstream refresh')
+
     assert identities[0]['identity']['user']['id'] != identities[1]['identity']['user']['id'], 'Independent sources were merged'
     with ThreadPoolExecutor(max_workers=4) as executor:
         checks = list(executor.map(lambda i: [first, second][i % 2].assert_ssr(identities[i % 2]), range(12)))

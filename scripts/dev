@@ -15,7 +15,7 @@ case "${1:-up}" in
   restart) docker compose restart ;;
   logs) shift; docker compose logs -f "$@" ;;
   status) docker compose ps ;;
-  test) docker compose exec -T postgres psql -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/prepare-test-database.sql; docker compose exec -T backend php artisan test --compact; python3 scripts/smoke.py; docker compose exec -T backend php < scripts/process-smoke.php ;;
+  test) docker compose exec -T postgres psql -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/prepare-test-database.sql; docker compose exec -T backend php artisan test --compact; python3 scripts/smoke.py; python3 scripts/smoke-login.py; docker compose exec -T backend php < scripts/process-smoke.php ;;
   reset)
     if [ "${2:-}" != "--delete-development-data" ]; then
       echo 'Reset deletes this project’s development volumes. Use: ./scripts/dev reset --delete-development-data' >&2
