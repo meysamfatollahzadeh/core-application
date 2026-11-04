@@ -258,8 +258,8 @@ The user's review instruction explicitly authorizes this correction. This supers
 - Preserve Member/User primary keys, identity associations and existing Sanctum token relationships. Update model relations/factories, imports, callbacks, source invalidation, logout queries and acceptance scripts to use the numeric relationship internally.
 - Verification: focused PostgreSQL schema/data migration round-trip and duplicate/orphan constraints; existing Login regression suite; apply the upgrade to current development data and verify repeat import and real two-provider login/logout. Frontend API contracts remain unchanged, so no frontend implementation is needed.
 - Acceptance: members contain numeric source IDs and no stored source slug; duplicate (`uuid`, `user_source_id`) is rejected while the same uuid across different sources remains allowed; existing data and login/logout behavior are preserved.
-- Progress: **0 of 3 review-revision steps completed**. Overall phase closeout remains pending; this request is not approval of phase completion.
+- Progress: **1 of 3 review-revision steps completed**. Overall phase closeout remains pending; this request is not approval of phase completion.
 
-1. [ ] Migrate Member storage and update internal relationships/queries/factories/scripts.
+1. [x] Migrate Member storage and update internal relationships/queries/factories/scripts.
 2. [ ] Verify migration round-trip, integrity constraints and Login regression behavior; upgrade existing development data.
 3. [ ] Verify real provider flows, commit the scoped revision and return to the phase-review gate.
