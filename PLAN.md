@@ -2,7 +2,7 @@
 
 ## Status, baseline and approval
 
-- Status: **Implementation and verification complete — awaiting user review.**
+- Status: **Phase completion approved — documentation and Graphify closeout in progress.**
 - Revision date: 2026-11-03.
 - Revision implementation progress: **8 of 9 steps completed.**
 - The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
@@ -190,7 +190,7 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 - Proposed browser transport: Nuxt's protected credential cookie with Bearer forwarding. This is necessary to let SSR receive browser credentials without a Laravel session; no browser-readable token store is used.
 - Proposed logout display bound: 15-second visible-page recheck, plus immediate server revocation on a valid backchannel event and checks on requests/focus. A push-based instantaneous display update is not included.
 - Graphify remains the user-confirmed `https://www.graphify.ai/`. No update is claimed; authenticated access and its supported update workflow are still required for closeout.
-- Revised-plan approval: **received on 2026-11-03**. The user subsequently approved the review correction to numeric Member source relationships; public URLs and commands remain slug-based. Phase-completion approval: **pending**.
+- Revised-plan approval: **received on 2026-11-03**. The user subsequently approved the review correction to numeric Member source relationships; public URLs and commands remain slug-based. Phase-completion approval: **received on 2026-11-04**, after review of the numeric Member source relationship correction.
 
 ## 12. Primary references
 
@@ -275,3 +275,15 @@ The user's review instruction explicitly authorizes this correction. This supers
 - Scoped the backchannel acceptance query to this run's provider session. The first run exposed a pre-existing expired grant from another session; that record is unrelated to the current logout and was preserved. The corrected acceptance run passed before the next /me request.
 - Backend implementation/tests and shared acceptance-script changes were committed separately. AGENTS.md and this current plan now describe numeric Member storage and slug-based public identifiers consistently. No frontend change was required.
 - Review revision complete: **3 of 3 steps**. Overall phase remains **8 of 9 steps**, awaiting the user's phase-completion review; documentation/Graphify closeout remains pending.
+
+## Approved closeout — 2026-11-04
+
+The user explicitly approved the reviewed changes. This satisfies the phase-completion review gate and authorizes step 9 documentation and the Graphify update. Earlier pending-review statements in the evidence sections describe their historical state.
+
+- [ ] Create English technical Markdown under docs/ covering architecture/infrastructure, final database design and migration history, Login business behavior, API contracts and actual verification evidence.
+- [ ] Create Persian development/operational and end-user Markdown guides under docs/.
+- [ ] Verify documentation against the implemented files/commands/routes and commit the documentation separately.
+- [ ] Update the project graph in the user-confirmed https://www.graphify.ai/ using a verified supported workflow and authenticated project access. Do not replace it with another service or mark this item complete without an actual update.
+- [ ] Commit the final closeout progress; mark step 9 complete only when all required closeout work is done.
+
+Implementation remains approved. Overall progress is **8 of 9 steps completed** until the graph requirement is fulfilled.
