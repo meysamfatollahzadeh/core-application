@@ -36,6 +36,7 @@ x-backend: &backend
   volumes:
     - ./backend:/app
     - backend-vendor:/app/vendor
+    - ./.runtime:/run/organization:ro
   networks: [application]
 
 x-frontend: &frontend
