@@ -2,9 +2,9 @@
 
 ## Status, baseline and approval
 
-- Status: **Approved — implementation in progress.**
+- Status: **Implementation and verification complete — awaiting user review.**
 - Revision date: 2026-11-03.
-- Revision implementation progress: **7 of 9 steps completed.**
+- Revision implementation progress: **8 of 9 steps completed.**
 - The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
 - This revision replaces the previous current plan, not the existing infrastructure. Earlier commits preserve the baseline plan and evidence. Do not create a competing active plan or mark the phase complete.
 - The user explicitly approved implementation and requested textual UserSource slugs on 2026-11-03. All implementation steps below are authorized; completion still requires a separate review approval.
@@ -166,7 +166,7 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 5. [x] **Implement logout and upstream verification.** Add verified backchannel handling, replay protection, per-request upstream validity checks, RP logout and failure semantics.
 6. [x] **Implement Nuxt SSR and source selection.** Add credential transport/gateway, awaited SSR identity, dialog, logout handoff, visible-page/focus rechecks and appropriate unavailable states. Preserve local assets/RTL/themes and external CSS rules.
 7. [x] **Validate two independent providers in Docker.** Add the second provider/database and same-origin routing, register/import both sources and verify cross-source identity isolation while preserving management services.
-8. [ ] **Complete integrated acceptance and hand off for review.** Run the matrix below, fix failures, update the plan and present the working revision. Await explicit phase-completion approval and apply review adjustments.
+8. [x] **Complete integrated acceptance and hand off for review.** Run the matrix below, fix failures, update the plan and present the working revision. Await explicit phase-completion approval and apply review adjustments.
 9. [ ] **Close the approved phase.** Only after approval, write English database/business/API documentation and Persian operational guides, update Graphify using its verified accessible workflow, and finish separately scoped commits.
 
 ## 10. Acceptance matrix
@@ -237,3 +237,14 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 
 - Added a separate Keycloak instance, PostgreSQL role/database and public /identity/secondary routing, with its admin console sharing port 8083 under the separate path. Existing databases were preserved; the additional database initializer is idempotent.
 - Both sources registered/imported. Real acceptance checks passed for source isolation, concurrent SSR, CSRF/Origin rejection, application-to-provider POST logout and provider-to-application signed backchannel revocation before the next /me request. Expanded backend suite: 17 tests, 120 assertions passed.
+
+### Step 8 — review handoff (2026-11-04)
+
+- Backend regression suite: **17 tests, 120 assertions passed**, using isolated PostgreSQL test data. Covers bearer-only middleware, schema/slug constraints, imports/dry-run/explicit mapping, callback binding/replay/claims/signature/expiry, refresh, source invalidation and signed logout scope/replay.
+- Nuxt type checking and production build passed after the final SSR request-context fix. Real Chrome verified authenticated initial HTML with JavaScript disabled, upstream logout in an open tab, automatic light/dark changes and the mobile RTL source dialog. Screenshots are local ignored validation artifacts.
+- Real two-provider acceptance passed: Origin/CSRF rejection, distinct local identities, 12 concurrent SSR requests without cross-user/credential leakage, application POST logout of only the originating provider session and signed backchannel revocation before the next request.
+- Three independent PHP workers verified the same real grant concurrently and sent **exactly one** refresh request. A real provider outage produced unavailable SSR/503 without clearing the credential; the valid SSO grant survived provider restart and logout still worked afterward.
+- A completely fresh temporary Compose project passed bootstrap, both imports, the regression suite, gateway/management/database isolation checks and actual Camunda process deployment/completion. Only that temporary project's volumes were removed. The original development project and its existing persistent data were restored; its source logins and recovery checks passed afterward.
+- Both public identity namespaces stay on 8081. Management entry points 8082, both admin paths on 8083, and 8084 passed. No additional host ports are published.
+- Scoped implementation/test commits are recorded separately for backend, frontend and shared infrastructure. No phase documentation has been created before completion approval. User-owned untracked IDE settings were preserved.
+- **Review gate:** the user may now inspect the implementation and request revisions. Step 9 is deliberately pending explicit phase-completion approval. Graphify has not been updated; authenticated access and its supported workflow remain closeout dependencies.
