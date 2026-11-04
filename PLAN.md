@@ -2,7 +2,7 @@
 
 ## Status, baseline and approval
 
-- Status: **Implementation and verification complete — awaiting user review.**
+- Status: **Approved review revision in progress — Member source foreign key.**
 - Revision date: 2026-11-03.
 - Revision implementation progress: **8 of 9 steps completed.**
 - The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
@@ -70,12 +70,12 @@ The three domain models requested by the user are retained. Standard timestamps 
 | --- | --- |
 | `user_sources` | `id` bigint PK; `slug` varchar(63) UNIQUE NOT NULL; `title` varchar(255) NOT NULL; `is_active` boolean NOT NULL default false; `data` JSONB NOT NULL; timestamps |
 | `users` | `id` bigint PK; `name` varchar(255) NOT NULL; timestamps |
-| `members` | `id` bigint PK; `uuid` varchar(255) NOT NULL; `user_source_slug` varchar(63) FK to `user_sources.slug`; `user_id` FK; timestamps; UNIQUE (`user_source_slug`, `uuid`); index on `user_id` |
+| `members` | `id` bigint PK; `uuid` varchar(255) NOT NULL; `user_source_id` bigint FK to `user_sources.id`; `user_id` FK; timestamps; UNIQUE (`uuid`, `user_source_id`); indexes on `user_source_id` and `user_id` |
 | `personal_access_tokens` | Sanctum's normal tokenable/hash/abilities/expiry fields plus `member_id` FK, `provider_sid` nullable varchar(255), `provider_config_hash` varchar(64), encrypted `oidc_data` TEXT; index (`member_id`, `provider_sid`) |
 
 ### Identity relationships
 
-- UserSource retains an internal numeric primary key, but its immutable lowercase URL-safe slug is the relationship and public identifier. Validate slugs with `[a-z0-9]+(-[a-z0-9]+)*`, maximum 63 characters, and never rename an existing source implicitly. All `{source}` route parameters bind by slug; source resources and import/source commands use slugs, not numeric source IDs.
+- UserSource retains an internal numeric primary key, but its immutable lowercase URL-safe slug is the public identifier. Member relationships use the numeric source primary key through `user_source_id`, with UNIQUE (`uuid`, `user_source_id`), as explicitly requested during review. Validate slugs with `[a-z0-9]+(-[a-z0-9]+)*`, maximum 63 characters, and never rename an existing source implicitly. All `{source}` route parameters bind by slug; source resources and import/source commands use slugs, not numeric source IDs.
 - A User has many Members. A Member belongs to one User and one UserSource. A UserSource has many Members.
 - `uuid` stores Keycloak's exact subject/user ID as an opaque string. A SQL UUID type or globally unique subject constraint would reject some federated IDs or incorrectly conflate different sources.
 - Two different sources may use the same `uuid` without identifying the same local User.
@@ -190,7 +190,7 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 - Proposed browser transport: Nuxt's protected credential cookie with Bearer forwarding. This is necessary to let SSR receive browser credentials without a Laravel session; no browser-readable token store is used.
 - Proposed logout display bound: 15-second visible-page recheck, plus immediate server revocation on a valid backchannel event and checks on requests/focus. A push-based instantaneous display update is not included.
 - Graphify remains the user-confirmed `https://www.graphify.ai/`. No update is claimed; authenticated access and its supported update workflow are still required for closeout.
-- Revised-plan approval: **received on 2026-11-03**, including slug-based relationships and URLs. Phase-completion approval: **pending**.
+- Revised-plan approval: **received on 2026-11-03**. The user subsequently approved the review correction to numeric Member source relationships; public URLs and commands remain slug-based. Phase-completion approval: **pending**.
 
 ## 12. Primary references
 
@@ -248,3 +248,18 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 - Both public identity namespaces stay on 8081. Management entry points 8082, both admin paths on 8083, and 8084 passed. No additional host ports are published.
 - Scoped implementation/test commits are recorded separately for backend, frontend and shared infrastructure. No phase documentation has been created before completion approval. User-owned untracked IDE settings were preserved.
 - **Review gate:** the user may now inspect the implementation and request revisions. Step 9 is deliberately pending explicit phase-completion approval. Graphify has not been updated; authenticated access and its supported workflow remain closeout dependencies.
+
+## Current review revision — Member source foreign key
+
+The user's review instruction explicitly authorizes this correction. This supersedes the earlier slug-based Member relationship design; historical implementation evidence above describes the original implementation.
+
+- Subject/scope: replace `members.user_source_slug` with `members.user_source_id`, referencing `user_sources.id`, and enforce UNIQUE (`uuid`, `user_source_id`). Keep UserSource.slug and every public source URL/command/callback identifier unchanged.
+- Method: add a transactional PostgreSQL migration after the existing applied migration. Backfill each numeric ID by joining the existing slug, enforce NOT NULL and a restrictive foreign key, add the requested composite uniqueness and source lookup index, then remove the old slug column/constraints. The reverse migration restores slugs from source IDs. Never reset existing application or provider data.
+- Preserve Member/User primary keys, identity associations and existing Sanctum token relationships. Update model relations/factories, imports, callbacks, source invalidation, logout queries and acceptance scripts to use the numeric relationship internally.
+- Verification: focused PostgreSQL schema/data migration round-trip and duplicate/orphan constraints; existing Login regression suite; apply the upgrade to current development data and verify repeat import and real two-provider login/logout. Frontend API contracts remain unchanged, so no frontend implementation is needed.
+- Acceptance: members contain numeric source IDs and no stored source slug; duplicate (`uuid`, `user_source_id`) is rejected while the same uuid across different sources remains allowed; existing data and login/logout behavior are preserved.
+- Progress: **0 of 3 review-revision steps completed**. Overall phase closeout remains pending; this request is not approval of phase completion.
+
+1. [ ] Migrate Member storage and update internal relationships/queries/factories/scripts.
+2. [ ] Verify migration round-trip, integrity constraints and Login regression behavior; upgrade existing development data.
+3. [ ] Verify real provider flows, commit the scoped revision and return to the phase-review gate.
