@@ -44,7 +44,15 @@ try:
         'backchannel.logout.revoke.offline.tokens': 'true',
         'pkce.code.challenge.method': 'S256',
     })
+    mappers = [mapper for mapper in client.get('protocolMappers', []) if mapper.get('name') != 'login-audience']
+    mappers.append({'name': 'login-audience', 'protocol': 'openid-connect', 'protocolMapper': 'oidc-audience-mapper',
+                    'config': {'included.client.audience': 'organization-backend', 'id.token.claim': 'false', 'access.token.claim': 'true', 'introspection.token.claim': 'true'}})
+    client['protocolMappers'] = mappers
+    client['defaultClientScopes'] = list(dict.fromkeys(client.get('defaultClientScopes', []) + ['basic']))
     request('PUT', admin_path + '/clients/' + client['id'], client, admin)
+    scopes = request('GET', admin_path + '/client-scopes', token=admin)
+    basic_scope = next(scope['id'] for scope in scopes if scope['name'] == 'basic')
+    request('PUT', admin_path + '/clients/' + client['id'] + '/default-client-scopes/' + basic_scope, token=admin)
     importer = {
         'clientId': 'organization-import', 'enabled': True, 'protocol': 'openid-connect',
         'publicClient': False, 'secret': values[prefix + 'IMPORT_CLIENT_SECRET'],

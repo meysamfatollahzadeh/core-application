@@ -5,12 +5,17 @@ case "${1:-up}" in
   up)
     python3 scripts/bootstrap.py
     docker compose up -d --build --wait --wait-timeout 360
+    for source in primary secondary; do
+      python3 scripts/configure-identity.py --source "$source"
+      docker compose exec -T backend php artisan login:sources:upsert --config-file="/run/organization/sources/$source.json"
+      docker compose exec -T backend php artisan login:import-members --source="$source"
+    done
     ;;
   down) docker compose down ;;
   restart) docker compose restart ;;
   logs) shift; docker compose logs -f "$@" ;;
   status) docker compose ps ;;
-  test) docker compose exec -T backend php artisan test --compact; python3 scripts/smoke.py; docker compose exec -T backend php < scripts/process-smoke.php ;;
+  test) docker compose exec -T postgres psql -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/prepare-test-database.sql; docker compose exec -T backend php artisan test --compact; python3 scripts/smoke.py; docker compose exec -T backend php < scripts/process-smoke.php ;;
   reset)
     if [ "${2:-}" != "--delete-development-data" ]; then
       echo 'Reset deletes this project’s development volumes. Use: ./scripts/dev reset --delete-development-data' >&2

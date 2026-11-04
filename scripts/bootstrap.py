@@ -48,6 +48,15 @@ for client in realm['clients']:
     client['secret'] = values['OIDC_CLIENT_SECRET' if client['clientId'] == 'organization-backend' else 'CAMUNDA_CLIENT_SECRET']
 (runtime / 'realm.json').write_text(json.dumps(realm, indent=2) + '\n')
 (runtime / 'realm.json').chmod(0o644)
+secondary_realm = json.loads(json.dumps(realm))
+secondary_realm['displayName'] = 'Partner Organization Development'
+secondary_realm['clients'] = [client for client in secondary_realm['clients'] if client['clientId'] == 'organization-backend']
+secondary_realm['clients'][0]['secret'] = values['SECONDARY_OIDC_CLIENT_SECRET']
+secondary_realm['clients'][0]['redirectUris'] = ['http://localhost:8081/login/callback/secondary']
+secondary_realm['clients'][0]['attributes']['backchannel.logout.url'] = 'http://backend:8000/api/login/sources/secondary/backchannel-logout'
+(runtime / 'secondary-realm.json').write_text(json.dumps(secondary_realm, indent=2) + '\n')
+(runtime / 'secondary-realm.json').chmod(0o644)
+
 source_dir = runtime / 'sources'
 source_dir.mkdir(exist_ok=True)
 for slug, title, prefix, public_path, internal_host in [
