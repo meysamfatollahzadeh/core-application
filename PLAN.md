@@ -4,7 +4,7 @@
 
 - Status: **Approved — implementation in progress.**
 - Revision date: 2026-11-03.
-- Revision implementation progress: **3 of 9 steps completed.**
+- Revision implementation progress: **4 of 9 steps completed.**
 - The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
 - This revision replaces the previous current plan, not the existing infrastructure. Earlier commits preserve the baseline plan and evidence. Do not create a competing active plan or mark the phase complete.
 - The user explicitly approved implementation and requested textual UserSource slugs on 2026-11-03. All implementation steps below are authorized; completion still requires a separate review approval.
@@ -162,7 +162,7 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 1. [x] **Establish the Login module and token-only API foundation.** Add compatible Sanctum, register the module, move routes to API middleware and remove application session authentication without leaving a fallback.
 2. [x] **Implement the schema and source configuration.** Add UserSource/Member/User and extended Sanctum migrations, relationships, secret handling, source validation and factories; verify migration/rollback on disposable data.
 3. [x] **Register sources and import memberships.** Implement validated source/import commands, pagination, repeat-safe imports, dry-run and explicit identity mapping. Bootstrap/import the first development source.
-4. [ ] **Implement source-bound login and token lifecycle.** Build PKCE/state/nonce callbacks, imported-member authorization, token issuing/expiry, refresh locking and source/config invalidation.
+4. [x] **Implement source-bound login and token lifecycle.** Build PKCE/state/nonce callbacks, imported-member authorization, token issuing/expiry, refresh locking and source/config invalidation.
 5. [ ] **Implement logout and upstream verification.** Add verified backchannel handling, replay protection, per-request upstream validity checks, RP logout and failure semantics.
 6. [ ] **Implement Nuxt SSR and source selection.** Add credential transport/gateway, awaited SSR identity, dialog, logout handoff, visible-page/focus rechecks and appropriate unavailable states. Preserve local assets/RTL/themes and external CSS rules.
 7. [ ] **Validate two independent providers in Docker.** Add the second provider/database and same-origin routing, register/import both sources and verify cross-source identity isolation while preserving management services.
@@ -217,3 +217,8 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 
 - Added validated slug-based source registration and a paginated, bounded-retry import using a dedicated view-users/query-users service account. Import supports dry-run and explicit mappings without automatic identity merging.
 - Registered/imported the existing primary development source without resetting Keycloak or Camunda. Repeat import reported zero new memberships. Two focused import tests passed (9 assertions).
+
+### Step 4
+
+- Implemented source/config/browser-bound five-minute PKCE transactions, verified RSA identity claims, single-use callbacks and pre-imported-member checks. Sanctum credentials are hashed with finite expiry and encrypted upstream grants.
+- Added serialized refresh and configuration invalidation. Callback, wrong source/binding/nonce, replay and unknown member checks pass in the isolated integration suite.
