@@ -299,8 +299,8 @@ The user explicitly approved the reviewed changes and subsequently removed the e
 - Method: use Composer in the project's PHP container to update composer.json/composer.lock and installed vendor packages, regenerate package discovery, rebuild backend dependency images and verify the running development application.
 - Database design: no table, migration or data changes. Login business rules and public API contracts do not change.
 - Acceptance: the package/config/generated instructions are absent from the repository and installed project runtime; Composer validates; focused Login tests and API readiness pass; future Docker initialization cannot reinstall it from an old dependency image.
-- Progress: **0 of 3 maintenance steps completed**.
+- Progress: **1 of 3 maintenance steps completed**.
 
-1. [ ] Remove the package, generated files and repository-local integration references.
+1. [x] Remove the package, generated files and repository-local integration references.
 2. [ ] Rebuild/synchronize backend dependency images and validate Composer, package absence, Login regressions and readiness.
 3. [ ] Commit the backend maintenance and final plan progress, then return the result for review.
