@@ -11,7 +11,7 @@ use Psr\Http\Message\RequestInterface;
 require '/app/vendor/autoload.php';
 $app = require '/app/bootstrap/app.php';
 $app->make(Kernel::class)->bootstrap();
-$token = PersonalAccessToken::where('provider_sid', $argv[1])->whereHas('member', fn ($query) => $query->where('user_source_slug', 'primary'))->firstOrFail();
+$token = PersonalAccessToken::where('provider_sid', $argv[1])->whereHas('member', fn ($query) => $query->whereHas('userSource', fn ($sources) => $sources->where('slug', 'primary')))->firstOrFail();
 $grant = $token->oidc_data;
 $grant['access_expires_at'] = time() - 1;
 $token->oidc_data = $grant;

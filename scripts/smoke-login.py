@@ -118,9 +118,13 @@ def main():
     first.request('/gateway/login/sources/primary/authorize', {}, csrf=anonymous['csrf'], expected=403, origin='https://untrusted.example')
     print('PASS: Nuxt mutations reject missing CSRF and foreign Origin')
     prior_sessions = {session['id'] for session in provider_sessions('primary')}
+    prior_secondary_sessions = {session['id'] for session in provider_sessions('secondary')}
     identities = [first.login('primary'), second.login('secondary')]
     created_sessions = {session['id'] for session in provider_sessions('primary')} - prior_sessions
     assert created_sessions, 'New primary SSO session was not observed'
+    created_secondary_sessions = {session['id'] for session in provider_sessions('secondary')} - prior_secondary_sessions
+    assert len(created_secondary_sessions) == 1, 'New secondary SSO session was not observed'
+    secondary_sid = next(iter(created_secondary_sessions))
     with (ROOT / 'scripts/refresh-smoke.php').open() as fixture:
         refresh = subprocess.run(['docker', 'compose', 'exec', '-T', 'backend', 'php', '/dev/stdin', next(iter(created_sessions))], stdin=fixture, cwd=ROOT, capture_output=True, text=True)
     assert refresh.returncode == 0, 'Real concurrent upstream refresh failed'
@@ -136,8 +140,9 @@ def main():
     assert second.identity()['status'] == 'authenticated', 'Other source was logged out'
     print('PASS: application POST logout ends the originating Keycloak SSO session only')
     provider_sessions('secondary', logout=True)
-    # Count before /me so successful revocation proves webhook delivery rather than introspection fallback.
-    result = subprocess.run(['docker', 'compose', 'exec', '-T', 'postgres', 'psql', '-U', 'postgres', '-d', 'organization_app', '-Atc', "SELECT count(*) FROM personal_access_tokens t JOIN members m ON m.id=t.member_id WHERE m.user_source_slug='secondary'"], cwd=ROOT, capture_output=True, text=True, check=True)
+    # Count this run's session before /me; expired records from earlier sessions are unrelated.
+    query = "SELECT count(*) FROM personal_access_tokens t JOIN members m ON m.id=t.member_id JOIN user_sources s ON s.id=m.user_source_id WHERE s.slug='secondary' AND t.provider_sid=:'test_sid';\n"
+    result = subprocess.run(['docker', 'compose', 'exec', '-T', 'postgres', 'psql', '-U', 'postgres', '-d', 'organization_app', '-At', '-v', 'ON_ERROR_STOP=1', '-v', 'test_sid=' + secondary_sid], input=query, cwd=ROOT, capture_output=True, text=True, check=True)
     assert result.stdout.strip() == '0', 'Backchannel did not revoke secondary grants'
     assert second.identity()['status'] == 'anonymous', 'Provider logout did not clear app identity'
     print('PASS: real signed Keycloak backchannel logout revokes grants before the next request')
