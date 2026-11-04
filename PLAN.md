@@ -2,7 +2,7 @@
 
 ## Status, baseline and approval
 
-- Status: **Phase completion approved — documentation and Graphify closeout in progress.**
+- Status: **Phase completion approved — documentation committed; Graphify update awaiting access.**
 - Revision date: 2026-11-03.
 - Revision implementation progress: **8 of 9 steps completed.**
 - The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
@@ -280,10 +280,18 @@ The user's review instruction explicitly authorizes this correction. This supers
 
 The user explicitly approved the reviewed changes. This satisfies the phase-completion review gate and authorizes step 9 documentation and the Graphify update. Earlier pending-review statements in the evidence sections describe their historical state.
 
-- [ ] Create English technical Markdown under docs/ covering architecture/infrastructure, final database design and migration history, Login business behavior, API contracts and actual verification evidence.
-- [ ] Create Persian development/operational and end-user Markdown guides under docs/.
-- [ ] Verify documentation against the implemented files/commands/routes and commit the documentation separately.
+- [x] Create English technical Markdown under docs/ covering architecture/infrastructure, final database design and migration history, Login business behavior, API contracts and actual verification evidence.
+- [x] Create Persian development/operational and end-user Markdown guides under docs/.
+- [x] Verify documentation against the implemented files/commands/routes and commit the documentation separately.
 - [ ] Update the project graph in the user-confirmed https://www.graphify.ai/ using a verified supported workflow and authenticated project access. Do not replace it with another service or mark this item complete without an actual update.
 - [ ] Commit the final closeout progress; mark step 9 complete only when all required closeout work is done.
 
 Implementation remains approved. Overall progress is **8 of 9 steps completed** until the graph requirement is fulfilled.
+
+### Step 9 closeout evidence — documentation complete, Graphify pending
+
+- Created and committed eight Markdown files under docs/: an index; English architecture/business/infrastructure, database/migrations, API, validation and Graphify status documents; and Persian operational and end-user guides. Final Member storage is numeric with UNIQUE (`uuid`, `user_source_id`), while public source identifiers remain slugs.
+- Documentation checks passed for all local links, balanced code fences, valid JSON examples, expected language placement, Laravel/Sanctum lockfile versions and every Login route contract. No application code changed during closeout; prior 20-test/137-assertion and real acceptance results are recorded as historical test evidence, not claimed as newly rerun.
+- Visited the exact user-confirmed Graphify website. Its public surface advertises KPI tracking/visualization; the existing-account login opened Auth0 and required a password. No authenticated project or supported graph update/import workflow was accessible. No graph update, account creation, alternate product or project-data upload occurred.
+- Asked for the intended Graphify workspace/chart and account access while completing independent documentation. The Graphify page is available for user sign-in. Remaining work: authenticate, identify the intended project/representation, verify the supported workflow, actually update and verify the graph, then commit that evidence and mark step 9 complete.
+- Overall progress remains **8 of 9 steps completed**. The user has approved the implementation; only the required external graph closeout is outstanding. Do not request phase approval again or claim full closeout before the actual graph update.
