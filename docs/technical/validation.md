@@ -1,0 +1,53 @@
+# Phase 1 verification evidence
+
+## Reviewed implementation
+
+The user approved the reviewed phase after the numeric Member source relationship correction. Evidence below reports checks actually completed during implementation/review; writing these documents does not rerun a previous test.
+
+| Check | Observed result |
+| --- | --- |
+| Laravel regression suite after numeric FK correction | **20 tests passed, 137 assertions** against `organization_test` |
+| Source schema/integrity | Numeric required source FK, requested composite uniqueness, same subject across sources, immutable public slug, encrypted secrets |
+| Populated migration round-trip | Restored old slug relationship and reapplied numeric FK while preserving User/Member/token associations on disposable test data |
+| Existing development upgrade | Applied additive migration; private before/after association snapshots matched; both repeat imports reported zero new members |
+| OIDC negative cases | Wrong binding/source/nonce/issuer/audience/signature, expiry, callback replay and unknown member denied |
+| Grant lifecycle | Expired/revoked credentials, disabled/changed source, safe refresh, inactive upstream grants and provider outages covered |
+| Real two-provider flows after FK correction | Login through both independent Keycloaks, source isolation, CSRF/Origin rejection, 12 concurrent authenticated SSR requests and both logout directions passed |
+| Concurrent real refresh | Three independent PHP workers sent exactly one upstream refresh request |
+| Real Keycloak backchannel | This run's session grants removed before the next `/me`; old expired grants belonging to other sessions were excluded from the assertion |
+| Nuxt typecheck/build | Passed after the final SSR request-context fix; public bundle inspection found no server credential/crypto configuration |
+| Real Chrome | Correct authenticated initial HTML with JavaScript disabled; open-tab upstream logout detected; automatic device theme changes and mobile RTL source dialog verified |
+| Real provider outage/restart | Unavailable SSR/503 without anonymous flash or credential loss; valid SSO grant survived restart and logout still worked |
+| Fresh temporary Compose project | Bootstrap, migrations, source registration/import, regression tests, management routes, role/database isolation and real Camunda deployment/completion passed |
+| Persistence/restoration | Only temporary fresh-test volumes removed; original development project restored with its data and healthy services |
+| Public network surface | Only Nginx loopback host ports 8081–8084; both identity namespaces on 8081 and both admin paths on 8083 |
+| Graphify | **Not updated**; see [access/update status](graphify.md) |
+
+Screenshots and temporary runtime artifacts are ignored local validation output, not published credentials or committed project documents. Existing expired token records are not automatically purged by this phase; every protected request still enforces credential expiry/validity.
+
+## Reproduction
+
+From the repository root, `./scripts/dev test` prepares the isolated test database, runs Laravel tests, infrastructure smoke checks, real multi-provider login/refresh/logout checks and a disposable Camunda process check. These are development acceptance tests: they use the configured demo accounts, terminate their provider sessions and may deploy a disposable process definition before removing it.
+
+```bash
+./scripts/dev test
+docker compose exec -T frontend npm run typecheck
+docker compose exec -T frontend npm run build
+```
+
+Focused backend verification:
+
+```bash
+docker compose exec -T backend php artisan test --compact --filter=SourceSchemaTest
+```
+
+Optional disruptive development checks are explicit standalone commands, not part of ordinary startup:
+
+```bash
+python3 scripts/smoke-provider-recovery.py
+./scripts/check-fresh-development.sh
+```
+
+The first briefly stops/restarts the primary provider using a `finally` restoration path. The second stops the original development project, starts a separate empty project on the same four host ports, tests it, removes **only its temporary volumes**, then restores the original project through an exit trap. It refuses to replace an existing temporary acceptance project. Do not run these against another team's active environment.
+
+No application code changed during documentation closeout. The current plan tracks documentation validation and the remaining Graphify requirement separately. Database/business/API effects are described in [database](database.md), [architecture](architecture.md) and [API](login-api.md).
