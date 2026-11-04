@@ -93,14 +93,14 @@ class TokenLifecycleTest extends TestCase
 
     private function login(): string
     {
-        Member::factory()->create(['user_source_slug' => $this->source->slug, 'uuid' => 'external-subject']);
+        Member::factory()->create(['user_source_id' => $this->source->id, 'uuid' => 'external-subject']);
 
         return $this->complete($this->start())->assertOk()->json('token');
     }
 
     public function test_callback_issues_only_hashed_finite_bearer_for_imported_member_and_is_single_use(): void
     {
-        Member::factory()->create(['user_source_slug' => 'primary', 'uuid' => 'external-subject']);
+        Member::factory()->create(['user_source_id' => $this->source->id, 'uuid' => 'external-subject']);
         $state = $this->start();
         $token = $this->complete($state)->assertOk()->json('token');
         $stored = PersonalAccessToken::firstOrFail();
@@ -135,7 +135,7 @@ class TokenLifecycleTest extends TestCase
 
     public function test_wrong_issuer_audience_signature_and_expired_transactions_are_rejected(): void
     {
-        Member::factory()->create(['user_source_slug' => 'primary', 'uuid' => 'external-subject']);
+        Member::factory()->create(['user_source_id' => $this->source->id, 'uuid' => 'external-subject']);
         $original = $this->identity;
         foreach (['iss' => 'https://untrusted.example/realm', 'aud' => 'other-client', 'exp' => time() - 60] as $claim => $value) {
             $this->identity = $original;
@@ -197,7 +197,7 @@ class TokenLifecycleTest extends TestCase
     {
         $this->login();
         $other = UserSource::factory()->create(['slug' => 'secondary']);
-        $member = Member::factory()->create(['user_source_slug' => $other->slug, 'uuid' => 'external-subject']);
+        $member = Member::factory()->create(['user_source_id' => $other->id, 'uuid' => 'external-subject']);
         $member->user->tokens()->create(['name' => 'other', 'token' => hash('sha256', 'other'), 'abilities' => ['login:access'], 'expires_at' => now()->addHour(), 'member_id' => $member->id, 'provider_sid' => 'external-session', 'provider_config_hash' => $other->fingerprint(), 'oidc_data' => []]);
         $claims = ['iss' => $this->source->data['issuer'], 'aud' => 'organization', 'sid' => 'external-session', 'iat' => time(), 'jti' => Str::random(32), 'events' => ['http://schemas.openid.net/event/backchannel-logout' => (object) []]];
         $route = '/api/login/sources/primary/backchannel-logout';

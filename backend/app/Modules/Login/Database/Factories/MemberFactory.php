@@ -13,6 +13,6 @@ class MemberFactory extends Factory
 
     public function definition(): array
     {
-        return ['uuid' => fake()->uuid(), 'user_source_slug' => fn () => UserSource::factory()->create()->slug, 'user_id' => User::factory()];
+        return ['uuid' => fake()->uuid(), 'user_source_id' => UserSource::factory(), 'user_id' => User::factory()];
     }
 }

@@ -56,7 +56,7 @@ class ImportLoginMembers extends Command
                     $seen[$subject] = true;
                     $created += DB::transaction(function () use ($source, $remote, $subject, $mapping, $dryRun): int {
                         UserSource::where('slug', $source->slug)->lockForUpdate()->firstOrFail();
-                        $existing = Member::where('user_source_slug', $source->slug)->where('uuid', $subject)->first();
+                        $existing = Member::where('user_source_id', $source->id)->where('uuid', $subject)->first();
                         if ($existing) {
                             if (isset($mapping[$subject]) && $existing->user_id !== $mapping[$subject]) {
                                 throw new RuntimeException('Existing associations cannot be silently changed.');
@@ -67,7 +67,7 @@ class ImportLoginMembers extends Command
                         if (! $dryRun) {
                             $name = trim(($remote['firstName'] ?? '').' '.($remote['lastName'] ?? '')) ?: ($remote['username'] ?? 'کاربر سازمان');
                             $user = isset($mapping[$subject]) ? User::findOrFail($mapping[$subject]) : User::create(['name' => mb_substr($name, 0, 255)]);
-                            Member::create(['uuid' => $subject, 'user_source_slug' => $source->slug, 'user_id' => $user->id]);
+                            Member::create(['uuid' => $subject, 'user_source_id' => $source->id, 'user_id' => $user->id]);
                         }
 
                         return 1;

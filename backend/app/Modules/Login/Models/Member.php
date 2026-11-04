@@ -11,7 +11,7 @@ class Member extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'user_source_slug', 'user_id'];
+    protected $fillable = ['uuid', 'user_source_id', 'user_id'];
 
     protected static function newFactory(): MemberFactory
     {
@@ -20,7 +20,7 @@ class Member extends Model
 
     public function userSource(): BelongsTo
     {
-        return $this->belongsTo(UserSource::class, 'user_source_slug', 'slug');
+        return $this->belongsTo(UserSource::class);
     }
 
     public function user(): BelongsTo

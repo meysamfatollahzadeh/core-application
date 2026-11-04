@@ -35,7 +35,7 @@ class BackchannelLogout
         }
         PersonalAccessToken::where('provider_config_hash', $source->fingerprint())
             ->whereHas('member', function ($query) use ($source, $sub): void {
-                $query->where('user_source_slug', $source->slug);
+                $query->where('user_source_id', $source->id);
                 if ($sub !== null) {
                     $query->where('uuid', $sub);
                 }

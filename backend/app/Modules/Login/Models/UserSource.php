@@ -74,7 +74,7 @@ class UserSource extends Model
 
     public function members(): HasMany
     {
-        return $this->hasMany(Member::class, 'user_source_slug', 'slug');
+        return $this->hasMany(Member::class);
     }
 
     public function fingerprint(): string

@@ -30,7 +30,7 @@ class UpsertLoginSource extends Command
                 $previous = $source->exists ? $source->fingerprint() : null;
                 $source->fill($values)->save();
                 if ($previous && ($previous !== $source->fingerprint() || ! $source->is_active)) {
-                    PersonalAccessToken::whereHas('member', fn ($query) => $query->where('user_source_slug', $source->slug))->delete();
+                    PersonalAccessToken::whereHas('member', fn ($query) => $query->where('user_source_id', $source->id))->delete();
                 }
             });
         } catch (Throwable) {

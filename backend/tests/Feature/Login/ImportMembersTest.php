@@ -32,7 +32,7 @@ class ImportMembersTest extends TestCase
         $this->artisan('login:import-members', ['--source' => 'primary'])->assertSuccessful();
         $this->assertDatabaseCount('members', 2);
         $this->assertDatabaseCount('users', 2);
-        $this->assertSame(['primary'], Member::pluck('user_source_slug')->unique()->values()->all());
+        $this->assertSame([$source->id], Member::pluck('user_source_id')->unique()->values()->all());
     }
 
     public function test_explicit_mapping_links_existing_user_and_disabled_service_accounts_are_skipped(): void
