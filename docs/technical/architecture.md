@@ -101,4 +101,4 @@ Vuetify supplies the RTL controls and theme system. Vazirmatn, SVG icon paths, f
 
 ## Related contracts
 
-[Database changes](database.md), [API contracts](login-api.md), [verification evidence](validation.md), and [Graphify status](graphify.md) describe the other parts of the approved phase. No unrelated business database/API changes were introduced.
+[Database changes](database.md), [API contracts](login-api.md), and [verification evidence](validation.md) describe the other parts of the approved phase. No unrelated business database/API changes were introduced.

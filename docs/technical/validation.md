@@ -21,7 +21,6 @@ The user approved the reviewed phase after the numeric Member source relationshi
 | Fresh temporary Compose project | Bootstrap, migrations, source registration/import, regression tests, management routes, role/database isolation and real Camunda deployment/completion passed |
 | Persistence/restoration | Only temporary fresh-test volumes removed; original development project restored with its data and healthy services |
 | Public network surface | Only Nginx loopback host ports 8081–8084; both identity namespaces on 8081 and both admin paths on 8083 |
-| Graphify | **Not updated**; see [access/update status](graphify.md) |
 
 Screenshots and temporary runtime artifacts are ignored local validation output, not published credentials or committed project documents. Existing expired token records are not automatically purged by this phase; every protected request still enforces credential expiry/validity.
 
@@ -50,4 +49,4 @@ python3 scripts/smoke-provider-recovery.py
 
 The first briefly stops/restarts the primary provider using a `finally` restoration path. The second stops the original development project, starts a separate empty project on the same four host ports, tests it, removes **only its temporary volumes**, then restores the original project through an exit trap. It refuses to replace an existing temporary acceptance project. Do not run these against another team's active environment.
 
-No application code changed during documentation closeout. The current plan tracks documentation validation and the remaining Graphify requirement separately. Database/business/API effects are described in [database](database.md), [architecture](architecture.md) and [API](login-api.md).
+No application code changed during documentation closeout. Documentation validation and approved phase completion are recorded in the current plan. Database/business/API effects are described in [database](database.md), [architecture](architecture.md) and [API](login-api.md).

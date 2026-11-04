@@ -2,14 +2,14 @@
 
 ## Status, baseline and approval
 
-- Status: **Phase completion approved — documentation committed; Graphify update awaiting access.**
+- Status: **Complete — implementation approved, documentation verified and closeout committed.**
 - Revision date: 2026-11-03.
-- Revision implementation progress: **8 of 9 steps completed.**
-- The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
-- This revision replaces the previous current plan, not the existing infrastructure. Earlier commits preserve the baseline plan and evidence. Do not create a competing active plan or mark the phase complete.
-- The user explicitly approved implementation and requested textual UserSource slugs on 2026-11-03. All implementation steps below are authorized; completion still requires a separate review approval.
+- Revision implementation progress: **9 of 9 steps completed.**
+- The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. The infrastructure baseline had not been closed before the user requested the authentication redesign; the revised implementation has since been reviewed and approved.
+- This revision replaces the previous current plan, not the existing infrastructure. Earlier commits preserve the baseline plan and evidence. Do not create a competing active plan. Phase completion is recorded here after the approved implementation and documentation closeout.
+- The user explicitly approved implementation and requested textual UserSource slugs on 2026-11-03. All implementation steps below were authorized; the separate completion review was subsequently approved on 2026-11-04.
 - Preserve the approved monorepo, Laravel/PHP runtime on internal 8000, Nuxt dev runtime on internal 3000, Redis/PostgreSQL, Camunda, local frontend assets, and gateway/management ports 8081–8084.
-- After implementation, pause for user review. Only after explicit phase-completion approval create English technical Markdown and Persian usage guides in `docs/`, update Graphify, and close the phase with separately scoped commits.
+- After implementation, pause for user review. Only after explicit phase-completion approval create English technical Markdown and Persian usage guides in `docs/` and close the phase with separately scoped commits.
 
 ## 1. Subject and outcome
 
@@ -167,7 +167,7 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 6. [x] **Implement Nuxt SSR and source selection.** Add credential transport/gateway, awaited SSR identity, dialog, logout handoff, visible-page/focus rechecks and appropriate unavailable states. Preserve local assets/RTL/themes and external CSS rules.
 7. [x] **Validate two independent providers in Docker.** Add the second provider/database and same-origin routing, register/import both sources and verify cross-source identity isolation while preserving management services.
 8. [x] **Complete integrated acceptance and hand off for review.** Run the matrix below, fix failures, update the plan and present the working revision. Await explicit phase-completion approval and apply review adjustments.
-9. [ ] **Close the approved phase.** Only after approval, write English database/business/API documentation and Persian operational guides, update Graphify using its verified accessible workflow, and finish separately scoped commits.
+9. [x] **Close the approved phase.** After approval, write English database/business/API documentation and Persian operational guides, verify documentation and finish separately scoped commits.
 
 ## 10. Acceptance matrix
 
@@ -189,7 +189,6 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 - Proposed default linking policy: explicit mapping only. The supplied model has no shared verified identifier that could safely deduplicate one person across different providers.
 - Proposed browser transport: Nuxt's protected credential cookie with Bearer forwarding. This is necessary to let SSR receive browser credentials without a Laravel session; no browser-readable token store is used.
 - Proposed logout display bound: 15-second visible-page recheck, plus immediate server revocation on a valid backchannel event and checks on requests/focus. A push-based instantaneous display update is not included.
-- Graphify remains the user-confirmed `https://www.graphify.ai/`. No update is claimed; authenticated access and its supported update workflow are still required for closeout.
 - Revised-plan approval: **received on 2026-11-03**. The user subsequently approved the review correction to numeric Member source relationships; public URLs and commands remain slug-based. Phase-completion approval: **received on 2026-11-04**, after review of the numeric Member source relationship correction.
 
 ## 12. Primary references
@@ -247,7 +246,7 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 - A completely fresh temporary Compose project passed bootstrap, both imports, the regression suite, gateway/management/database isolation checks and actual Camunda process deployment/completion. Only that temporary project's volumes were removed. The original development project and its existing persistent data were restored; its source logins and recovery checks passed afterward.
 - Both public identity namespaces stay on 8081. Management entry points 8082, both admin paths on 8083, and 8084 passed. No additional host ports are published.
 - Scoped implementation/test commits are recorded separately for backend, frontend and shared infrastructure. No phase documentation has been created before completion approval. User-owned untracked IDE settings were preserved.
-- **Review gate:** the user may now inspect the implementation and request revisions. Step 9 is deliberately pending explicit phase-completion approval. Graphify has not been updated; authenticated access and its supported workflow remain closeout dependencies.
+- **Historical review gate:** implementation was handed over for user review before documentation closeout. The subsequent approval and final completion are recorded below.
 
 ## Current review revision — Member source foreign key
 
@@ -258,7 +257,7 @@ The user's review instruction explicitly authorizes this correction. This supers
 - Preserve Member/User primary keys, identity associations and existing Sanctum token relationships. Update model relations/factories, imports, callbacks, source invalidation, logout queries and acceptance scripts to use the numeric relationship internally.
 - Verification: focused PostgreSQL schema/data migration round-trip and duplicate/orphan constraints; existing Login regression suite; apply the upgrade to current development data and verify repeat import and real two-provider login/logout. Frontend API contracts remain unchanged, so no frontend implementation is needed.
 - Acceptance: members contain numeric source IDs and no stored source slug; duplicate (`uuid`, `user_source_id`) is rejected while the same uuid across different sources remains allowed; existing data and login/logout behavior are preserved.
-- Progress: **3 of 3 review-revision steps completed**. Overall phase closeout remains pending; this request is not approval of phase completion.
+- Progress: **3 of 3 review-revision steps completed**. The correction was subsequently approved during the separate phase-completion review.
 
 1. [x] Migrate Member storage and update internal relationships/queries/factories/scripts.
 2. [x] Verify migration round-trip, integrity constraints and Login regression behavior; upgrade existing development data.
@@ -274,24 +273,21 @@ The user's review instruction explicitly authorizes this correction. This supers
 - Real two-provider acceptance passed after the upgrade: source-slug commands and URLs, concurrent SSR identity isolation, three-worker single refresh, application logout and signed provider backchannel logout all work with numeric Member source relationships.
 - Scoped the backchannel acceptance query to this run's provider session. The first run exposed a pre-existing expired grant from another session; that record is unrelated to the current logout and was preserved. The corrected acceptance run passed before the next /me request.
 - Backend implementation/tests and shared acceptance-script changes were committed separately. AGENTS.md and this current plan now describe numeric Member storage and slug-based public identifiers consistently. No frontend change was required.
-- Review revision complete: **3 of 3 steps**. Overall phase remains **8 of 9 steps**, awaiting the user's phase-completion review; documentation/Graphify closeout remains pending.
+- Review revision complete: **3 of 3 steps**. The user subsequently approved phase completion and documentation closeout.
 
 ## Approved closeout — 2026-11-04
 
-The user explicitly approved the reviewed changes. This satisfies the phase-completion review gate and authorizes step 9 documentation and the Graphify update. Earlier pending-review statements in the evidence sections describe their historical state.
+The user explicitly approved the reviewed changes and subsequently removed the external graph-service requirement from the project. The remaining closeout scope consists of local technical documentation, Persian guides, documentation verification and scoped commits. No external account, graph service or replacement integration is required.
 
 - [x] Create English technical Markdown under docs/ covering architecture/infrastructure, final database design and migration history, Login business behavior, API contracts and actual verification evidence.
 - [x] Create Persian development/operational and end-user Markdown guides under docs/.
 - [x] Verify documentation against the implemented files/commands/routes and commit the documentation separately.
-- [ ] Update the project graph in the user-confirmed https://www.graphify.ai/ using a verified supported workflow and authenticated project access. Do not replace it with another service or mark this item complete without an actual update.
-- [ ] Commit the final closeout progress; mark step 9 complete only when all required closeout work is done.
+- [x] Remove the canceled external integration requirement, its dedicated status document and related references from project rules and current documentation.
+- [x] Commit final closeout progress and mark step 9 complete.
 
-Implementation remains approved. Overall progress is **8 of 9 steps completed** until the graph requirement is fulfilled.
+### Step 9 completion evidence
 
-### Step 9 closeout evidence — documentation complete, Graphify pending
-
-- Created and committed eight Markdown files under docs/: an index; English architecture/business/infrastructure, database/migrations, API, validation and Graphify status documents; and Persian operational and end-user guides. Final Member storage is numeric with UNIQUE (`uuid`, `user_source_id`), while public source identifiers remain slugs.
-- Documentation checks passed for all local links, balanced code fences, valid JSON examples, expected language placement, Laravel/Sanctum lockfile versions and every Login route contract. No application code changed during closeout; prior 20-test/137-assertion and real acceptance results are recorded as historical test evidence, not claimed as newly rerun.
-- Visited the exact user-confirmed Graphify website. Its public surface advertises KPI tracking/visualization; the existing-account login opened Auth0 and required a password. No authenticated project or supported graph update/import workflow was accessible. No graph update, account creation, alternate product or project-data upload occurred.
-- Asked for the intended Graphify workspace/chart and account access while completing independent documentation. The Graphify page is available for user sign-in. Remaining work: authenticate, identify the intended project/representation, verify the supported workflow, actually update and verify the graph, then commit that evidence and mark step 9 complete.
-- Overall progress remains **8 of 9 steps completed**. The user has approved the implementation; only the required external graph closeout is outstanding. Do not request phase approval again or claim full closeout before the actual graph update.
+- Seven Markdown files remain under docs/: an index; English architecture/business/infrastructure, database/migrations, API and validation documents; and Persian operational and end-user guides. Final Member storage is numeric with UNIQUE (`uuid`, `user_source_id`), while public source identifiers remain slugs.
+- Documentation checks passed for local links, balanced code fences, valid JSON examples, language placement, Laravel/Sanctum lockfile versions and Login route contracts. Reference checks confirm the canceled integration is absent from the current rules, plan and documentation.
+- No application code or database changes were needed for this closeout correction. The previously completed 20-test/137-assertion suite and real acceptance results remain recorded as historical evidence; they were not rerun for documentation-only changes.
+- Phase implementation and review corrections are approved. Documentation and final scoped changes are committed. **All 9 of 9 phase steps are complete; no closeout work remains.**
