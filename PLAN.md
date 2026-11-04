@@ -4,7 +4,7 @@
 
 - Status: **Approved — implementation in progress.**
 - Revision date: 2026-11-03.
-- Revision implementation progress: **5 of 9 steps completed.**
+- Revision implementation progress: **6 of 9 steps completed.**
 - The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. Phase completion was never approved. The user has now requested a material redesign of authentication.
 - This revision replaces the previous current plan, not the existing infrastructure. Earlier commits preserve the baseline plan and evidence. Do not create a competing active plan or mark the phase complete.
 - The user explicitly approved implementation and requested textual UserSource slugs on 2026-11-03. All implementation steps below are authorized; completion still requires a separate review approval.
@@ -164,7 +164,7 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 3. [x] **Register sources and import memberships.** Implement validated source/import commands, pagination, repeat-safe imports, dry-run and explicit identity mapping. Bootstrap/import the first development source.
 4. [x] **Implement source-bound login and token lifecycle.** Build PKCE/state/nonce callbacks, imported-member authorization, token issuing/expiry, refresh locking and source/config invalidation.
 5. [x] **Implement logout and upstream verification.** Add verified backchannel handling, replay protection, per-request upstream validity checks, RP logout and failure semantics.
-6. [ ] **Implement Nuxt SSR and source selection.** Add credential transport/gateway, awaited SSR identity, dialog, logout handoff, visible-page/focus rechecks and appropriate unavailable states. Preserve local assets/RTL/themes and external CSS rules.
+6. [x] **Implement Nuxt SSR and source selection.** Add credential transport/gateway, awaited SSR identity, dialog, logout handoff, visible-page/focus rechecks and appropriate unavailable states. Preserve local assets/RTL/themes and external CSS rules.
 7. [ ] **Validate two independent providers in Docker.** Add the second provider/database and same-origin routing, register/import both sources and verify cross-source identity isolation while preserving management services.
 8. [ ] **Complete integrated acceptance and hand off for review.** Run the matrix below, fix failures, update the plan and present the working revision. Await explicit phase-completion approval and apply review adjustments.
 9. [ ] **Close the approved phase.** Only after approval, write English database/business/API documentation and Persian operational guides, update Graphify using its verified accessible workflow, and finish separately scoped commits.
@@ -227,3 +227,8 @@ The revised plan is approved; implementation may proceed. Report **step N of 9 c
 
 - Added signature/issuer/audience/event/time/replay-validated backchannel logout, scoped by source and provider session/subject. Local logout revokes immediately and creates an encrypted, bound, short-lived single-use RP POST handoff.
 - Every protected identity request introspects the current upstream grant. Provider outage returns 503 while retaining the credential; inactive grants and invalid refresh return 401 and revoke it. All 14 backend tests pass (93 assertions). Real provider/browser logout checks follow in steps 7–8.
+
+### Step 6
+
+- Added awaited, request-scoped Nuxt SSR identity resolution, encrypted HttpOnly credential transport, internal Bearer forwarding, Origin/CSRF validation, source dialog and visible/focus rechecks. A single-use provider logout POST keeps ID-token hints out of URLs.
+- Nuxt type checking/build passed. Real login checks confirmed correct initial authenticated HTML, no credential serialization and source isolation across 12 concurrent SSR requests. Provider audience/basic-scope settings were reconciled after real integration exposed missing access-token subject/audience claims.
