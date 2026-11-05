@@ -8,12 +8,26 @@
 
 ## Phase approval and planning
 
+- Before creating or replacing `PLAN.md` for a new phase, follow the Git workflow below and create its feature branch first.
 - Define each phase before implementation: its subject, scope, implementation method, database design, ordered steps, and acceptance criteria.
 - Obtain the user's explicit approval of that phase plan before writing application code or implementing infrastructure.
 - Maintain exactly one current plan at the repository root: `PLAN.md`. Write it in English with complete phase details and execution steps. Do not create competing active plans.
 - Commit every update to `PLAN.md`, including progress and approval status changes.
 - After completing each implementation step, tell the user exactly which step has completed out of the total, for example: "Step 3 of 8 completed." Use Persian when communicating with the user.
 - Do not interpret plan approval as approval of the completed phase.
+
+## Git workflow and branch lifecycle
+
+- Use the project's feature-branch workflow with `master` as the main integration branch and `origin/master` as its upstream. This is the project's Gitflow convention; do not introduce a `develop` branch unless the user approves a workflow change.
+- Start each new phase with a clean working tree, fetch `origin`, switch to `master`, and update it with `git merge --ff-only origin/master`. If local `master` has diverged, preserve its commits and resolve the divergence explicitly; never reset or force-push `master`.
+- Create a descriptive `codex/feature/<phase-name>` branch from the updated `master` **before** creating or replacing the root `PLAN.md`. Then write and commit the plan on that feature branch, obtain explicit plan approval, and continue the phase there.
+- Keep all plan updates, implementation, review fixes, verification evidence and approved phase documentation on that feature branch. Commit every plan update and keep backend, frontend, shared infrastructure and documentation commits appropriately scoped.
+- Finish implementation and verification, pause for the user's explicit completion approval, and only then create or update the phase documentation and commit the final closeout. Plan approval alone never authorizes integration.
+- After approved completion and documentation, ensure the feature branch is clean, fetch `origin` again, and rebase the feature branch onto the latest `origin/master`.
+- Resolve any rebase conflicts on the feature branch, stage the resolutions and use `git rebase --continue` to record them in the replayed commits. Commit any additional fixes on the feature branch. Repeat the relevant validation after rebasing and resolving conflicts; never move unresolved conflicts or failing changes into `master`.
+- Switch to `master`, update it from `origin/master` with `git merge --ff-only origin/master`, then merge the verified feature branch using `git merge --no-ff <feature-branch>`. If upstream advances before integration or rejects the push, fetch and repeat synchronization, feature-branch rebase and relevant validation before retrying; never force-push `master`.
+- Push the merged `master` to `origin`. Only after successful integration and push, delete the local feature branch with `git branch -d <feature-branch>` and delete its remote counterpart if one was published. Do not delete a branch containing unintegrated work.
+- Report actual rebase, validation, merge, push and deletion results. If access or repository protection blocks a step, preserve the feature branch and report the remaining work; do not claim the phase has been integrated.
 
 ## Review, documentation, and phase completion
 
