@@ -3,9 +3,10 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Proposed — awaiting explicit phase-plan approval.**
+- Status: **Approved — implementation in progress.**
 - The user approved the domain model in chat and requested this plan. That approval does not authorize implementation of this plan or approve the completed phase.
 - Implementation progress: **0 of 10 steps completed**.
+- Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
 - Branch: `codex/feature/company-personnel-access`.
 - Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
 - The previous plan and its Login/maintenance evidence remain in Git history; this is the only current root plan.
@@ -208,7 +209,7 @@ Repeat for mutation permissions. Company route queries/creates/updates must bind
 
 | Step | Work and completion evidence | Status |
 | --- | --- | --- |
-| 1 of 10 | After explicit approval, commit approval status; update authorized scope in AGENTS.md; establish module boundaries, provider/test discovery and the permission/route inventory without widening scope. | Pending approval |
+| 1 of 10 | After explicit approval, commit approval status; update authorized scope in AGENTS.md; establish module boundaries, provider/test discovery and the permission/route inventory without widening scope. | In progress |
 | 2 of 10 | Implement schema and database invariants, location preparation/contract migration, import/factory/bootstrap compatibility; verify fresh and populated databases and preservation of identity/token data. | Not started |
 | 3 of 10 | Implement companies, independent position charts, buildings/default areas and safe deletes; verify same-company parents, cycles, defaults and concurrency. | Not started |
 | 4 of 10 | Implement personnel location/profile operations, assignment CRUD and atomic reporting replacement; verify all reporting and cross-company rules. | Not started |
