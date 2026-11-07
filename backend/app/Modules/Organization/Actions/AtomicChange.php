@@ -2,8 +2,8 @@
 
 namespace App\Modules\Organization\Actions;
 
-use PDOException;
 use Illuminate\Support\Facades\DB;
+use PDOException;
 
 final class AtomicChange
 {
