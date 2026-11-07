@@ -5,7 +5,7 @@
 - Prepared: 2026-11-07.
 - Status: **Approved — implementation in progress.**
 - The user approved the domain model in chat and requested this plan. That approval does not authorize implementation of this plan or approve the completed phase.
-- Implementation progress: **6 of 10 steps completed**.
+- Implementation progress: **7 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
 - Branch: `codex/feature/company-personnel-access`.
 - Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
@@ -215,7 +215,7 @@ Repeat for mutation permissions. Company route queries/creates/updates must bind
 | 4 of 10 | Implement personnel location/profile operations, assignment CRUD and atomic reporting replacement; verify all reporting and cross-company rules. | Complete |
 | 5 of 10 | Implement permission catalog, roles/pivots, effective grants, bootstrap command and authorization/delegation enforcement; pass scope and privilege-escalation matrix. | Complete |
 | 6 of 10 | Wire protected APIs and secure Nuxt gateway/SSR access state; verify denied direct requests, CSRF, scoped queries and existing Login behavior. | Complete |
-| 7 of 10 | Build Persian company/chart/building/personnel and reporting interfaces; verify initial SSR, validation, default locations and responsive themes. | Not started |
+| 7 of 10 | Build Persian company/chart/building/personnel and reporting interfaces; verify initial SSR, validation, default locations and responsive themes. | Complete |
 | 8 of 10 | Build shared role/permission and scoped direct/position-role interfaces; verify effective-access feedback, no inheritance and permission removal on next request. | Not started |
 | 9 of 10 | Complete meaningful backend/browser/build/integration checks, migration rehearsal and review fixes; commit actual evidence in PLAN.md; report 9 of 10 and pause for explicit completion approval. | Not started |
 | 10 of 10 | Only after completion approval, create/update English technical documentation and Persian usage/operations guides, validate them, commit closeout, rebase/revalidate, merge/push master and delete integrated branches per section 11. | Blocked by future completion approval |
@@ -285,3 +285,11 @@ After approval:
 - Protected management APIs, bounded/nested company queries, minimal selectors and sanitized effective-access endpoint wired behind Sanctum, existing upstream validity checks and completed location migration.
 - Nuxt allowlisted management gateway uses server-only Bearer exchange, existing HttpOnly credential envelope, Origin/CSRF mutation checks and sanitized errors. Access state resolves after Login on SSR and refreshes with identity checks.
 - HTTP authorization suite passed: 7 tests, 40 assertions, including direct anonymous denial, company/global separation, nested-ID substitution, reporting replacement and test-only article routes. Nuxt typecheck passed; Pint applied. Browser/CSRF end-to-end verification remains in step 9.
+
+### Step 7 evidence
+
+- Persian RTL administration shell, company/building/area directories, recursive independent chart, shared personnel/location editor, and current assignment/reporting editor implemented with bounded searchable selectors.
+- Retained existing theme tokens (primary #24577A, secondary #526A7B, background #F3F6F8, surface #FFFFFF, text #253746), Vazirmatn and dedicated CSS; used a quiet navigation rail and one working table surface.
+- Real disposable-project SSR loaded all management sections. Playwright created a company through the form, expanded the chart, verified existing cross-company manager chips and checked nonroot empty-manager validation.
+- Desktop and 390px mobile screenshots inspected; corrected mobile action wrapping/navigation alignment and made global scope an explicit selector option. Light/dark and automatic live device-theme changes passed. Screenshots stay ignored under output/playwright/.
+- User explicitly declined bootstrap grants for both original imported users. Administrative browser fixtures exist only in organization-fresh-acceptance; original users remain unprivileged.

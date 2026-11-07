@@ -33,3 +33,58 @@ h2 { font-size: 1.4rem; font-weight: 650; line-height: 1.9; }
 .source-loading { display: flex; gap: 1rem; align-items: center; padding-block: 1.5rem; }
 .source-list .v-list-item { border: 1px solid rgba(var(--v-theme-on-surface), 0.16); border-radius: 8px; margin-block: 0.5rem; min-height: 64px; }
 .welcome-content .identity-source { font-size: 0.9rem; margin-bottom: 1.25rem; }
+
+/* Administration: a quiet navigation rail and a single working surface. */
+.brand-link { color: inherit; text-decoration: none; }
+.workspace:has(.admin-layout) { max-width: 1440px; padding-top: 2rem; }
+.admin-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 2rem; align-items: start; }
+.admin-navigation { position: sticky; top: 88px; border-inline-end: 1px solid rgba(var(--v-theme-on-surface), 0.14); padding-inline-end: 1rem; }
+.admin-navigation .v-list { background: transparent; }
+.admin-nav-heading { font-weight: 700; padding: 0.5rem 1rem 1rem; }
+.admin-home-link { display: block; padding: 1rem; font-size: 0.85rem; color: rgb(var(--v-theme-primary)); }
+.admin-content { min-width: 0; }
+.admin-page-heading { display: flex; justify-content: space-between; gap: 1.5rem; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.14); }
+.admin-page-heading p, .admin-muted { font-size: 0.875rem; opacity: 0.75; line-height: 1.9; }
+.admin-company-select { max-width: 300px; min-width: 210px; }
+.admin-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.admin-section-heading h2 { font-size: 1.15rem; }
+.admin-search { display: flex; gap: 0.75rem; max-width: 560px; align-items: center; margin-block: 1rem 1.5rem; }
+.admin-table { border-block: 1px solid rgba(var(--v-theme-on-surface), 0.16); background: transparent !important; }
+.admin-table th { font-weight: 650 !important; white-space: nowrap; background: rgba(var(--v-theme-primary), 0.045); }
+.admin-table td { padding-block: 0.8rem !important; line-height: 1.9; }
+.admin-table strong { font-weight: 550; }
+.admin-row-actions { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.admin-empty { text-align: center !important; padding: 2.5rem 1rem !important; opacity: 0.75; }
+.admin-help { font-size: 0.85rem; line-height: 2; max-width: 70ch; }
+.admin-start { max-width: 860px; margin-inline: auto; }
+.admin-start-list .v-list-item { padding: 1rem 1.5rem; min-height: 82px; }
+.admin-start-list .v-list-item + .v-list-item { border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12); }
+.position-tree { list-style: none; padding-inline-start: 1.25rem; }
+.position-tree li { border-inline-start: 1px solid rgba(var(--v-theme-primary), 0.3); padding-inline-start: 1.25rem; margin-block: 0.75rem; }
+.position-tree span { display: inline-block; padding-block: 0.25rem; }
+.permission-list { max-height: 55vh; overflow-y: auto; }
+.scope-explanation { border-inline-start: 3px solid rgb(var(--v-theme-primary)); padding: 0.5rem 1rem; margin-block: 0.5rem 1.5rem; }
+@media (max-width: 960px) {
+  .admin-layout { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .admin-navigation { position: static; border-inline-end: 0; border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.14); padding: 0 0 1rem; }
+  .admin-navigation .v-list { display: flex; overflow-x: auto; padding-bottom: 0.5rem; }
+  .admin-navigation .v-list-item { flex: 0 0 auto; }
+  .admin-nav-heading, .admin-home-link { display: none; }
+}
+@media (max-width: 600px) {
+  .admin-page-heading { flex-direction: column; align-items: stretch; }
+  .admin-company-select { max-width: none; }
+  .admin-section-heading { align-items: start; flex-direction: column; }
+  .admin-search { max-width: none; }
+}
+.grant-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+@media (max-width: 760px) { .grant-columns { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) {
+  .admin-row-actions .v-btn { white-space: normal; height: auto; min-height: 36px; padding: 0.35rem 0.5rem; }
+  .admin-row-actions .v-btn__content { white-space: normal; }
+}
+@media (max-width: 600px) {
+  .admin-row-actions { flex-direction: column; align-items: stretch; }
+  .admin-row-actions .v-btn__content { line-height: 1.8; }
+  .assignments-table table { min-width: 640px; }
+}
