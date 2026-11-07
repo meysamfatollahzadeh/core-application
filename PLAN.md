@@ -5,7 +5,7 @@
 - Prepared: 2026-11-07.
 - Status: **Approved — implementation in progress.**
 - The user approved the domain model in chat and requested this plan. That approval does not authorize implementation of this plan or approve the completed phase.
-- Implementation progress: **2 of 10 steps completed**.
+- Implementation progress: **3 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
 - Branch: `codex/feature/company-personnel-access`.
 - Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
@@ -211,7 +211,7 @@ Repeat for mutation permissions. Company route queries/creates/updates must bind
 | --- | --- | --- |
 | 1 of 10 | After explicit approval, commit approval status; update authorized scope in AGENTS.md; establish module boundaries, provider/test discovery and the permission/route inventory without widening scope. | Complete |
 | 2 of 10 | Implement schema and database invariants, location preparation/contract migration, import/factory/bootstrap compatibility; verify fresh and populated databases and preservation of identity/token data. | Complete |
-| 3 of 10 | Implement companies, independent position charts, buildings/default areas and safe deletes; verify same-company parents, cycles, defaults and concurrency. | Not started |
+| 3 of 10 | Implement companies, independent position charts, buildings/default areas and safe deletes; verify same-company parents, cycles, defaults and concurrency. | Complete |
 | 4 of 10 | Implement personnel location/profile operations, assignment CRUD and atomic reporting replacement; verify all reporting and cross-company rules. | Not started |
 | 5 of 10 | Implement permission catalog, roles/pivots, effective grants, bootstrap command and authorization/delegation enforcement; pass scope and privilege-escalation matrix. | Not started |
 | 6 of 10 | Wire protected APIs and secure Nuxt gateway/SSR access state; verify denied direct requests, CSRF, scoped queries and existing Login behavior. | Not started |
@@ -263,3 +263,8 @@ After approval:
 - Import requires explicit area for new users; mapped/existing users retain location. Development bootstrap and factories updated.
 - Full backend suite passed: 27 tests, 157 assertions, including PostgreSQL constraint, populated-location preparation and existing Login regressions. Pint formatted changed PHP; bash -n scripts/dev passed.
 - A fresh-test rebuild initially exposed leftover PostgreSQL functions after migrate:fresh; using CREATE OR REPLACE for those functions fixed repeatability.
+
+### Step 3 evidence
+
+- Transactional company, position-chart, building/default-area and area actions implemented. Protected default edits, nonempty deletion, cross-company parents and chart cycles checked. Deferred commit errors are translated to sanitized HTTP 409 conflicts.
+- Organization action tests passed (2 tests, 7 assertions); the combined organization/personnel action run passed 3 tests and 12 assertions.

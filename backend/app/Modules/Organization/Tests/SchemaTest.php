@@ -112,6 +112,6 @@ class SchemaTest extends TestCase
         $this->artisan('organization:prepare-locations', ['--fallback-area' => $user->building_area_id])->assertSuccessful();
         DB::statement('ALTER TABLE users ALTER COLUMN building_area_id SET NOT NULL');
         $this->assertSame($user->id, $user->fresh()->id);
-        $this->assertSame($user->building_area_id,$user->fresh()->building_area_id);
+        $this->assertSame($user->building_area_id, $user->fresh()->building_area_id);
     }
 }
