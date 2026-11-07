@@ -1,13 +1,16 @@
 <?php
 
+use App\Modules\Access\Providers\AccessServiceProvider;
 use App\Modules\Login\Providers\LoginServiceProvider;
+use App\Modules\Organization\Providers\OrganizationServiceProvider;
+use App\Modules\Personnel\Providers\PersonnelServiceProvider;
 use App\Providers\AppServiceProvider;
 
 return [
     AppServiceProvider::class,
-    App\Modules\Organization\Providers\OrganizationServiceProvider::class,
-    App\Modules\Personnel\Providers\PersonnelServiceProvider::class,
-    App\Modules\Access\Providers\AccessServiceProvider::class,
+    OrganizationServiceProvider::class,
+    PersonnelServiceProvider::class,
+    AccessServiceProvider::class,
 
     LoginServiceProvider::class,
 ];

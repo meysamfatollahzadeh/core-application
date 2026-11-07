@@ -12,7 +12,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'building_area_id'];
 
     protected static function newFactory(): UserFactory
     {

@@ -5,7 +5,7 @@
 - Prepared: 2026-11-07.
 - Status: **Approved — implementation in progress.**
 - The user approved the domain model in chat and requested this plan. That approval does not authorize implementation of this plan or approve the completed phase.
-- Implementation progress: **1 of 10 steps completed**.
+- Implementation progress: **2 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
 - Branch: `codex/feature/company-personnel-access`.
 - Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
@@ -210,7 +210,7 @@ Repeat for mutation permissions. Company route queries/creates/updates must bind
 | Step | Work and completion evidence | Status |
 | --- | --- | --- |
 | 1 of 10 | After explicit approval, commit approval status; update authorized scope in AGENTS.md; establish module boundaries, provider/test discovery and the permission/route inventory without widening scope. | Complete |
-| 2 of 10 | Implement schema and database invariants, location preparation/contract migration, import/factory/bootstrap compatibility; verify fresh and populated databases and preservation of identity/token data. | Not started |
+| 2 of 10 | Implement schema and database invariants, location preparation/contract migration, import/factory/bootstrap compatibility; verify fresh and populated databases and preservation of identity/token data. | Complete |
 | 3 of 10 | Implement companies, independent position charts, buildings/default areas and safe deletes; verify same-company parents, cycles, defaults and concurrency. | Not started |
 | 4 of 10 | Implement personnel location/profile operations, assignment CRUD and atomic reporting replacement; verify all reporting and cross-company rules. | Not started |
 | 5 of 10 | Implement permission catalog, roles/pivots, effective grants, bootstrap command and authorization/delegation enforcement; pass scope and privilege-escalation matrix. | Not started |
@@ -255,3 +255,11 @@ After approval:
 - Explicit approval and authorized scope extension recorded; Organization, Personnel and Access providers and module-local test discovery registered.
 - PermissionCatalog implements the approved operation inventory; API inventory remains in section 7.
 - Existing seven Login routes load successfully through the running backend container; git diff --check passed.
+
+### Step 2 evidence — 2026-11-07
+
+- Additive organization/personnel/access schema, deferred invariants, serialized organization writes, separately invoked location contract migration and preparation/dry-run commands implemented.
+- User explicitly selected building `توسعه` and its `نامشخص` area for both existing users. Preparation dry-run rolled back; actual backfill reported two users and zero unresolved; contract migration succeeded. No identity/token mutation was part of the migrations.
+- Import requires explicit area for new users; mapped/existing users retain location. Development bootstrap and factories updated.
+- Full backend suite passed: 27 tests, 157 assertions, including PostgreSQL constraint, populated-location preparation and existing Login regressions. Pint formatted changed PHP; bash -n scripts/dev passed.
+- A fresh-test rebuild initially exposed leftover PostgreSQL functions after migrate:fresh; using CREATE OR REPLACE for those functions fixed repeatability.
