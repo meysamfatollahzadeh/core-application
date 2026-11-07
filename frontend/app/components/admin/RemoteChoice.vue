@@ -13,7 +13,9 @@ let timer: ReturnType<typeof setTimeout> | undefined
 let generation = 0
 function itemLabel(item: DirectoryItem) {
   const prefix = item.company_title ?? item.building_title
-  return prefix ? `${prefix} / ${item.title}` : (item.title ?? item.name ?? `شماره ${item.id}`)
+  const title = prefix ? `${prefix} / ${item.title}` : (item.title ?? item.name ?? '')
+  const identifier = item.key ? String(item.key) : `شناسه ${item.id.toLocaleString('fa-IR')}`
+  return `${title} (${identifier})`
 }
 async function load(append = false) {
   if (!props.endpoint || props.disabled) return

@@ -5,7 +5,7 @@
 - Prepared: 2026-11-07.
 - Status: **Approved — implementation in progress.**
 - The user approved the domain model in chat and requested this plan. That approval does not authorize implementation of this plan or approve the completed phase.
-- Implementation progress: **7 of 10 steps completed**.
+- Implementation progress: **8 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
 - Branch: `codex/feature/company-personnel-access`.
 - Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
@@ -216,7 +216,7 @@ Repeat for mutation permissions. Company route queries/creates/updates must bind
 | 5 of 10 | Implement permission catalog, roles/pivots, effective grants, bootstrap command and authorization/delegation enforcement; pass scope and privilege-escalation matrix. | Complete |
 | 6 of 10 | Wire protected APIs and secure Nuxt gateway/SSR access state; verify denied direct requests, CSRF, scoped queries and existing Login behavior. | Complete |
 | 7 of 10 | Build Persian company/chart/building/personnel and reporting interfaces; verify initial SSR, validation, default locations and responsive themes. | Complete |
-| 8 of 10 | Build shared role/permission and scoped direct/position-role interfaces; verify effective-access feedback, no inheritance and permission removal on next request. | Not started |
+| 8 of 10 | Build shared role/permission and scoped direct/position-role interfaces; verify effective-access feedback, no inheritance and permission removal on next request. | Complete |
 | 9 of 10 | Complete meaningful backend/browser/build/integration checks, migration rehearsal and review fixes; commit actual evidence in PLAN.md; report 9 of 10 and pause for explicit completion approval. | Not started |
 | 10 of 10 | Only after completion approval, create/update English technical documentation and Persian usage/operations guides, validate them, commit closeout, rebase/revalidate, merge/push master and delete integrated branches per section 11. | Blocked by future completion approval |
 
@@ -293,3 +293,10 @@ After approval:
 - Real disposable-project SSR loaded all management sections. Playwright created a company through the form, expanded the chart, verified existing cross-company manager chips and checked nonroot empty-manager validation.
 - Desktop and 390px mobile screenshots inspected; corrected mobile action wrapping/navigation alignment and made global scope an explicit selector option. Light/dark and automatic live device-theme changes passed. Screenshots stay ignored under output/playwright/.
 - User explicitly declined bootstrap grants for both original imported users. Administrative browser fixtures exist only in organization-fresh-acceptance; original users remain unprivileged.
+
+### Step 8 evidence
+
+- Shared role catalog/editor, role-permission dialog, direct global/company user-role editor and separate company/global position-role editors implemented. Scope and lack of chart/report inheritance are explained in Persian.
+- Playwright saved a shared role permission change, assigned a limited global role to a disposable user, and saved the same limited role in both company/global scopes on a disposable position. All writes used the protected browser gateway.
+- Real acceptance exercised company-role removal and position-derived global-role removal against an already issued token; subsequent requests were denied immediately. Identity/source boundaries remain unchanged.
+- Searchable selector labels now include stable identifiers to distinguish users or positions with identical names. Selected options can be prioritized across pagination without bypassing company authorization (8 HTTP tests, 46 assertions passed).
