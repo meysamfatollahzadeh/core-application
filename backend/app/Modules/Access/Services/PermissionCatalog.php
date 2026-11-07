@@ -15,4 +15,13 @@ final class PermissionCatalog
 
         return [...$keys, 'personnel.view', 'personnel.update', 'roles.permissions.update', 'permissions.view', 'access.assign'];
     }
+
+    public static function title(string $key): string
+    {
+        [$resource,$operation] = explode('.', $key, 2);
+        $resources = ['companies' => 'شرکت‌ها', 'positions' => 'پوزیشن‌ها', 'buildings' => 'ساختمان‌ها و ناحیه‌ها', 'roles' => 'نقش‌ها', 'user_positions' => 'سمت‌های پرسنل', 'personnel' => 'پرسنل', 'permissions' => 'مجوزها', 'access' => 'دسترسی'];
+        $operations = ['view' => 'مشاهده', 'create' => 'ایجاد', 'update' => 'ویرایش', 'delete' => 'حذف', 'permissions.update' => 'ویرایش مجوزهای', 'assign' => 'تخصیص'];
+
+        return ($operations[$operation] ?? $operation).' '.($resources[$resource] ?? $resource);
+    }
 }
