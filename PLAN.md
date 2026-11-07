@@ -3,15 +3,15 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Approved — implementation in progress.**
-- The user approved the domain model in chat and requested this plan. That approval does not authorize implementation of this plan or approve the completed phase.
-- Implementation progress: **8 of 10 steps completed**.
+- Status: **Implementation verified — awaiting explicit phase-completion review.**
+- The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
+- Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
 - Branch: `codex/feature/company-personnel-access`.
 - Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
 - The previous plan and its Login/maintenance evidence remain in Git history; this is the only current root plan.
-- Current repository rules authorize Login only. Explicit approval of this plan authorizes the bounded scope extension described here; update that scope statement in AGENTS.md as part of step 1, preserving all other rules.
-- Do not write application code, change runtime infrastructure or apply migrations before explicit plan approval. Commit every plan change, including approval and progress updates.
+- At planning time repository rules authorized Login only. Explicit approval authorized the bounded scope extension described here; AGENTS.md was updated in step 1, preserving all other rules.
+- The pre-implementation approval gate was satisfied before application changes. Commit every plan change, including approval and progress updates.
 - After each implementation step, report in Persian: “مرحله X از ۱۰ تکمیل شد.” Record evidence and commit the plan update on this branch.
 - Step 9 ends with a review handoff. Step 10, phase documentation, closeout and integration require separate explicit completion approval. Plan approval never authorizes integration.
 
@@ -217,7 +217,7 @@ Repeat for mutation permissions. Company route queries/creates/updates must bind
 | 6 of 10 | Wire protected APIs and secure Nuxt gateway/SSR access state; verify denied direct requests, CSRF, scoped queries and existing Login behavior. | Complete |
 | 7 of 10 | Build Persian company/chart/building/personnel and reporting interfaces; verify initial SSR, validation, default locations and responsive themes. | Complete |
 | 8 of 10 | Build shared role/permission and scoped direct/position-role interfaces; verify effective-access feedback, no inheritance and permission removal on next request. | Complete |
-| 9 of 10 | Complete meaningful backend/browser/build/integration checks, migration rehearsal and review fixes; commit actual evidence in PLAN.md; report 9 of 10 and pause for explicit completion approval. | Not started |
+| 9 of 10 | Complete meaningful backend/browser/build/integration checks, migration rehearsal and review fixes; commit actual evidence in PLAN.md; report 9 of 10 and pause for explicit completion approval. | Complete |
 | 10 of 10 | Only after completion approval, create/update English technical documentation and Persian usage/operations guides, validate them, commit closeout, rebase/revalidate, merge/push master and delete integrated branches per section 11. | Blocked by future completion approval |
 
 Backend changes may span several scoped commits; frontend, shared development scripts and documentation use separate commits. Every progress/status change to this plan is committed. Do not mark steps complete based only on code being written.
@@ -235,7 +235,7 @@ Backend changes may span several scoped commits; frontend, shared development sc
 - Check no new published ports, remote runtime assets, inline/component styles, exposed credentials or accidental session authentication. Existing ports 8081–8084, Docker service DNS, hot reload and locked dependencies remain intact.
 - Record exact commands, outcomes, test/assertion totals when available and any unverified items here. Existing historical Login results are not evidence that new checks have passed. Use isolated test data; do not reset active development volumes or run disruptive checks without an actual need.
 
-Current verification: repository/approved-model inspection and Git baseline synchronization completed. Planning checks passed: git diff --check, balanced Markdown fences, all 10 ordered steps, pending-approval status, and required schema/scope coverage. No implementation tests, migrations, runtime changes or phase-completion approval have occurred.
+Planning verification passed before approval: repository inspection, Git baseline synchronization, git diff --check, balanced Markdown fences and ordered-step/schema/scope coverage. Implementation verification is recorded below. Phase-completion approval has not occurred.
 
 ## 11. Review, documentation and integration
 
@@ -300,3 +300,26 @@ After approval:
 - Playwright saved a shared role permission change, assigned a limited global role to a disposable user, and saved the same limited role in both company/global scopes on a disposable position. All writes used the protected browser gateway.
 - Real acceptance exercised company-role removal and position-derived global-role removal against an already issued token; subsequent requests were denied immediately. Identity/source boundaries remain unchanged.
 - Searchable selector labels now include stable identifiers to distinguish users or positions with identical names. Selected options can be prioritized across pagination without bypassing company authorization (8 HTTP tests, 46 assertions passed).
+
+### Step 9 evidence — 2026-11-07
+
+- Final PostgreSQL backend suite: **45 tests passed, 256 assertions**. Includes separate-process concurrent reparenting (one commit, one safe conflict), full phase rollback/re-upgrade preserving User/Member/source/token relationships, required-location imports, selected-option pagination and the authorization matrix. All existing Login regressions remain included.
+- Final formatting: `vendor/bin/pint --test app/Modules tests/Feature/Login/ImportMembersTest.php` passed for 77 PHP files. Nuxt `npm run typecheck` and `npm run build` passed. Typecheck emitted a nonfatal vue-router/volar plugin-loading warning; the build emitted tooling timing warnings. Neither command failed.
+- Final `bash scripts/check-fresh-development.sh` completed with **exit 0**, without a simultaneous frontend build. Fresh bootstrap, both source imports, all backend tests, infrastructure isolation/ports, real multi-provider login/refresh/logout, concurrent SSR, Camunda deployment/completion, real management API/SSR/CSRF and provider outage/recovery acceptance passed.
+- Management acceptance verified company-bound queries, direct company grants, position-derived global grants and immediate removal on an existing credential. Verified an empty nonroot reporting replacement preserves the old targets, protected default-area deletion, denied second-user access and public-origin pagination links on port 8081.
+- Provider recovery checked both home and authorized management SSR during a real provider stop: HTTP 503 without anonymous login rendering or credential loss; valid SSO and management access recovered after provider restart; application logout remained functional.
+- Final runtime inventory: 57 production API routes, zero article routes. Dependency locks, Compose service/port configuration and docs/ have no phase changes. Vue style-separation checks, shell/Python checks and git diff --check passed.
+- Original development services were restored: backend, frontend, PostgreSQL, Redis, both Keycloak services, Nginx, pgAdmin and Camunda all running/healthy. Temporary acceptance containers/volumes were removed by the successful cleanup; the encrypted browser fixture was deleted.
+- Final original-data check: two users, zero users without location, zero direct global grants, zero company grants and zero position grants. No original account was bootstrapped as administrator, as the user explicitly requested.
+- Review corrections: forward real backend HTTP statuses through Nuxt (including 201), preserve the canonical public origin for pagination, add scoped-only position selectors and selected-ID prioritization, show human location/manager/parent labels, and distinguish identical names with stable IDs. Shared-role permission editing checks added permissions against the actor's global authority.
+- Effective grants use request-scoped memoization, invalidated around mutations, with no persistent authorization cache. Last-administrator evaluation uses one aggregate query over direct and position-derived global grants. Protected pages leave their content when fresh authorization is removed; upstream invalidation still uses the established Login checks.
+- Verification iterations are recorded honestly: an early management acceptance run exposed the 200/201 gateway mismatch and was fixed; an optional visual-review hold later ended with signal 143 and cleanup restored the original project; another run timed out in Login while a frontend build ran concurrently. The final sequential acceptance run passed completely. The temporary review-hold hook is not present in the committed acceptance script.
+- Backend, frontend and shared acceptance changes are committed separately. No phase documentation, rebase, merge, push or feature-branch deletion has occurred; these remain gated by explicit completion approval in step 10.
+
+## Review handoff
+
+Implementation and verification are ready for user review: **9 of 10 steps completed**. Review screenshots are local ignored artifacts under output/playwright/, including phase2-companies-desktop.png, phase2-chart-desktop.png, phase2-personnel-mobile.png, phase2-personnel-dark.png and phase2-position-roles.png; they show disposable test data.
+
+The original environment deliberately has no administrator grant. An operator may later use the already implemented access:bootstrap command with an explicitly chosen existing source slug and subject; no account is selected automatically. Do not grant either existing user administrative access without a new explicit instruction.
+
+Await separate explicit phase-completion approval. Only then perform step 10 documentation, final closeout and the approved Git integration lifecycle. This handoff does not mark the phase complete or integrated.
