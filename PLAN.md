@@ -1,312 +1,250 @@
-# Current Plan — Phase 1 Revision: Modular Multi-Source Login
+# Phase 2 — Company, Personnel and Access Management
 
-## Status, baseline and approval
+## 1. Status and approval gates
 
-- Status: **Complete — implementation approved, documentation verified and closeout committed.**
-- Revision date: 2026-11-03.
-- Revision implementation progress: **9 of 9 steps completed.**
-- The previous infrastructure implementation reached its review handoff in commit `f2415ac`; later review fixes are also in Git. The infrastructure baseline had not been closed before the user requested the authentication redesign; the revised implementation has since been reviewed and approved.
-- This revision replaces the previous current plan, not the existing infrastructure. Earlier commits preserve the baseline plan and evidence. Do not create a competing active plan. Phase completion is recorded here after the approved implementation and documentation closeout.
-- The user explicitly approved implementation and requested textual UserSource slugs on 2026-11-03. All implementation steps below were authorized; the separate completion review was subsequently approved on 2026-11-04.
-- Preserve the approved monorepo, Laravel/PHP runtime on internal 8000, Nuxt dev runtime on internal 3000, Redis/PostgreSQL, Camunda, local frontend assets, and gateway/management ports 8081–8084.
-- After implementation, pause for user review. Only after explicit phase-completion approval create English technical Markdown and Persian usage guides in `docs/` and close the phase with separately scoped commits.
+- Prepared: 2026-11-07.
+- Status: **Proposed — awaiting explicit phase-plan approval.**
+- The user approved the domain model in chat and requested this plan. That approval does not authorize implementation of this plan or approve the completed phase.
+- Implementation progress: **0 of 10 steps completed**.
+- Branch: `codex/feature/company-personnel-access`.
+- Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
+- The previous plan and its Login/maintenance evidence remain in Git history; this is the only current root plan.
+- Current repository rules authorize Login only. Explicit approval of this plan authorizes the bounded scope extension described here; update that scope statement in AGENTS.md as part of step 1, preserving all other rules.
+- Do not write application code, change runtime infrastructure or apply migrations before explicit plan approval. Commit every plan change, including approval and progress updates.
+- After each implementation step, report in Persian: “مرحله X از ۱۰ تکمیل شد.” Record evidence and commit the plan update on this branch.
+- Step 9 ends with a review handoff. Step 10, phase documentation, closeout and integration require separate explicit completion approval. Plan approval never authorizes integration.
 
-## 1. Subject and outcome
+## 2. Subject, outcome and scope
 
-Replace the session-based single-provider prototype with a modular Login API using Sanctum Bearer tokens, multiple Keycloak sources, pre-imported local memberships, server-rendered Nuxt authentication and bidirectional logout.
+Provide a Persian organizational administration interface and modular Laravel APIs for companies, position charts, personnel position assignments and reporting relationships, buildings/areas, and permission-based access assigned directly to users or through positions.
 
-Only the Login business module is developed. Source registration/import commands are included; source/user administration screens, roles/permissions, unrelated business modules and automatic account linking are excluded.
+In scope:
 
-## 2. Architectural decisions
+- Company and position CRUD; an independent single-parent chart per company.
+- Existing local users as personnel; current positions and one mandatory current location per user; no independent company membership.
+- Multiple reporting positions for each user-position assignment, including positions in other companies.
+- Shared buildings and areas; automatically create a protected default area titled `نامشخص` for each building.
+- Shared role definitions, an application-owned permission catalog, role-permission management, and global/company role assignments to users and positions.
+- Effective permissions, backend enforcement, SSR-aware administration navigation, secure bootstrap access, safe migration of existing data, and focused regression/acceptance verification.
+- Narrow changes to Login imports, factories and development bootstrap needed to satisfy mandatory user location and to expose sanitized authorization state.
 
-### Laravel API and the meaning of stateless
+Out of scope:
 
-- Install Sanctum in API-token mode. Configure token-only authentication (`auth:sanctum` without a session guard fallback) and route the module through Laravel's API middleware group.
-- Remove application authentication routes from the `web` middleware, the session endpoint, StartSession-dependent logic, session cookies and Redis login-session configuration. Old application session cookies are explicitly expired during the transition; do not flush unrelated Redis data.
-- Sanctum stores token hashes in PostgreSQL to support lookup, expiry and revocation. This is token-based API authentication without Laravel sessions; it is not a promise of zero server-side persistence.
-- Redis remains available for cache, throttling, short-lived single-use OIDC transactions, replay protection and refresh locks. None of these becomes a replacement browser login session.
-- Keycloak remains the identity provider. Sanctum is the application's API credential; it does not replace OIDC or validate a Keycloak JWT as though it were a Sanctum token.
+- Independent company membership, employment contracts, personnel codes, payroll, attendance, HR dossiers, historical assignment/location records, organization-specific role definitions, role inheritance, permission-deny rules, and building-entry permissions.
+- Local passwords, identity lifecycle administration screens, automatic identity linking or registration on callback. Keycloak remains responsible for identities and credentials; existing imported Member/User matches remain mandatory.
+- Articles CRUD or an Articles module. The article URLs discussed in chat are authorization contract examples verified through test-only routes, not new production article endpoints.
+- Camunda business processes, dependency/runtime upgrades, new public ports, external assets and replacement authentication mechanisms.
 
-### Nuxt credential transport and SSR
+## 3. Confirmed business behavior
 
-- Use a thin Nuxt server gateway: browser requests to `/gateway/login/*` are forwarded internally to Laravel `/api/login/*` with a Bearer header. Direct Laravel API consumers can still call `/api/login/*` with their own Bearer header.
-- Nuxt stores the browser's application credential in an encrypted, HttpOnly, SameSite=Lax cookie, with Secure enabled on HTTPS and a development HTTP exception. The cookie transports the token for SSR; it is not a Laravel session ID. No Nuxt session store is introduced.
-- Browser JavaScript never receives the Sanctum Bearer or Keycloak access/refresh tokens. Do not put credentials in localStorage/sessionStorage, callback URLs, logs or serialized Nuxt payloads.
-- Resolve `/api/login/me` on the Nuxt server and await it before rendering. Serialize only sanitized user/source display data in request-scoped Nuxt state. Never cache authenticated HTML or share identity state between SSR requests.
-- SSR renders the correct authenticated or anonymous control in its first HTML response. Hydration must preserve it, without a mounted login-to-logout switch.
-- A 401 clears the browser credential and produces an anonymous result. An upstream outage produces an unavailable state/503, not a false successful login or an automatic anonymous flash.
-- Nuxt cookie-authenticated mutation routes validate Origin and CSRF proof without a session store. Laravel API authentication remains Bearer-only; the signed provider webhook has its own protocol validation.
+### Companies, positions and reporting
 
-## 3. Login module structure
+1. A user can hold multiple positions concurrently in one or several companies; multiple users can hold the same position.
+2. A position belongs to exactly one company and has zero or one parent position in that same company. Multiple roots are allowed. Self-parenting and chart cycles are forbidden.
+3. No company-membership table exists. A user's company associations are the distinct union of companies of their positions and direct company roles. Global roles do not create membership in every company.
+4. Positions confer no permissions by themselves. Reporting relationships confer no permissions.
+5. Reporting is attached to a specific UserPosition, not to the user generally or the position chart. Its targets are positions, never individual managers.
+6. A UserPosition whose position has a parent must have at least one reporting target. Root-position assignments may have zero or more targets.
+7. A target may be any existing position, including one in another company or one with no current occupants; it need not be the chart parent.
+8. A target cannot equal the position of that UserPosition. Another position held by the same user is allowed. Reciprocal and cyclic reporting relationships are allowed; do not apply chart acyclicity to reporting.
+9. Keep current state only. Ordinary timestamps do not constitute assignment history.
+
+### Location
+
+1. Every user has exactly one current BuildingArea, independent of company, position or role.
+2. Every area belongs to one building; buildings may house personnel associated with multiple companies. Do not add company-building membership or duplicate building_id on users.
+3. Building creation and its `نامشخص` default area are atomic. Each building has exactly one default area identified by is_default, not title matching. Protect its identity/title and prevent standalone deletion or default-flag manipulation through area APIs.
+4. Default areas may be assigned explicitly. Do not silently move users when an area/building is removed. Referenced areas/buildings cannot be deleted until users are reassigned.
+
+### Access
+
+1. Roles and their permission sets are shared application-wide; companies do not own role definitions.
+2. Direct user roles can be global or company-specific, regardless of whether the user holds any position in that company.
+3. Position roles can be global or scoped to the position's own company. A position cannot receive a role scoped to an unrelated company.
+4. A position role benefits all and only users currently holding that exact position. Descendants and reporting targets do not inherit it.
+5. Effective permissions are the union of direct and position-derived permissions, preserving each grant's global or company scope. There is no deny precedence.
+6. Global grants satisfy global routes and equivalent checks for every company. Company grants satisfy only routes for that exact company and never global routes.
+7. Possessing an arbitrary role, holding a position or supplying a company ID is insufficient: the requested operation's permission and correct scope must both be present.
+8. A user associated with several companies is one shared User record. Editing global profile/location data requires global personnel authority; company personnel APIs cannot modify that shared record or another company's assignments.
+
+## 4. Implementation architecture
+
+Preserve the monorepo, installed dependency locks and existing development services. Use native Laravel policies/middleware and explicit query services; no new RBAC dependency is planned.
 
 ```text
-backend/app/Modules/Login/
-  Models/                    UserSource, Member, User, PersonalAccessToken
-  Actions/                   StartLogin, CompleteLogin, Logout, ImportMembers
-  Services/                  Per-source OIDC/admin clients, token validation
-  Http/Controllers/
-  Http/Requests/
-  Http/Resources/
-  Http/Middleware/            Membership/source/upstream token checks
-  Console/Commands/
-  Database/Migrations/
-  Database/Factories/
-  Providers/LoginServiceProvider.php
+backend/app/Modules/Organization/
+  Models/                  Company, Position, Building, BuildingArea
+  Actions/                 Transactional chart/location operations
+  Http/                    Controllers, Requests, Resources, Middleware as needed
+  Database/                Migrations, Factories
+  Console/Commands/        Location preparation/backfill
+  Providers/
   Routes/api.php
-backend/tests/Feature/Login/  Module-focused integration tests
-frontend/server/routes/gateway/login/
-frontend/server/routes/login/  Callback and logout continuation
-frontend/app/components/login/ Source-selection dialog
-frontend/app/composables/     Request-scoped authentication state
+  Tests/                   Organization feature/integrity tests
+backend/app/Modules/Personnel/
+  Models/                  UserPosition, UserPositionReport
+  Actions/                 Assignment and reporting replacement
+  Http/
+  Database/
+  Providers/
+  Routes/api.php
+  Tests/
+backend/app/Modules/Access/
+  Models/                  Role, Permission and assignment models as needed
+  Actions/
+  Services/                EffectivePermissions, authorization checks
+  Http/
+  Database/
+  Console/Commands/        Permission sync, initial access bootstrap
+  Providers/
+  Routes/api.php
+  Tests/
 ```
 
-Register only the Login module provider at the application composition root. Its provider loads routes, migrations and commands. Keep the generic infrastructure health endpoint outside business logic. Move the existing OIDC prototype into the module and replace its session behavior; do not leave two competing authentication paths.
+- Keep each module's routes, models, actions, requests, resources, migrations, commands, providers and tests together. Register providers at the composition root and configure test discovery for module-local tests. Existing Login tests need not be relocated.
+- Retain the existing Login User model as the canonical identity-backed user. Add only necessary location/relationship integration; never create a second personnel user table or duplicate Member semantics.
+- Specify migration ordering explicitly across modules, including users location constraints and Access dependencies on positions.
+- Every business route uses the existing Sanctum Bearer and upstream-grant validity checks before authorization. Health and necessary Login/OIDC protocol routes retain their established contracts.
+- Start with request-local effective-permission memoization, not persistent authorization caching. Resolve permissions afresh on subsequent requests so removals, role edits and position changes take effect without token reissue. Redis remains available for its existing purposes.
+- Apply authorization and company filtering before pagination, counts, searches and object lookup. Validate nested ownership; no cross-company ID substitution or mass-assignment of scope fields.
+- Use transactions and consistent row/advisory locking for chart edits, assignment/report replacements and bootstrap. Return sanitized stable errors without SQL or credentials.
 
-## 4. Database design
+## 5. PostgreSQL database design
 
-The three domain models requested by the user are retained. Standard timestamps are added. No local email/password/reset tables are introduced.
+Use bigint primary/foreign keys, bounded strings and timestamps for domain entities and first-class assignments. Use composite unique constraints on pure pivots. All required columns are NOT NULL unless explicitly marked nullable.
 
-| Table | Fields and constraints |
+| Table | Columns and invariants |
 | --- | --- |
-| `user_sources` | `id` bigint PK; `slug` varchar(63) UNIQUE NOT NULL; `title` varchar(255) NOT NULL; `is_active` boolean NOT NULL default false; `data` JSONB NOT NULL; timestamps |
-| `users` | `id` bigint PK; `name` varchar(255) NOT NULL; timestamps |
-| `members` | `id` bigint PK; `uuid` varchar(255) NOT NULL; `user_source_id` bigint FK to `user_sources.id`; `user_id` FK; timestamps; UNIQUE (`uuid`, `user_source_id`); index on `user_source_id` |
-| `personal_access_tokens` | Sanctum's normal tokenable/hash/abilities/expiry fields plus `member_id` FK, `provider_sid` nullable varchar(255), `provider_config_hash` varchar(64), encrypted `oidc_data` TEXT; index (`member_id`, `provider_sid`) |
+| companies | id PK; title varchar(255); timestamps |
+| positions | id PK; company_id FK; parent_position_id nullable FK; title varchar(255); timestamps; index company_id and parent_position_id; UNIQUE(id, company_id) to support same-company composite parent FK |
+| user_positions | id PK; user_id FK users; position_id FK; timestamps; UNIQUE(user_id, position_id); reverse index position_id |
+| user_position_reports | id PK; user_position_id FK; report_to_position_id FK positions; timestamps; UNIQUE(user_position_id, report_to_position_id); reverse index report_to_position_id |
+| buildings | id PK; title varchar(255); timestamps |
+| building_areas | id PK; building_id FK; title varchar(255); is_default boolean default false; timestamps; partial UNIQUE(building_id) WHERE is_default; index building_id |
+| users (existing) | add building_area_id FK building_areas, ultimately NOT NULL; index building_area_id; retain existing identity fields and associations |
+| roles | id PK; key varchar(100) UNIQUE; title varchar(255); timestamps |
+| permissions | id PK; key varchar(100) UNIQUE; title varchar(255); timestamps |
+| role_permission | role_id FK; permission_id FK; composite PK(role_id, permission_id); reverse index permission_id |
+| user_role | user_id FK; role_id FK; composite PK(user_id, role_id); reverse index role_id; always global |
+| company_user_role | company_id FK; user_id FK; role_id FK; composite PK(company_id, user_id, role_id); index(user_id, company_id), role_id |
+| position_role | position_id FK; role_id FK; scope varchar constrained to company/global; composite PK(position_id, role_id, scope); reverse index role_id; company scope derives from positions.company_id |
 
-### Identity relationships
+Additional integrity rules:
 
-- UserSource retains an internal numeric primary key, but its immutable lowercase URL-safe slug is the public identifier. Member relationships use the numeric source primary key through `user_source_id`, with UNIQUE (`uuid`, `user_source_id`), as explicitly requested during review. Validate slugs with `[a-z0-9]+(-[a-z0-9]+)*`, maximum 63 characters, and never rename an existing source implicitly. All `{source}` route parameters bind by slug; source resources and import/source commands use slugs, not numeric source IDs.
-- A User has many Members. A Member belongs to one User and one UserSource. A UserSource has many Members.
-- `uuid` stores Keycloak's exact subject/user ID as an opaque string. A SQL UUID type or globally unique subject constraint would reject some federated IDs or incorrectly conflate different sources.
-- Two different sources may use the same `uuid` without identifying the same local User.
-- One User can deliberately link several Members. Linking requires an explicit operator-provided mapping; matching names or email claims never links accounts automatically.
-- Domain deletes use restrictive foreign keys in this revision; destructive user/source management is outside scope. Revoking a credential deletes its token record. The token owner must match `member.user_id`.
+- Composite FK (parent_position_id, company_id) references positions(id, company_id). Reject self-parenting with a CHECK; prevent longer chart cycles under a company-level transaction lock. Existing position company_id is immutable; moving a position between companies is out of scope.
+- Enforce the reporting self-target rule, minimum required reports and default-area existence with deferred PostgreSQL constraint triggers plus transactional service validation. Check final committed state so atomic replacements and building creation are possible. Cover related parent updates and deletes, not only report insertion; serialize affected writes to prevent concurrent write skew.
+- Reparenting a root position with occupants requires valid reports for all affected assignments in the same transaction or returns 409 with affected IDs. Do not invent reporting managers automatically.
+- No UNIQUE constraint on display titles is assumed by the approved design. Role/permission keys, not titles, are stable identifiers. Prevent ambiguous display with company/building context in selectors.
+- Restrict domain deletes when referenced: occupied/report-targeted/parent positions, inhabited areas, nonempty buildings and companies, assigned roles. Remove explicit assignments before deleting referenced entities; do not silently cascade authority or reporting changes.
+- Deleting a UserPosition may cascade its own report rows. Role-permission pivots may be removed through explicit role editing. User/identity deletion remains out of scope.
+- Database tables for Keycloak, Camunda, Member identity binding, tokens and source settings otherwise remain unchanged.
 
-### UserSource.data
+## 6. Existing-data migration, imports and initial administration
 
-- Keep all provider settings in JSONB: exact public issuer, realm/base URLs, trusted internal backchannel endpoints, OIDC client ID/secret, allowed signing algorithms, fixed callback/logout URIs, import service-account settings, pagination/timeouts and source-specific display configuration where needed.
-- Encrypt secret values individually inside the JSON object using the application encryption key; do not use Laravel's whole-value encrypted-array cast on a JSONB column. Hide `data` from default serialization. Public resources return only source slug and title.
-- Validate configured endpoints and provider discovery against the trusted operator configuration. Never choose issuer/JWKS/token URLs from browser callback parameters or unverified token claims. Preserve strict issuer/audience/signature validation.
-- Bind pending transactions and issued tokens to a fingerprint of the authentication-relevant source configuration. Changed issuer/client settings invalidate old transactions and credentials rather than rebinding them to a different provider.
-- Inactive sources cannot start/complete login or authorize existing API tokens.
+Mandatory location cannot be implemented by adding a failing NOT NULL column to populated users or by silently assigning an invented location.
 
-### Token and upstream grant data
+1. Use an expand/backfill/contract sequence. Add location tables and a temporarily nullable users.building_area_id in a preparation migration. Keep management writes gated until the contract migration succeeds.
+2. Provide an idempotent CLI preparation command and dry-run: an operator creates actual buildings/default areas and supplies a private user-ID-to-area-ID map, or explicitly selects one existing area's ID as a fallback for all currently unassigned users. This proposed operational choice is part of this plan, not an inferred historical location.
+3. Validate all users/areas and the full mapping before applying changes transactionally. Report unresolved counts/IDs, never identity secrets. Preserve users, Member mappings, positions if present, and existing tokens. No reset or volume deletion.
+4. A separate contract migration refuses to enforce NOT NULL while any user lacks a valid area. A failed preflight leaves data intact and gives a recoverable CLI instruction. Do not let normal startup apply the contract before the documented preparation step on an existing database.
+5. Extend login:import-members with an explicit --building-area option required whenever creating new Users. Existing mappings retain their location. Dry-run validates the same inputs; failures must not leave newly created users without locations. Callback behavior stays unchanged and never creates users.
+6. Update factories, tests, smoke scripts and development initialization for mandatory locations. Fresh development bootstrap explicitly provisions a development building/default area before imports, then passes that area to both source imports. This is development fixture data, not a production location inference.
+7. Seed/synchronize a version-controlled permission catalog and an initial system-administrator role, but never auto-grant that role to all users or trust a Keycloak role claim as application authorization.
+8. Provide a local operator command to grant the bootstrap global role to one explicitly identified existing imported Member via source slug and exact external subject. Support dry-run and idempotency; do not create/link identities or choose the first imported account. Ordinary web login does not grant administrative rights.
+9. Include a populated upgrade rehearsal and isolated rollback/re-upgrade checks. Warn that rolling back removes this phase's organization/access/location data; never perform destructive rollback on the user's active database as a verification shortcut.
 
-- A Sanctum token belongs to User and records the Member used for that login. Store its associated provider session ID and encrypted access/refresh/ID tokens with upstream expiry in `oidc_data`.
-- Use finite token expiry (proposed maximum 24 hours), additionally bounded by upstream validity. Perform safe refresh before upstream access-token expiry; use a per-grant lock to avoid concurrent refresh rotation races.
-- Unknown Members, changed source configuration, expired/revoked grants and invalid upstream identities do not receive application access.
-- Existing business data is not deleted. These are additive application migrations; Keycloak/Camunda continue to own their own schemas. No default Laravel users/password-reset migration is used.
+## 7. API and authorization contract
 
-## 5. Source registration and import
+All API paths below are under the application's existing Nginx origin on port 8081. JSON resources expose only authorized fields. Use Laravel pagination with data/meta/links, bounded page size, validated search, 201 for creation, 200 for reads/replacements, 204 for deletion, 401 for invalid credentials, 403 for insufficient authority, 404 for missing or out-of-scope nested resources, 422 for malformed data, and 409 for domain dependency/invariant conflicts.
 
-- Proposed command: `php artisan login:sources:upsert --config-file=/private/source.json`. Validate settings, encrypt secret fields and avoid printing credentials. The initial configured development source is seeded from private bootstrap configuration, not committed credentials.
-- Proposed import: `php artisan login:import-members --source=SLUG [--dry-run] [--mapping-file=/private/member-map.json]`.
-- Use the selected source's Admin API with a separate least-privilege service account, not an administrator's username/password. Read all pages with bounded retry and report imported/skipped/error counts without sensitive output.
-- Import enabled human users by default and skip service accounts/disabled identities. Re-import finds Member by `(source, uuid)` and does not create duplicates or change an existing explicit User association.
-- For a new external identity, create one User and its Member transactionally. Choose the initial display name from configured Keycloak name claims, falling back to username. Re-import does not overwrite an existing shared User's name.
-- An optional explicit map associates a provider subject with an existing local `user_id`; validate both sides. No automatic email/name merge is performed.
-- Import does not copy passwords and does not grant API tokens. The login callback remains responsible for verifying the provider and the imported membership.
-- Do not delete local users or memberships just because one import page fails or an account disappears remotely. Upstream validity checks prevent disabled/revoked identities from authorizing API access.
-
-## 6. Login flow and API contract
-
-1. Clicking Login opens a Vuetify dialog listing active sources. Loading/error/empty states are explicit. Selecting a source starts the redirect flow; the selection popup is not an extra browser window.
-2. Nuxt initiates login through the API and stores a short-lived HttpOnly transaction-binding cookie. Laravel creates a five-minute transaction in Redis with source/config fingerprint, random state, nonce, PKCE verifier and fixed callback target. This is a temporary protocol transaction, not a Laravel session.
-3. The browser visits the selected provider through its approved gateway URL. Credentials are entered only at Keycloak.
-4. Keycloak returns to Nuxt `/login/callback/{source}` on port 8081. Nuxt forwards code/state and the browser-binding proof internally to Laravel. Consume the matching transaction atomically once; reject expired, replayed, cross-source or mismatched callbacks.
-5. Laravel exchanges the code with that source, validates the identity, and finds the existing Member using the verified subject and selected source. If absent, return a clear access-denied result; do not auto-create User/Member here.
-6. Issue the finite Sanctum token for the Member's User. Return the credential only to the Nuxt server, which sets its protected credential cookie, removes the temporary transaction cookie and redirects to the application.
-
-| Laravel API route | Contract |
+| Routes | Purpose and authority |
 | --- | --- |
-| `GET /api/login/sources` | Public, rate-limited active source slugs/titles only |
-| `POST /api/login/sources/{source}/authorize` | Start a bound OIDC transaction and return the source authorization URL/transaction handoff |
-| `POST /api/login/sources/{source}/callback` | Validate one callback and imported membership; server-to-server credential response |
-| `GET /api/login/me` | Bearer protected; sanitized local User and current source/membership display data |
-| `POST /api/login/logout` | Bearer protected; revoke local grant and create the bounded RP logout handoff |
-| `POST /api/login/sources/{source}/backchannel-logout` | Signed OIDC logout notification; no browser cookie/session required |
+| GET/POST /api/companies; GET/PATCH/DELETE /api/companies/{company} | Global company administration; provide a separate visible-company selector for scoped users rather than granting global listing access |
+| GET /api/access/me | Sanitized effective global permissions, per-company permissions and permitted company selector data; no bearer/provider tokens |
+| GET/POST /api/companies/{company}/positions; GET/PATCH/DELETE .../positions/{position} | Position CRUD/chart data; company-scoped operation permissions or their global equivalents |
+| GET /api/personnel; GET/PATCH /api/personnel/{user} | Global personnel directory/profile/location; no local-user creation, credential editing or identity deletion |
+| GET /api/companies/{company}/personnel | Users associated through positions or direct company roles; company-scoped personnel.view; no unrelated company role/position details |
+| GET/POST /api/companies/{company}/user-positions; GET/PUT/DELETE .../user-positions/{assignment} | Assign position, atomically replace report targets, or remove assignment; company authority follows the assigned position, not report target |
+| GET /api/personnel/{user}/positions | All position assignments for a user; global personnel read authority |
+| GET /api/organization/reporting-position-options | Minimal id/title/company target selector for users authorized to edit assignments; cross-company choices do not reveal target occupants or confer target-company authority |
+| GET/POST /api/buildings; GET/PATCH/DELETE /api/buildings/{building}; corresponding /areas routes | Global building/area administration; location lookup available separately to global personnel editors |
+| GET/POST /api/roles; GET/PATCH/DELETE /api/roles/{role}; GET /api/permissions; PUT /api/roles/{role}/permissions | Global shared role administration; permission catalog is read-only via HTTP and synchronized from code |
+| GET/PUT /api/personnel/{user}/global-roles | Global direct user-role set replacement |
+| GET/PUT /api/companies/{company}/users/{user}/roles | Direct company-role set replacement, including users with no positions in that company |
+| GET/PUT /api/companies/{company}/positions/{position}/roles | Position-role assignments with explicit company/global scope; company authority alone cannot read/manage global grants |
 
-Use API Resources and validation requests within the module. Define consistent machine-readable errors; use 401 for invalid credentials, 403 for an unimported identity, 422 for bad input, 429 for throttling, and 503 for an unavailable provider. Never return provider secrets in errors.
+- Full-set mutations validate duplicate/unknown IDs, ownership and every item before writing; partial success is not allowed. Company-only replacements preserve global position-role grants and cannot submit global entries.
+- Define permission keys before implementation: companies.view/create/update/delete; positions.view/create/update/delete; personnel.view/update; user_positions.view/create/update/delete; buildings.view/create/update/delete; roles.view/create/update/delete; roles.permissions.update; permissions.view; access.assign. Building permissions cover their areas in this phase. Scope is a property of the grant, not part of a key string.
+- Shared role/permission definitions, buildings, shared personnel changes and global grants always require global authority for their corresponding permission. Company-level access.assign authorizes company grants only.
+- Prevent delegation-based escalation: in addition to access.assign, an actor may assign a role only if its permissions are within their effective permissions in the target scope. Changing shared role permissions requires global roles.permissions.update and possession of every added permission globally. Global position grants require global authority even when the position belongs to a company the actor administers.
+- Ordinary API changes must not remove the last effective global administrator capable of managing shared roles and global grants. Evaluate affected users and position-derived grants transactionally; the explicit local bootstrap command is the recovery path.
+- Provide minimal authorized user/role/location selectors for assignment forms. These selectors do not grant access to full global directories, identity-provider configuration, Member identifiers or unrelated company data.
+- The existing Login me response stays compatible. Access state is served separately and can be refreshed by SSR/server gateways; the frontend is not the authority.
 
-## 7. Bidirectional logout and current validity
+### Required example behavior
 
-### Keycloak to application
+For a test permission articles.view, verified through test-only routes:
 
-- Register a reachable backchannel logout URL per source/client. Docker providers use the private backend route; externally operated providers require an externally reachable approved URL.
-- Validate logout-token signature, exact issuer, expected audience, issue time, event claim, absence of nonce and `sid`/`sub`; protect against replay using `jti`.
-- Revoke matching application grants for the same source and provider session. If the valid event identifies only a subject, revoke that subject's grants within that source. Never revoke an unrelated source because its subject/session string happens to match.
-- Validate the upstream grant on every protected API request and SSR `/me` without a positive validity cache in this revision. Refresh when appropriate; reject invalid grants. An unavailable provider fails closed with 503. This also covers missed logout delivery.
-- Already open pages recheck authentication while visible every 15 seconds and on focus; 401 clears displayed authentication. Server access is revoked on the valid event/next validity check; idle-page visual feedback is bounded by the polling interval, not claimed to be instantaneous.
+| Effective grant | /api/articles | /api/companies/A/articles | /api/companies/B/articles |
+| --- | --- | --- | --- |
+| No articles.view | Denied | Denied | Denied |
+| Company A, direct or from an A position | Denied | Allowed | Denied |
+| Global, direct or from any position | Allowed | Allowed | Allowed |
 
-### Application to Keycloak
+Repeat for mutation permissions. Company route queries/creates/updates must bind data to the route company, including when the caller has a global grant. Do not create production article storage or permissions solely for the example.
 
-- Revoke the local token immediately and complete standards-based RP-Initiated Logout for its originating Keycloak session. Preserve the minimal encrypted logout handoff briefly while removing the local grant.
-- Use the provider logout endpoint and a validated return to port 8081. Prefer a POST handoff to avoid putting ID-token hints in URL history. Any ID-token hint is only a short-lived protocol form value; access/refresh/Sanctum tokens never enter browser JavaScript or URLs.
-- Make retries/idempotent provider notifications safe. A failed remote logout must not restore local access or be reported as successful remote logout.
-- Logout covers the originating provider session and grants bound to it. It is not an unrequested global logout from every independent source/device linked to the local User.
+## 8. Nuxt/Vuetify interface
 
-## 8. Multi-provider development and gateway
+- Add Persian RTL administration pages for companies/charts, personnel/current location, user-position/reporting assignments, buildings/areas, shared roles/permissions and scoped user/position role assignment.
+- Show company context clearly. Separate global and company scope in role editors; company selectors and navigation reflect actual effective permissions. No company selection converts company authority to global authority.
+- Permit cross-company reporting targets with their company labels. Save assignment and report targets together; explain required reports for nonroot positions and optional reports for roots.
+- Show shared-position occupants without assuming one manager/person per position. Do not recursively render reporting relationships as an acyclic chart.
+- Every user location selection requires a building area. Selecting a building alone is insufficient; its named default area is an explicit selectable option.
+- Resolve authentication and required authorization state on the Nuxt server before initial protected-page rendering. Direct navigation, refresh, denied access and provider-unavailable states must work without a client-only permission flash or cross-request leakage.
+- Add thin allowlisted Nuxt server gateway handlers for authorized endpoints. Continue encrypted HttpOnly credential transport, server-only Bearer exchange, Origin/CSRF validation on mutations, no-store authenticated responses, and no secrets in browser storage, URLs or SSR payloads.
+- Preserve Vazirmatn, local assets/icons, light/dark/automatic themes including live device changes, keyboard focus, accessible labels, restrained styling and responsive long-session layouts. All custom styling stays in dedicated CSS files; no Vue style blocks, inline styles or JavaScript style bindings.
 
-- Keep the existing provider under `/auth` and preserve its management access on 8083 and Camunda's integration.
-- Add a second independent development Keycloak instance for acceptance testing, with a separate PostgreSQL database/role and persistent data. Use the same pinned Keycloak version. This proves different providers, not merely two clients in one realm.
-- Propose the second provider's public base at `http://localhost:8081/identity/secondary`, with path/hostname/proxy settings configured consistently. Route its admin console under a distinct path on existing management port 8083; do not publish a fifth host port.
-- Keep Nuxt callbacks under `/login/*` and browser gateway calls under `/gateway/login/*` so they do not collide with Keycloak's `/auth/*` routes or Laravel's `/api/*` routes.
-- Bootstrap the added database/role idempotently on both existing and fresh PostgreSQL volumes. Do not reset existing databases or replace the primary Keycloak realm.
-- Configured providers in this phase must support the approved public gateway URLs. Do not silently rewrite an independently operated provider's issuer if it cannot be configured this way; resolve that integration constraint in the plan first.
-- Verify SSR, refresh, callbacks and logout under the same application origin. Recheck existing pgAdmin/Keycloak/Camunda management entry points after routing changes.
+## 9. Ordered execution and acceptance
 
-## 9. Ordered implementation steps
+| Step | Work and completion evidence | Status |
+| --- | --- | --- |
+| 1 of 10 | After explicit approval, commit approval status; update authorized scope in AGENTS.md; establish module boundaries, provider/test discovery and the permission/route inventory without widening scope. | Pending approval |
+| 2 of 10 | Implement schema and database invariants, location preparation/contract migration, import/factory/bootstrap compatibility; verify fresh and populated databases and preservation of identity/token data. | Not started |
+| 3 of 10 | Implement companies, independent position charts, buildings/default areas and safe deletes; verify same-company parents, cycles, defaults and concurrency. | Not started |
+| 4 of 10 | Implement personnel location/profile operations, assignment CRUD and atomic reporting replacement; verify all reporting and cross-company rules. | Not started |
+| 5 of 10 | Implement permission catalog, roles/pivots, effective grants, bootstrap command and authorization/delegation enforcement; pass scope and privilege-escalation matrix. | Not started |
+| 6 of 10 | Wire protected APIs and secure Nuxt gateway/SSR access state; verify denied direct requests, CSRF, scoped queries and existing Login behavior. | Not started |
+| 7 of 10 | Build Persian company/chart/building/personnel and reporting interfaces; verify initial SSR, validation, default locations and responsive themes. | Not started |
+| 8 of 10 | Build shared role/permission and scoped direct/position-role interfaces; verify effective-access feedback, no inheritance and permission removal on next request. | Not started |
+| 9 of 10 | Complete meaningful backend/browser/build/integration checks, migration rehearsal and review fixes; commit actual evidence in PLAN.md; report 9 of 10 and pause for explicit completion approval. | Not started |
+| 10 of 10 | Only after completion approval, create/update English technical documentation and Persian usage/operations guides, validate them, commit closeout, rebase/revalidate, merge/push master and delete integrated branches per section 11. | Blocked by future completion approval |
 
-The revised plan is approved; implementation may proceed. Report **step N of 9 completed** and commit each plan update. Preserve separate backend/frontend/shared-infrastructure commits.
+Backend changes may span several scoped commits; frontend, shared development scripts and documentation use separate commits. Every progress/status change to this plan is committed. Do not mark steps complete based only on code being written.
 
-1. [x] **Establish the Login module and token-only API foundation.** Add compatible Sanctum, register the module, move routes to API middleware and remove application session authentication without leaving a fallback.
-2. [x] **Implement the schema and source configuration.** Add UserSource/Member/User and extended Sanctum migrations, relationships, secret handling, source validation and factories; verify migration/rollback on disposable data.
-3. [x] **Register sources and import memberships.** Implement validated source/import commands, pagination, repeat-safe imports, dry-run and explicit identity mapping. Bootstrap/import the first development source.
-4. [x] **Implement source-bound login and token lifecycle.** Build PKCE/state/nonce callbacks, imported-member authorization, token issuing/expiry, refresh locking and source/config invalidation.
-5. [x] **Implement logout and upstream verification.** Add verified backchannel handling, replay protection, per-request upstream validity checks, RP logout and failure semantics.
-6. [x] **Implement Nuxt SSR and source selection.** Add credential transport/gateway, awaited SSR identity, dialog, logout handoff, visible-page/focus rechecks and appropriate unavailable states. Preserve local assets/RTL/themes and external CSS rules.
-7. [x] **Validate two independent providers in Docker.** Add the second provider/database and same-origin routing, register/import both sources and verify cross-source identity isolation while preserving management services.
-8. [x] **Complete integrated acceptance and hand off for review.** Run the matrix below, fix failures, update the plan and present the working revision. Await explicit phase-completion approval and apply review adjustments.
-9. [x] **Close the approved phase.** After approval, write English database/business/API documentation and Persian operational guides, verify documentation and finish separately scoped commits.
+## 10. Validation and phase acceptance criteria
 
-## 10. Acceptance matrix
+- Run database tests on PostgreSQL, not SQLite substitutes: uniqueness/FKs, same-company chart relationships, cycles, minimum reporting targets, atomic replacements, default areas and concurrent invariant-changing writes.
+- Cover multi-company/multi-position users, shared positions with different managers, unoccupied and cross-company reporting targets, permitted reciprocal reports and another self-held position, forbidden same-assignment position, and root/nonroot transitions.
+- Cover mandatory location, default-area creation, referenced deletes, populated backfill preflight/retry, fresh setup, new imports, mapped imports, idempotent repeat imports and dry-run behavior. Confirm existing Member/source identity and token records survive migration.
+- Exercise every protected route positively and negatively: unauthenticated/invalid upstream grants, missing permission, wrong company, nested-ID substitution, mass assignment, unauthorized selectors, global versus company grants, role unions, no descendant inheritance, immediate revocation and delegation escalation attempts.
+- Verify global and company grant combinations from users and positions using the article example matrix in tests only. Test filtering, counts, paging and company-bound writes independently of route admission.
+- Check bootstrap idempotency/exact identity targeting and last-administrator protection without auto-granting imported users.
+- Run the full backend suite including existing Login regressions; Pint checks for changed PHP; existing infrastructure/Login/Camunda smoke acceptance where affected; frontend typecheck and build.
+- Verify real browser flows on port 8081: initial SSR, multiple-user isolation, company switches, role changes, hard refresh, CSRF rejection, upstream logout and provider outage behavior; desktop/mobile RTL, keyboard interaction and all theme modes.
+- Check no new published ports, remote runtime assets, inline/component styles, exposed credentials or accidental session authentication. Existing ports 8081–8084, Docker service DNS, hot reload and locked dependencies remain intact.
+- Record exact commands, outcomes, test/assertion totals when available and any unverified items here. Existing historical Login results are not evidence that new checks have passed. Use isolated test data; do not reset active development volumes or run disruptive checks without an actual need.
 
-- Protected Laravel endpoints accept a valid Sanctum Bearer, reject missing/expired/revoked credentials, and cannot authenticate through a Laravel session cookie. No StartSession/session-based Sanctum SPA middleware is used by application API routes.
-- The source-selection dialog lists only active sources and never exposes provider configuration or secrets. A disabled source rejects both new login and existing API access.
-- An enabled imported identity logs in; an equally valid unimported Keycloak identity receives 403 and creates no User/Member/token.
-- Re-import across multiple pages creates no duplicates; a dry-run changes nothing. Identical subjects in two providers remain distinct. Explicit mappings allow two Members to share one User without automatic merging.
-- Code/state/nonce/PKCE validation, expiry, replay, wrong source/issuer/audience/signature and changed configuration fail safely.
-- The initial SSR HTML already has the correct user and login/logout control, including after a reload. Test with JavaScript disabled and concurrent different-user SSR requests. Authenticated responses/payloads never leak credentials or another user's data.
-- Signed provider logout invalidates the correct grants; forged/replayed/wrong-source events cannot revoke others. Missed notifications are caught by upstream verification. Provider outages yield 503 without silently accepting stale credentials or unnecessarily destroying valid local credentials.
-- Expired access tokens refresh safely once under concurrency. Invalid/revoked refresh grants revoke application access. Local token expiry cannot be extended without an approved lifecycle action.
-- Application logout clears local access and actually terminates the originating Keycloak SSO login. A visible idle tab reflects remote logout within 15 seconds; focus/request/SSR checks also detect it.
-- Browser transport remains HttpOnly; mutating Nuxt gateway routes enforce Origin/CSRF checks. No Sanctum Bearer, Keycloak access/refresh token or provider secret is present in localStorage, URLs, logs or SSR payloads.
-- Two distinct Keycloak instances work through 8081; pgAdmin 8082, Keycloak admin 8083 and Camunda 8084 remain functional. Only the original four host ports are published.
-- Fresh bootstrap, upgrade of existing development data, ordinary restart persistence, focused backend tests, frontend type checking/build and real browser checks pass. Do not delete existing volumes to make upgrades pass.
+Current verification: repository/approved-model inspection and Git baseline synchronization completed. Planning checks passed: git diff --check, balanced Markdown fences, all 10 ordered steps, pending-approval status, and required schema/scope coverage. No implementation tests, migrations, runtime changes or phase-completion approval have occurred.
 
-## 11. Review decisions and closeout dependencies
+## 11. Review, documentation and integration
 
-- Proposed default linking policy: explicit mapping only. The supplied model has no shared verified identifier that could safely deduplicate one person across different providers.
-- Proposed browser transport: Nuxt's protected credential cookie with Bearer forwarding. This is necessary to let SSR receive browser credentials without a Laravel session; no browser-readable token store is used.
-- Proposed logout display bound: 15-second visible-page recheck, plus immediate server revocation on a valid backchannel event and checks on requests/focus. A push-based instantaneous display update is not included.
-- Revised-plan approval: **received on 2026-11-03**. The user subsequently approved the review correction to numeric Member source relationships; public URLs and commands remain slug-based. Phase-completion approval: **received on 2026-11-04**, after review of the numeric Member source relationship correction.
+At the step-9 handoff, provide a concrete reviewable result, actual verification evidence and any limitations; allow revisions and rerun relevant checks. Wait for explicit completion approval before editing phase documentation in docs/.
 
-## 12. Primary references
+After approval:
 
-- [Laravel 13 Sanctum: API tokens, expiry, revocation and custom token models](https://github.com/laravel/docs/blob/13.x/sanctum.md)
-- [Keycloak OIDC endpoints and introspection](https://www.keycloak.org/securing-apps/oidc-layers)
-- [OpenID Connect Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)
-- [OpenID Connect RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html)
-
-## Implementation evidence
-
-### Step 1
-
-- Approved slug-based revision recorded in `94522aa`. Installed compatible Sanctum 4.3.3 with a committed lockfile.
-- Registered the Login module provider and API-only routes. Removed the old session-based controller/service and `/api/auth/session` route. Sanctum has no session-guard fallback or stateful SPA configuration.
-- Focused foundation test checks the route middleware, missing/old-cookie credential rejection and removal of the old session endpoint. Application session variables were removed from Compose and the backend environment example.
-
-### Step 2
-
-- Added the three requested domain models and the extended Sanctum token table. UserSource.slug is unique/immutable; Member's foreign key and uniqueness constraint use user_source_slug. Source JSONB secret values and token grant data are encrypted; public serialization hides configuration and internal source IDs.
-- Added factories and schema tests. Five foundation/schema tests passed (18 assertions), including same subject in separate sources, foreign-key relationships, encrypted settings and immutable slugs.
-- Tests use a separate organization_test database and refuse non-test database names. Additive application migration was applied without resetting existing service data; rollback/re-apply is checked only against disposable test data.
-
-### Step 3
-
-- Added validated slug-based source registration and a paginated, bounded-retry import using a dedicated view-users/query-users service account. Import supports dry-run and explicit mappings without automatic identity merging.
-- Registered/imported the existing primary development source without resetting Keycloak or Camunda. Repeat import reported zero new memberships. Two focused import tests passed (9 assertions).
-
-### Step 4
-
-- Implemented source/config/browser-bound five-minute PKCE transactions, verified RSA identity claims, single-use callbacks and pre-imported-member checks. Sanctum credentials are hashed with finite expiry and encrypted upstream grants.
-- Added serialized refresh and configuration invalidation. Callback, wrong source/binding/nonce, replay and unknown member checks pass in the isolated integration suite.
-
-### Step 5
-
-- Added signature/issuer/audience/event/time/replay-validated backchannel logout, scoped by source and provider session/subject. Local logout revokes immediately and creates an encrypted, bound, short-lived single-use RP POST handoff.
-- Every protected identity request introspects the current upstream grant. Provider outage returns 503 while retaining the credential; inactive grants and invalid refresh return 401 and revoke it. All 14 backend tests pass (93 assertions). Real provider/browser logout checks follow in steps 7–8.
-
-### Step 6
-
-- Added awaited, request-scoped Nuxt SSR identity resolution, encrypted HttpOnly credential transport, internal Bearer forwarding, Origin/CSRF validation, source dialog and visible/focus rechecks. A single-use provider logout POST keeps ID-token hints out of URLs.
-- Nuxt type checking/build passed. Real login checks confirmed correct initial authenticated HTML, no credential serialization and source isolation across 12 concurrent SSR requests. Provider audience/basic-scope settings were reconciled after real integration exposed missing access-token subject/audience claims.
-
-### Step 7
-
-- Added a separate Keycloak instance, PostgreSQL role/database and public /identity/secondary routing, with its admin console sharing port 8083 under the separate path. Existing databases were preserved; the additional database initializer is idempotent.
-- Both sources registered/imported. Real acceptance checks passed for source isolation, concurrent SSR, CSRF/Origin rejection, application-to-provider POST logout and provider-to-application signed backchannel revocation before the next /me request. Expanded backend suite: 17 tests, 120 assertions passed.
-
-### Step 8 — review handoff (2026-11-04)
-
-- Backend regression suite: **17 tests, 120 assertions passed**, using isolated PostgreSQL test data. Covers bearer-only middleware, schema/slug constraints, imports/dry-run/explicit mapping, callback binding/replay/claims/signature/expiry, refresh, source invalidation and signed logout scope/replay.
-- Nuxt type checking and production build passed after the final SSR request-context fix. Real Chrome verified authenticated initial HTML with JavaScript disabled, upstream logout in an open tab, automatic light/dark changes and the mobile RTL source dialog. Screenshots are local ignored validation artifacts.
-- Real two-provider acceptance passed: Origin/CSRF rejection, distinct local identities, 12 concurrent SSR requests without cross-user/credential leakage, application POST logout of only the originating provider session and signed backchannel revocation before the next request.
-- Three independent PHP workers verified the same real grant concurrently and sent **exactly one** refresh request. A real provider outage produced unavailable SSR/503 without clearing the credential; the valid SSO grant survived provider restart and logout still worked afterward.
-- A completely fresh temporary Compose project passed bootstrap, both imports, the regression suite, gateway/management/database isolation checks and actual Camunda process deployment/completion. Only that temporary project's volumes were removed. The original development project and its existing persistent data were restored; its source logins and recovery checks passed afterward.
-- Both public identity namespaces stay on 8081. Management entry points 8082, both admin paths on 8083, and 8084 passed. No additional host ports are published.
-- Scoped implementation/test commits are recorded separately for backend, frontend and shared infrastructure. No phase documentation has been created before completion approval. User-owned untracked IDE settings were preserved.
-- **Historical review gate:** implementation was handed over for user review before documentation closeout. The subsequent approval and final completion are recorded below.
-
-## Current review revision — Member source foreign key
-
-The user's review instruction explicitly authorizes this correction. This supersedes the earlier slug-based Member relationship design; historical implementation evidence above describes the original implementation.
-
-- Subject/scope: replace `members.user_source_slug` with `members.user_source_id`, referencing `user_sources.id`, and enforce UNIQUE (`uuid`, `user_source_id`). Keep UserSource.slug and every public source URL/command/callback identifier unchanged.
-- Method: add a transactional PostgreSQL migration after the existing applied migration. Backfill each numeric ID by joining the existing slug, enforce NOT NULL and a restrictive foreign key, add the requested composite uniqueness and source lookup index, then remove the old slug column/constraints. The reverse migration restores slugs from source IDs. Never reset existing application or provider data.
-- Preserve Member/User primary keys, identity associations and existing Sanctum token relationships. Update model relations/factories, imports, callbacks, source invalidation, logout queries and acceptance scripts to use the numeric relationship internally.
-- Verification: focused PostgreSQL schema/data migration round-trip and duplicate/orphan constraints; existing Login regression suite; apply the upgrade to current development data and verify repeat import and real two-provider login/logout. Frontend API contracts remain unchanged, so no frontend implementation is needed.
-- Acceptance: members contain numeric source IDs and no stored source slug; duplicate (`uuid`, `user_source_id`) is rejected while the same uuid across different sources remains allowed; existing data and login/logout behavior are preserved.
-- Progress: **3 of 3 review-revision steps completed**. The correction was subsequently approved during the separate phase-completion review.
-
-1. [x] Migrate Member storage and update internal relationships/queries/factories/scripts.
-2. [x] Verify migration round-trip, integrity constraints and Login regression behavior; upgrade existing development data.
-3. [x] Verify real provider flows, commit the scoped revision and return to the phase-review gate.
-
-### Numeric Member source revision — step 2 evidence
-
-- All 20 backend tests passed (137 assertions), including schema integrity, uniqueness, unknown/null source rejection and a populated migration rollback/upgrade round-trip preserving User/Member/token associations.
-- Applied the additive migration to the existing development database. Private before/after snapshots confirmed identical Member IDs, subjects, User/source associations and token foreign keys; temporary snapshots were removed. PostgreSQL confirms no member slug column and UNIQUE (`uuid`, `user_source_id`). Repeat imports for both source slugs each reported zero new members.
-
-### Numeric Member source revision — step 3 evidence
-
-- Real two-provider acceptance passed after the upgrade: source-slug commands and URLs, concurrent SSR identity isolation, three-worker single refresh, application logout and signed provider backchannel logout all work with numeric Member source relationships.
-- Scoped the backchannel acceptance query to this run's provider session. The first run exposed a pre-existing expired grant from another session; that record is unrelated to the current logout and was preserved. The corrected acceptance run passed before the next /me request.
-- Backend implementation/tests and shared acceptance-script changes were committed separately. AGENTS.md and this current plan now describe numeric Member storage and slug-based public identifiers consistently. No frontend change was required.
-- Review revision complete: **3 of 3 steps**. The user subsequently approved phase completion and documentation closeout.
-
-## Approved closeout — 2026-11-04
-
-The user explicitly approved the reviewed changes and subsequently removed the external graph-service requirement from the project. The remaining closeout scope consists of local technical documentation, Persian guides, documentation verification and scoped commits. No external account, graph service or replacement integration is required.
-
-- [x] Create English technical Markdown under docs/ covering architecture/infrastructure, final database design and migration history, Login business behavior, API contracts and actual verification evidence.
-- [x] Create Persian development/operational and end-user Markdown guides under docs/.
-- [x] Verify documentation against the implemented files/commands/routes and commit the documentation separately.
-- [x] Remove the canceled external integration requirement, its dedicated status document and related references from project rules and current documentation.
-- [x] Commit final closeout progress and mark step 9 complete.
-
-### Step 9 completion evidence
-
-- Seven Markdown files remain under docs/: an index; English architecture/business/infrastructure, database/migrations, API and validation documents; and Persian operational and end-user guides. Final Member storage is numeric with UNIQUE (`uuid`, `user_source_id`), while public source identifiers remain slugs.
-- Documentation checks passed for local links, balanced code fences, valid JSON examples, language placement, Laravel/Sanctum lockfile versions and Login route contracts. Reference checks confirm the canceled integration is absent from the current rules, plan and documentation.
-- No application code or database changes were needed for this closeout correction. The previously completed 20-test/137-assertion suite and real acceptance results remain recorded as historical evidence; they were not rerun for documentation-only changes.
-- Phase implementation and review corrections are approved. Documentation and final scoped changes are committed. **All 9 of 9 phase steps are complete; no closeout work remains.**
-
-## Authorized maintenance — remove development assistant dependency
-
-- Status: requested maintenance implemented, verified and committed; ready for user review. The approved Phase 1 remains complete.
-- Subject/scope: uninstall the backend development assistant package and its unused transitive dependencies; remove its generated configuration/instructions and any repository-local integration references. Preserve unrelated dependencies and the user's project development rules.
-- Method: use Composer in the project's PHP container to update composer.json/composer.lock and installed vendor packages, regenerate package discovery, rebuild backend dependency images and verify the running development application.
-- Database design: no table, migration or data changes. Login business rules and public API contracts do not change.
-- Acceptance: the package/config/generated instructions are absent from the repository and installed project runtime; Composer validates; focused Login tests and API readiness pass; future Docker initialization cannot reinstall it from an old dependency image.
-- Progress: **3 of 3 maintenance steps completed**.
-
-1. [x] Remove the package, generated files and repository-local integration references.
-2. [x] Rebuild/synchronize backend dependency images and validate Composer, package absence, Login regressions and readiness.
-3. [x] Commit the backend maintenance and final plan progress, then return the result for review.
-
-### Maintenance verification evidence
-
-- Composer removed five packages in total: the requested development assistant plus four unused transitive dependencies. No packages were installed or upgraded; all remaining locked versions are unchanged. Generated backend assistant configuration/instructions were removed; no repository-local integration configuration remains.
-- Composer strict validation passed. All 20 Login regression tests passed (137 assertions). Package discovery regenerated successfully after removal.
-- Rebuilt backend and backend-init images; verified removed packages are absent from the image dependency tree and running vendor metadata/provider manifest. Recreated only the backend and confirmed healthy API readiness through Nginx. No application database or user data changed.
+1. Update English technical Markdown for database changes and migration operations, business behavior, authorization rules, API requests/responses/errors, module architecture and actual validation. Explicitly identify unchanged identity, provider and process contracts.
+2. Update Persian usage/development/operations guides for charts, assignments, locations, role scope, bootstrap/recovery, existing-data backfill and imports. Validate links/examples and commit documentation separately; commit final PLAN.md closeout.
+3. Ensure the feature branch is clean; fetch origin, rebase onto latest origin/master, resolve conflicts on this branch with staged resolutions and git rebase --continue. Repeat affected validation and commit additional fixes if needed.
+4. Switch to master, fast-forward from origin/master, merge the verified feature branch with --no-ff, and push master. If upstream moves or rejects the push, fetch, resynchronize, rebase and validate before retrying; never reset or force-push master.
+5. Only after successful integration and push, delete the local feature branch with git branch -d and its remote counterpart if published. Preserve unintegrated work if access/protection blocks completion.
+6. Report actual rebase, validation, merge, push and deletion results in Persian. Mark the phase complete only when all required authorized closeout work is finished; report blocked integration honestly.
