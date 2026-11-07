@@ -6,6 +6,7 @@ case "${1:-up}" in
     python3 scripts/bootstrap.py
     docker compose up -d --build --wait --wait-timeout 360
     docker compose exec -T backend php artisan organization:prepare-locations --building=توسعه
+    docker compose exec -T backend php artisan access:sync-permissions
     docker compose exec -T backend php artisan organization:require-locations
     area_id=$(docker compose exec -T backend php artisan tinker --execute="echo \Illuminate\Support\Facades\DB::table('building_areas')->join('buildings', 'buildings.id', '=', 'building_areas.building_id')->where('buildings.title', 'توسعه')->where('is_default', true)->value('building_areas.id');" 2>/dev/null)
     for source in primary secondary; do
