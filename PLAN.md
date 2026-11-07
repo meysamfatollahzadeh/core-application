@@ -5,7 +5,7 @@
 - Prepared: 2026-11-07.
 - Status: **Approved — implementation in progress.**
 - The user approved the domain model in chat and requested this plan. That approval does not authorize implementation of this plan or approve the completed phase.
-- Implementation progress: **3 of 10 steps completed**.
+- Implementation progress: **4 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
 - Branch: `codex/feature/company-personnel-access`.
 - Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
@@ -212,7 +212,7 @@ Repeat for mutation permissions. Company route queries/creates/updates must bind
 | 1 of 10 | After explicit approval, commit approval status; update authorized scope in AGENTS.md; establish module boundaries, provider/test discovery and the permission/route inventory without widening scope. | Complete |
 | 2 of 10 | Implement schema and database invariants, location preparation/contract migration, import/factory/bootstrap compatibility; verify fresh and populated databases and preservation of identity/token data. | Complete |
 | 3 of 10 | Implement companies, independent position charts, buildings/default areas and safe deletes; verify same-company parents, cycles, defaults and concurrency. | Complete |
-| 4 of 10 | Implement personnel location/profile operations, assignment CRUD and atomic reporting replacement; verify all reporting and cross-company rules. | Not started |
+| 4 of 10 | Implement personnel location/profile operations, assignment CRUD and atomic reporting replacement; verify all reporting and cross-company rules. | Complete |
 | 5 of 10 | Implement permission catalog, roles/pivots, effective grants, bootstrap command and authorization/delegation enforcement; pass scope and privilege-escalation matrix. | Not started |
 | 6 of 10 | Wire protected APIs and secure Nuxt gateway/SSR access state; verify denied direct requests, CSRF, scoped queries and existing Login behavior. | Not started |
 | 7 of 10 | Build Persian company/chart/building/personnel and reporting interfaces; verify initial SSR, validation, default locations and responsive themes. | Not started |
@@ -268,3 +268,8 @@ After approval:
 
 - Transactional company, position-chart, building/default-area and area actions implemented. Protected default edits, nonempty deletion, cross-company parents and chart cycles checked. Deferred commit errors are translated to sanitized HTTP 409 conflicts.
 - Organization action tests passed (2 tests, 7 assertions); the combined organization/personnel action run passed 3 tests and 12 assertions.
+
+### Step 4 evidence
+
+- Current shared-user profile/location actions and transactional position/report assignment replacement implemented; no history or company-membership table added.
+- Distinct managers for shared positions, cross-company reporting, nonroot requirements and failed-replacement preservation verified in the personnel action test (5 assertions). Occupancy privilege checks and last-administrator checks integrate with the Access service.
