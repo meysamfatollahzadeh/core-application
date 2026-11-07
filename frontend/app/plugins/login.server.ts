@@ -1,7 +1,7 @@
 import { appendResponseHeader, getHeader, setHeader, setResponseStatus } from 'h3'
 import type { LoginState } from '#shared/types/login'
 
-export default defineNuxtPlugin(async () => {
+export default defineNuxtPlugin({ name: 'login', async setup() {
   const event = useRequestEvent()!
   const state = useState<LoginState>('login')
   const result = await event.$fetch<LoginState>('/gateway/login/me', {
@@ -14,4 +14,4 @@ export default defineNuxtPlugin(async () => {
   setHeader(event, 'Referrer-Policy', 'no-referrer')
   state.value = result
   if (state.value.status === 'unavailable') setResponseStatus(event, 503)
-})
+} })
