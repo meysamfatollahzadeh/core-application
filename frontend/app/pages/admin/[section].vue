@@ -26,6 +26,7 @@ function revealNavigation() {
 onMounted(() => { if (window.innerWidth < 960) revealNavigation() })
 watch(() => route.params.section, async () => { await nextTick(); if (window.innerWidth < 960) revealNavigation() })
 watch(() => route.params.section, () => { building.value = null; userRoles.value = null; positionRoles.value = null; permissionRole.value = null })
+watch(() => available.value.some(item => item.key === section.value.key), allowed => { if (access.value.status === 'ready' && !allowed) navigateTo('/admin') })
 function openCompany(item: DirectoryItem) { navigateTo({ path: '/admin/positions', query: { company: item.id } }) }
 </script>
 <template>

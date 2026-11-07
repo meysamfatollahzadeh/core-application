@@ -1,9 +1,9 @@
-import { createError, getQuery, readBody } from 'h3'
+import { createError, getQuery, readBody, setResponseStatus } from 'h3'
 import { authCookie, clearCookie, noStore, readProtectedCookie, requireMutation } from '../../../utils/login'
 
 const endpoints: [RegExp, string[]][] = [
   [/^access\/(me|role-options)$/, ['GET']],
-  [/^organization\/(reporting-position-options|location-options)$/, ['GET']],
+  [/^organization\/(reporting-position-options|location-options|company-position-options)$/, ['GET']],
   [/^personnel\/options$/, ['GET']],
   [/^(companies|buildings|roles)$/, ['GET', 'POST']],
   [/^(companies|buildings|roles)\/[1-9]\d*$/, ['GET', 'PATCH', 'DELETE']],
@@ -34,14 +34,16 @@ export default defineEventHandler(async event => {
   if (event.method !== 'GET') requireMutation(event)
   const incoming = getQuery(event)
   const query: Record<string, string> = {}
-  for (const key of ['page', 'per_page', 'search', 'company_id']) {
+  for (const key of ['page', 'per_page', 'search', 'company_id', 'selected']) {
     if (typeof incoming[key] === 'string') query[key] = incoming[key]
   }
+  const origin = new URL(useRuntimeConfig(event).appOrigin)
   try {
     return await $fetch(useRuntimeConfig(event).backendUrl + '/api/' + path, {
       method: event.method as 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
       query, body: event.method !== 'GET' ? await readBody(event) : undefined,
-      headers: { Accept: 'application/json', Authorization: `Bearer ${credential.token}` },
+      headers: { Accept: 'application/json', Authorization: `Bearer ${credential.token}`, 'X-Forwarded-Host': origin.host, 'X-Forwarded-Proto': origin.protocol.slice(0, -1), 'X-Forwarded-Port': origin.port || (origin.protocol === 'https:' ? '443' : '80') },
+      onResponse({ response }) { setResponseStatus(event, response.status) },
       retry: 0, timeout: 170000, redirect: 'error',
     })
   } catch (error: unknown) {
