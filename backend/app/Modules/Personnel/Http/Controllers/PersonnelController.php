@@ -5,6 +5,7 @@ namespace App\Modules\Personnel\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Access\Services\EffectivePermissions;
 use App\Modules\Login\Models\User;
+use App\Modules\Organization\Http\Requests\OptionSelection;
 use App\Modules\Organization\Models\Company;
 use App\Modules\Organization\Models\Position;
 use App\Modules\Personnel\Actions\ManagePersonnel;
@@ -26,7 +27,7 @@ class PersonnelController extends Controller
     private function query(Request $r)
     {
         $d = $r->validate(['search' => ['nullable', 'string', 'max:100'], 'page' => ['nullable', 'integer', 'min:1'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100']]);
-        $q = User::query()->select('users.id', 'users.name', 'users.building_area_id');
+        $q = User::query()->join('building_areas', 'building_areas.id', '=', 'users.building_area_id')->join('buildings', 'buildings.id', '=', 'building_areas.building_id')->select('users.id', 'users.name', 'users.building_area_id')->selectRaw("buildings.title || ' / ' || building_areas.title as location_title");
         if (! empty($d['search'])) {
             $q->where('users.name', 'ilike', '%'.$d['search'].'%');
         }
@@ -75,6 +76,8 @@ class PersonnelController extends Controller
     {
         $data = (array) $assignment;
         $data['report_position_ids'] = DB::table('user_position_reports')->where('user_position_id', $assignment->id)->orderBy('report_to_position_id')->pluck('report_to_position_id')->all();
+
+        $data['report_titles'] = DB::table('user_position_reports')->join('positions', 'positions.id', '=', 'report_to_position_id')->join('companies', 'companies.id', '=', 'positions.company_id')->where('user_position_id', $assignment->id)->orderBy('report_to_position_id')->selectRaw("companies.title || ' / ' || positions.title as title")->pluck('title')->all();
 
         return $data;
     }
@@ -150,8 +153,11 @@ class PersonnelController extends Controller
     public function options(Request $r)
     {
         $grants = $this->access->grants($r->user()->id);
-        abort_unless(collect($grants)->contains(fn ($g) => in_array($g['key'],['user_positions.create', 'access.assign'],true)),403);
+        abort_unless(collect($grants)->contains(fn ($g) => in_array($g['key'], ['user_positions.create', 'access.assign'], true)), 403);
 
-        return response()->json($this->query($r)->select('users.id','users.name')->orderBy('users.id')->paginate(100));
+        $q = $this->query($r)->select('users.id', 'users.name');
+        OptionSelection::prioritize($r, $q, 'users.id');
+
+        return response()->json($q->orderBy('users.id')->paginate(100));
     }
 }

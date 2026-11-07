@@ -6,9 +6,16 @@ use Illuminate\Support\Facades\DB;
 
 final class EffectivePermissions
 {
+    private array $memo = [];
+
+    public function forget(): void
+    {
+        $this->memo = [];
+    }
+
     public function grants(int $user): array
     {
-        return array_map(fn ($r) => ['key' => $r->key, 'company_id' => $r->company_id === null ? null : (int) $r->company_id], DB::select(<<<'SQL'
+        return $this->memo[$user] ??= array_map(fn ($r) => ['key' => $r->key, 'company_id' => $r->company_id === null ? null : (int) $r->company_id], DB::select(<<<'SQL'
 SELECT DISTINCT p.key, grants.company_id FROM (
  SELECT role_id, NULL::bigint AS company_id FROM user_role WHERE user_id=?
  UNION ALL SELECT role_id, company_id FROM company_user_role WHERE user_id=?
@@ -36,14 +43,14 @@ SQL, [$user, $user, $user]));
 
     public function hasAdministrator(): bool
     {
-        foreach (DB::table('users')->pluck('id') as $id) {
-            $global = array_column(array_filter($this->grants($id), fn ($g) => $g['company_id'] === null), 'key');
-            if (array_diff(['roles.view', 'roles.update', 'roles.permissions.update', 'permissions.view', 'access.assign'], $global) === []) {
-                return true;
-            }
-        }
+        $required = ['roles.view', 'roles.update', 'roles.permissions.update', 'permissions.view', 'access.assign'];
+        $slots = implode(',', array_fill(0, count($required), '?'));
+        $result = DB::selectOne("WITH global_grants AS (
+            SELECT user_id, role_id FROM user_role
+            UNION ALL SELECT up.user_id, pr.role_id FROM user_positions up JOIN position_role pr ON pr.position_id=up.position_id WHERE pr.scope='global'
+        ) SELECT EXISTS(SELECT 1 FROM global_grants g JOIN role_permission rp ON rp.role_id=g.role_id JOIN permissions p ON p.id=rp.permission_id WHERE p.key IN ({$slots}) GROUP BY g.user_id HAVING count(DISTINCT p.key)=?) AS present", [...$required, count($required)]);
 
-        return false;
+        return (bool) $result->present;
     }
 
     public function protectAdministrator(bool $previouslyPresent): void

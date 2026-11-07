@@ -131,6 +131,24 @@ class ManagementApiTest extends TestCase
         $this->getJson("/api/companies/$b->id/articles")->assertForbidden();
         $this->login(['articles.view']);
         $this->getJson('/api/articles')->assertOk();
-        $this->getJson("/api/companies/$b->id/articles")->assertOk()->assertJsonPath('company_id',$b->id);
+        $this->getJson("/api/companies/$b->id/articles")->assertOk()->assertJsonPath('company_id', $b->id);
+    }
+
+    public function test_selected_option_labels_are_retrievable_without_bypassing_company_scope(): void
+    {
+        $org = new ManageOrganization;
+        $a = $org->company(null, ['title' => 'A']);
+        $b = $org->company(null, ['title' => 'B']);
+        $this->login(['access.assign'], $a->id);
+        DB::transaction(function () use ($a) {
+            for ($i = 0; $i < 105; $i++) {
+                DB::table('positions')->insert(['company_id' => $a->id, 'title' => 'Position '.$i]);
+            }
+        });
+        $last = DB::table('positions')->where('company_id', $a->id)->max('id');
+        $foreign = $org->position($b, null, ['title' => 'Foreign']);
+        $this->getJson('/api/organization/company-position-options?company_id='.$a->id.'&selected='.$last)->assertOk()->assertJsonPath('data.0.id', $last);
+        $this->getJson('/api/organization/company-position-options?company_id='.$a->id.'&selected='.$foreign->id)->assertOk()->assertJsonMissing(['id' => $foreign->id, 'title' => 'Foreign']);
+        $this->getJson('/api/organization/company-position-options?company_id='.$a->id.'&selected=invalid')->assertUnprocessable();
     }
 }

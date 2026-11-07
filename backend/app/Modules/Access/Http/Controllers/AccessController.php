@@ -164,8 +164,8 @@ class AccessController extends Controller
         if (! empty($d['search'])) {
             $q->where('title', 'ilike', '%'.$d['search'].'%');
         }
-        $ids = $q->pluck('id')->filter(fn ($id) => $this->access->canDelegate($r->user()->id,$id,$company))->values();
+        $ids = $q->pluck('id')->filter(fn ($id) => $this->access->canDelegate($r->user()->id, $id, $company))->values();
 
-        return response()->json(Role::whereIn('id',$ids)->select('id','title','key')->orderBy('id')->paginate(100));
+        return response()->json(Role::whereIn('id', $ids)->select('id', 'title', 'key')->orderBy('id')->paginate(100));
     }
 }

@@ -54,15 +54,22 @@ class AccessTest extends TestCase
         $edit = $this->role(['articles.update']);
         DB::table('position_role')->insert(['position_id' => $p->id, 'role_id' => $read->id, 'scope' => 'global']);
         $access = new EffectivePermissions;
+        $access->forget();
         $this->assertFalse($access->allows($u->id, 'articles.view'));
         DB::table('company_user_role')->insert(['company_id' => $a->id, 'user_id' => $u->id, 'role_id' => $read->id]);
+        $access->forget();
         $this->assertTrue($access->allows($u->id, 'articles.view', $a->id));
+        $access->forget();
         $this->assertFalse($access->allows($u->id, 'articles.view', $b->id));
+        $access->forget();
         $this->assertFalse($access->allows($u->id, 'articles.view'));
         DB::table('position_role')->insert(['position_id' => $child->id, 'role_id' => $edit->id, 'scope' => 'global']);
+        $access->forget();
         $this->assertTrue($access->allows($u->id, 'articles.update'));
+        $access->forget();
         $this->assertTrue($access->allows($u->id, 'articles.update', $b->id));
         DB::table('position_role')->where('position_id', $child->id)->delete();
+        $access->forget();
         $this->assertFalse($access->allows($u->id, 'articles.update'));
     }
 
@@ -133,8 +140,8 @@ class AccessTest extends TestCase
         $this->artisan('access:bootstrap', [...$args, '--dry-run' => true])->assertSuccessful();
         $this->assertDatabaseCount('user_role', 0);
         $this->artisan('access:bootstrap', $args)->assertSuccessful();
-        $this->artisan('access:bootstrap',$args)->assertSuccessful();
-        $this->assertDatabaseCount('user_role',1);
-        $this->artisan('access:bootstrap',['--source' => $source->slug, '--subject' => 'unknown'])->assertFailed();
+        $this->artisan('access:bootstrap', $args)->assertSuccessful();
+        $this->assertDatabaseCount('user_role', 1);
+        $this->artisan('access:bootstrap', ['--source' => $source->slug, '--subject' => 'unknown'])->assertFailed();
     }
 }

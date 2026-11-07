@@ -18,7 +18,9 @@ final class ManageAccess
             $this->access->authorize($actor, 'roles.permissions.update');
             $keys = DB::table('permissions')->whereIn('id', $ids)->pluck('key');
             abort_unless(count($keys) === count($ids), 422, 'Unknown or duplicate permission.');
-            foreach ($keys as $key) {
+            $existing = DB::table('role_permission')->where('role_id', $role->id)->pluck('permission_id')->all();
+            $added = DB::table('permissions')->whereIn('id', array_diff($ids, $existing))->pluck('key');
+            foreach ($added as $key) {
                 $this->access->authorize($actor, $key);
             }
             $before = $this->access->hasAdministrator();
@@ -86,7 +88,7 @@ final class ManageAccess
     {
         AtomicChange::run(function () use ($role) {
             $before = $this->access->hasAdministrator();
-            DB::table('role_permission')->where('role_id',$role->id)->delete();
+            DB::table('role_permission')->where('role_id', $role->id)->delete();
             $role->delete();
             $this->access->protectAdministrator($before);
         });

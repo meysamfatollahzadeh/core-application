@@ -36,6 +36,6 @@ class PersonnelActionsTest extends TestCase
         $people->assignment($aa, $a, $child, [$other->id]);
         $this->assertSame(2, DB::table('user_positions')->count());
         $this->assertDatabaseHas('user_position_reports', ['user_position_id' => $bb->id, 'report_to_position_id' => $other->id]);
-        $this->assertDatabaseMissing('user_position_reports',['user_position_id' => $aa->id, 'report_to_position_id' => $root->id]);
+        $this->assertDatabaseMissing('user_position_reports', ['user_position_id' => $aa->id, 'report_to_position_id' => $root->id]);
     }
 }

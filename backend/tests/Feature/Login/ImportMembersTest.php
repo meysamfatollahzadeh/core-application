@@ -29,6 +29,8 @@ class ImportMembersTest extends TestCase
 
             return Http::response($first < 2 ? [['id' => 'subject-'.$first, 'username' => 'same-name', 'enabled' => true]] : []);
         });
+        $this->artisan('login:import-members', ['--source' => 'primary', '--dry-run' => true])->assertFailed();
+        $this->assertDatabaseCount('users', 0);
         $this->artisan('login:import-members', ['--source' => 'primary', '--building-area' => $this->areaId(), '--dry-run' => true])->assertSuccessful();
         $this->assertDatabaseCount('users', 0);
         $this->artisan('login:import-members', ['--source' => 'primary', '--building-area' => $this->areaId()])->assertSuccessful();

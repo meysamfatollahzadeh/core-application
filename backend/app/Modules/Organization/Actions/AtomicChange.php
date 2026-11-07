@@ -2,6 +2,7 @@
 
 namespace App\Modules\Organization\Actions;
 
+use App\Modules\Access\Services\EffectivePermissions;
 use Illuminate\Support\Facades\DB;
 use PDOException;
 
@@ -9,6 +10,7 @@ final class AtomicChange
 {
     public static function run(callable $change): mixed
     {
+        app(EffectivePermissions::class)->forget();
         try {
             return DB::transaction(function () use ($change) {
                 DB::statement('SELECT pg_advisory_xact_lock(7261107)');
@@ -20,6 +22,8 @@ final class AtomicChange
                 abort(409, 'The change conflicts with existing assignments or organizational rules.');
             }
             throw $e;
+        } finally {
+            app(EffectivePermissions::class)->forget();
         }
     }
 }

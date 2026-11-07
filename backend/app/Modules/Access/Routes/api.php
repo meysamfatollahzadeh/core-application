@@ -17,4 +17,4 @@ Route::put('personnel/{user}/global-roles', [C::class, 'replaceGlobalRoles']);
 Route::get('companies/{company}/users/{user}/roles', [C::class, 'companyRoles']);
 Route::put('companies/{company}/users/{user}/roles', [C::class, 'replaceCompanyRoles']);
 Route::get('companies/{company}/positions/{position}/roles', [C::class, 'positionRoles']);
-Route::put('companies/{company}/positions/{position}/roles',[C::class, 'replacePositionRoles']);
+Route::put('companies/{company}/positions/{position}/roles', [C::class, 'replacePositionRoles']);

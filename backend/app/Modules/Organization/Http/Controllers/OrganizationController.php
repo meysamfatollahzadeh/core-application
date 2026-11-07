@@ -5,6 +5,7 @@ namespace App\Modules\Organization\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Access\Services\EffectivePermissions;
 use App\Modules\Organization\Actions\ManageOrganization;
+use App\Modules\Organization\Http\Requests\OptionSelection;
 use App\Modules\Organization\Http\Requests\TitleRequest;
 use App\Modules\Organization\Http\Resources\DirectoryResource;
 use App\Modules\Organization\Models\Building;
@@ -29,6 +30,8 @@ class OrganizationController extends Controller
         if (! empty($data['search'])) {
             $query->where('title', 'ilike', '%'.$data['search'].'%');
         }
+
+        OptionSelection::prioritize($r, $query, 'id');
 
         return DirectoryResource::collection($query->orderBy('id')->paginate($data['per_page'] ?? 25)->withQueryString());
     }
@@ -83,7 +86,7 @@ class OrganizationController extends Controller
     {
         $this->allow($r, 'positions.view', $company->id);
 
-        return $this->page($r, Position::where('company_id', $company->id));
+        return $this->page($r, Position::where('company_id', $company->id)->select('positions.*')->selectSub(DB::table('positions as parent')->select('title')->whereColumn('parent.id', 'positions.parent_position_id'), 'parent_title'));
     }
 
     public function position(Request $r, Company $company, Position $position)
@@ -203,7 +206,24 @@ class OrganizationController extends Controller
             $q->where('positions.title', 'ilike', '%'.$d['search'].'%');
         }
 
+        OptionSelection::prioritize($r, $q, 'positions.id');
+
         return response()->json($q->orderBy('positions.id')->paginate(100));
+    }
+
+    public function companyPositionOptions(Request $r)
+    {
+        $d = $r->validate(['company_id' => ['required', 'integer', 'exists:companies,id'], 'page' => ['nullable', 'integer', 'min:1'], 'search' => ['nullable', 'string', 'max:100']]);
+        $company = (int) $d['company_id'];
+        abort_unless($this->access->allows($r->user()->id, 'access.assign', $company) || $this->access->allows($r->user()->id, 'user_positions.create', $company) || $this->access->allows($r->user()->id, 'user_positions.update', $company), 403);
+        $q = Position::where('company_id', $company)->select('id', 'title');
+        if (! empty($d['search'])) {
+            $q->where('title', 'ilike', '%'.$d['search'].'%');
+        }
+
+        OptionSelection::prioritize($r, $q, 'positions.id');
+
+        return response()->json($q->orderBy('id')->paginate(100));
     }
 
     public function locationOptions(Request $r)
@@ -212,8 +232,10 @@ class OrganizationController extends Controller
         $d = $r->validate(['search' => ['nullable', 'string', 'max:100'], 'page' => ['nullable', 'integer', 'min:1']]);
         $q = DB::table('building_areas')->join('buildings', 'buildings.id', '=', 'building_areas.building_id')->select('building_areas.id', 'building_areas.title', 'building_id', 'buildings.title as building_title');
         if (! empty($d['search'])) {
-            $q->where(fn ($q) => $q->where('building_areas.title','ilike','%'.$d['search'].'%')->orWhere('buildings.title','ilike','%'.$d['search'].'%'));
+            $q->where(fn ($q) => $q->where('building_areas.title', 'ilike', '%'.$d['search'].'%')->orWhere('buildings.title', 'ilike', '%'.$d['search'].'%'));
         }
+
+        OptionSelection::prioritize($r, $q, 'building_areas.id');
 
         return response()->json($q->orderBy('building_areas.id')->paginate(100));
     }
