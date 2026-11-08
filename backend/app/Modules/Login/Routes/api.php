@@ -11,3 +11,5 @@ Route::middleware(['auth:sanctum', VerifyProviderGrant::class])->get('/me', [Log
 Route::post('/logout', [LoginController::class, 'logout'])->middleware(['auth:sanctum', 'throttle:30,1'])->name('logout');
 Route::post('/logout/continue', [LoginController::class, 'continueLogout'])->middleware('throttle:30,1')->name('logout.continue');
 Route::post('/sources/{source:slug}/backchannel-logout', [LoginController::class, 'backchannel'])->middleware('throttle:120,1')->name('backchannel');
+
+Route::patch('/performances', [LoginController::class, 'updatePerformances'])->middleware(['auth:sanctum', VerifyProviderGrant::class, 'throttle:60,1'])->name('performances.update');

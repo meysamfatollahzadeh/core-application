@@ -12,7 +12,7 @@ class LoginUserResource extends JsonResource
         $member = $this->currentAccessToken()->member;
 
         return [
-            'user' => ['id' => $this->id, 'name' => $this->name],
+            'user' => ['id' => $this->id, 'name' => $this->name, 'performances' => $this->performances],
             'source' => ['slug' => $member->userSource->slug, 'title' => $member->userSource->title],
             'member' => ['id' => $member->id, 'uuid' => $member->uuid],
         ];

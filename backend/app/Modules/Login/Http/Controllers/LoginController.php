@@ -7,9 +7,11 @@ use App\Modules\Login\Actions\BackchannelLogout;
 use App\Modules\Login\Actions\CompleteLogin;
 use App\Modules\Login\Actions\Logout;
 use App\Modules\Login\Actions\StartLogin;
+use App\Modules\Login\Actions\UpdatePerformances;
 use App\Modules\Login\Http\Requests\BackchannelLogoutRequest;
 use App\Modules\Login\Http\Requests\CompleteLoginRequest;
 use App\Modules\Login\Http\Requests\StartLoginRequest;
+use App\Modules\Login\Http\Requests\UpdatePerformancesRequest;
 use App\Modules\Login\Http\Resources\LoginUserResource;
 use App\Modules\Login\Models\UserSource;
 use Illuminate\Http\JsonResponse;
@@ -35,6 +37,11 @@ class LoginController extends Controller
     public function me(Request $request): LoginUserResource
     {
         return new LoginUserResource($request->user());
+    }
+
+    public function updatePerformances(UpdatePerformancesRequest $request, UpdatePerformances $action): JsonResponse
+    {
+        return response()->json(['data' => ['performances' => $action->execute($request->user(), $request->validated('theme'))]])->header('Cache-Control', 'no-store, private');
     }
 
     public function logout(StartLoginRequest $request, Logout $action): JsonResponse
