@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **User-requested grouped dashboard review revision in progress.**
+- Status: **Grouped dashboard review revision verified; awaiting explicit phase-completion review.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -424,11 +424,20 @@ Scope and implementation: replace the /admin list with semantic group sections a
 Design: keep the established organization palette (light background #F3F6F8, surface #FFFFFF, blue #24577A, teal #087F83, dark surface #22313E), Vazirmatn and RTL alignment. Group titles sit above compact square tiles with centered icon/title/description; group accents use blue, teal and amber theme tokens. Desktop tiles stay a readable size while using the available width; mobile tiles wrap without clipped Persian text. Dedicated CSS only.
 
 1. [x] Replace the dashboard list with grouped, permission-filtered square destination cards and responsive theme-aware styling.
-2. [ ] Verify typecheck/build, existing permission tests, authenticated dashboard rendering, restricted-access groups and desktop/mobile visual layout; commit implementation and evidence.
+2. [x] Verify typecheck/build, existing permission tests, authenticated dashboard rendering, restricted-access groups and desktop/mobile visual layout; commit implementation and evidence.
 
-Dashboard revision progress: **1 of 2 steps completed**. Acceptance: only authorized links and nonempty groups render, all cards have local icons/title/description, square layout remains readable on mobile and desktop in both themes, and direct unauthorized routes retain existing 403 enforcement. No docs/ closeout or integration is authorized.
+Dashboard revision progress: **2 of 2 steps completed**. Acceptance: only authorized links and nonempty groups render, all cards have local icons/title/description, square layout remains readable on mobile and desktop in both themes, and direct unauthorized routes retain existing 403 enforcement. No docs/ closeout or integration is authorized.
 
 ### Dashboard revision step 1 evidence
 
 - Replaced the flat list with titled semantic group sections and square linked cards containing local icons, headings and descriptions. Shared useAdminSections supplies only authorized cards and nonempty groups; route/API guards are unchanged.
 - Dedicated CSS supplies responsive grids, blue/teal/amber accents, both theme surfaces and visible focus states. Nuxt typecheck passed (existing nonfatal vue-router/volar warning); all seven existing navigation/appearance tests passed inside the frontend container.
+
+### Dashboard revision step 2 evidence
+
+- Nuxt production build passed. Only the frontend development service was restarted after building. No backend/database/API changes were made, so backend regressions were not rerun for this visual revision.
+- Real authenticated /admin SSR included the titled groups and destination cards in private/no-store HTML without bearer/provider credentials. Playwright verified all seven available cards, matching heading references and square dimensions.
+- Inspected desktop light/dark screenshots at 1600px and dark mobile screenshots at 390px and 320px. Browser assertions checked square proportions, no document overflow and description text inside each card. Screenshots are local ignored artifacts under output/playwright/dashboard-{desktop-light,desktop-dark,mobile-390,mobile-320}.png.
+- A browser-only interception of the access response limited the test display to company-scoped personnel.view. Exactly one personnel card and its group remained; unauthorized cards and empty groups disappeared, and the remaining card opened /admin/personnel. The simulation did not change stored roles or backend enforcement. Screenshot: output/playwright/dashboard-restricted.png.
+- The test's own login was ended through confirmed OIDC logout, its browser closed and encrypted cookie fixture removed. No user preferences, identities, locations or role assignments were changed. Existing 403 middleware was reused without changes; its shared permission tests passed.
+- Frontend changes committed in f87d549; git diff --check and component CSS-separation check passed. No phase documentation, integration, push or branch deletion performed. Phase completion remains at the explicit review gate.
