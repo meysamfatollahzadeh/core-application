@@ -495,7 +495,12 @@ Revision progress: **2 of 2 steps completed**. Acceptance: root-to-leaf company-
 
 The user requested full position names/ancestor paths instead of position IDs in access assignment and position-role forms, and real user names instead of user IDs in user-role forms. Preserve selected option records from existing authorized endpoints rather than manufacturing numeric labels. Existing position_path supplies company/root/ancestor context; add optional identifier-free labels in these selectors and enable hierarchy wrapping for positions. Pass the selected record into role dialogs; show complete, wrapping subject titles in all entry points. No database, backend API or permission changes.
 
-1. [ ] Implement selected-record propagation and readable user/position labels in access selection and role dialogs.
+1. [x] Implement selected-record propagation and readable user/position labels in access selection and role dialogs.
 2. [ ] Verify typecheck/build, existing frontend regressions and real browser user/position dialog subjects without saving roles; commit implementation and evidence.
 
-Revision progress: **0 of 2 steps completed**. Acceptance: access selectors and dialogs display actual user names/full position paths with no ID placeholders, IDs remain unchanged internally for API operations, and long subjects wrap on mobile. No phase closeout or integration authorized.
+Revision progress: **1 of 2 steps completed**. Acceptance: access selectors and dialogs display actual user names/full position paths with no ID placeholders, IDs remain unchanged internally for API operations, and long subjects wrap on mobile. No phase closeout or integration authorized.
+
+### Access subject-label step 1 evidence
+
+- Remote choices can emit the original authorized selected record and optionally omit numeric label suffixes. Access assignment passes real selected user/position records into role dialogs instead of fabricating ID-based titles; controls stay disabled until matching labels are resolved.
+- Access position selection uses the shared complete-path/wrapping mode; position-role dialog titles prefer position_path for both access-page and directory entry points. User-role titles use the selected name. Dialog headings wrap in dedicated CSS. No API/schema/permission changes.
