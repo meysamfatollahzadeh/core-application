@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Position directory hierarchy review revision verified; awaiting explicit phase-completion review.**
+- Status: **User-requested access subject-label review revision in progress.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -490,3 +490,12 @@ Revision progress: **2 of 2 steps completed**. Acceptance: root-to-leaf company-
 - At 390px the selected parent wrapped completely without horizontal document overflow. Inspected local ignored screenshots: output/playwright/position-directory-list.png, position-directory-edit.png and position-directory-create-mobile.png. Forms were cancelled without saving; no live positions, roles or assignments were changed by verification.
 - Verification logout completed through the existing OIDC flow; the browser was closed and its encrypted cookie fixture deleted. git diff --check passed; dedicated CSS and shared hierarchy-selector rules preserved.
 - Backend changes committed in 677a6c5 and frontend in 330fded. No docs/ closeout, rebase, merge, push or branch deletion performed. Phase step 10 still requires explicit completion approval.
+
+## Authorized access subject-label review revision — 2026-11-08
+
+The user requested full position names/ancestor paths instead of position IDs in access assignment and position-role forms, and real user names instead of user IDs in user-role forms. Preserve selected option records from existing authorized endpoints rather than manufacturing numeric labels. Existing position_path supplies company/root/ancestor context; add optional identifier-free labels in these selectors and enable hierarchy wrapping for positions. Pass the selected record into role dialogs; show complete, wrapping subject titles in all entry points. No database, backend API or permission changes.
+
+1. [ ] Implement selected-record propagation and readable user/position labels in access selection and role dialogs.
+2. [ ] Verify typecheck/build, existing frontend regressions and real browser user/position dialog subjects without saving roles; commit implementation and evidence.
+
+Revision progress: **0 of 2 steps completed**. Acceptance: access selectors and dialogs display actual user names/full position paths with no ID placeholders, IDs remain unchanged internally for API operations, and long subjects wrap on mobile. No phase closeout or integration authorized.
