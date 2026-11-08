@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **User-requested persistent modal review revision in progress.**
+- Status: **Persistent modal review revision verified; awaiting explicit phase-completion review.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -517,8 +517,10 @@ Revision progress: **2 of 2 steps completed**. Acceptance: access selectors and 
 The user requested that modal forms stay open when their overlay is clicked. Set the shared Vuetify VDialog default to persistent and remove local conditional-persistence overrides so all existing form/confirmation dialogs consistently require their explicit cancel/close/action buttons. Vuetify persistent also prevents accidental Escape/back dismissal; existing busy-state controls and programmatic success closure remain intact. No database/API/permission changes.
 
 1. [x] Apply the shared dialog default and remove weaker local overrides.
-2. [ ] Verify typecheck/build and browser overlay-click preservation of an unsaved form plus explicit cancel closure; commit implementation and evidence.
+2. [x] Verify typecheck/build and browser overlay-click preservation of an unsaved form plus explicit cancel closure; commit implementation and evidence.
 
-Revision progress: **1 of 2 steps completed**. Acceptance: overlay clicks preserve open dialogs and entered values, explicit cancel/close still works, and successful actions can still close programmatically. No phase closeout or integration authorized.
+Revision progress: **2 of 2 steps completed**. Acceptance: overlay clicks preserve open dialogs and entered values, explicit cancel/close still works, and successful actions can still close programmatically. No phase closeout or integration authorized.
 
 Step 1: shared VDialog persistent default applied; all eight local conditional overrides removed. Existing explicit cancel/close, busy-state disabling and successful-action handlers are preserved, including confirmation dialogs. No backend changes.
+
+Step 2 evidence: Nuxt typecheck and production build passed (existing nonfatal vue-router/volar warning); git diff --check passed. Real browser tests verified overlay-click persistence of the source selection, an unsaved company form and logout confirmation. The typed company title survived overlay clicks and Escape; explicit cancel closed the form without saving. Confirmed logout still completed normally. No business data was created/changed; verification browser closed and its encrypted cookie fixture deleted. Only frontend restarted after build. Backend unchanged and not retested for this UI-only default. Implementation committed separately; no docs/ closeout or integration performed.
