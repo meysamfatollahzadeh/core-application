@@ -25,7 +25,7 @@ class OrganizationController extends Controller
         $this->access->authorize($r->user()->id, $permission, $company);
     }
 
-    private function page(Request $r, $query)
+    private function page(Request $r, $query, bool $withPositionPaths = false)
     {
         $data = $r->validate(['search' => ['nullable', 'string', 'max:100'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100'], 'page' => ['nullable', 'integer', 'min:1']]);
         if (! empty($data['search'])) {
@@ -34,7 +34,26 @@ class OrganizationController extends Controller
 
         OptionSelection::prioritize($r, $query, 'id');
 
-        return DirectoryResource::collection($query->orderBy('id')->paginate($data['per_page'] ?? 25)->withQueryString());
+        $page = $query->orderBy('id')->paginate($data['per_page'] ?? 25)->withQueryString();
+        if ($withPositionPaths) {
+            $page->setCollection($this->positionLabels($page->getCollection()));
+        }
+
+        return DirectoryResource::collection($page);
+    }
+
+    private function positionLabels($positions)
+    {
+        $ids = $positions->pluck('id')->merge($positions->pluck('parent_position_id')->filter())->all();
+        $paths = app(PositionPaths::class)->labels($ids);
+
+        return $positions->map(fn (Position $position) => $position->setAttribute('position_path', $paths[$position->id])
+            ->setAttribute('parent_path', $position->parent_position_id ? $paths[$position->parent_position_id] : null));
+    }
+
+    private function positionResource(Position $position): DirectoryResource
+    {
+        return new DirectoryResource($this->positionLabels(collect([$position]))->first());
     }
 
     private function positionBelongs(Company $company, Position $position): void
@@ -87,7 +106,7 @@ class OrganizationController extends Controller
     {
         $this->allow($r, 'positions.view', $company->id);
 
-        return $this->page($r, Position::where('company_id', $company->id)->select('positions.*')->selectSub(DB::table('positions as parent')->select('title')->whereColumn('parent.id', 'positions.parent_position_id'), 'parent_title'));
+        return $this->page($r, Position::where('company_id', $company->id)->select('positions.*')->selectSub(DB::table('positions as parent')->select('title')->whereColumn('parent.id', 'positions.parent_position_id'), 'parent_title'), true);
     }
 
     public function position(Request $r, Company $company, Position $position)
@@ -95,14 +114,14 @@ class OrganizationController extends Controller
         $this->allow($r, 'positions.view', $company->id);
         $this->positionBelongs($company, $position);
 
-        return new DirectoryResource($position);
+        return $this->positionResource($position);
     }
 
     public function createPosition(TitleRequest $r, Company $company)
     {
         $this->allow($r, 'positions.create', $company->id);
 
-        return (new DirectoryResource($this->change->position($company, null, $r->safe()->only(['title', 'parent_position_id']))))->response()->setStatusCode(201);
+        return $this->positionResource($this->change->position($company, null, $r->safe()->only(['title', 'parent_position_id'])))->response()->setStatusCode(201);
     }
 
     public function updatePosition(TitleRequest $r, Company $company, Position $position)
@@ -110,7 +129,7 @@ class OrganizationController extends Controller
         $this->allow($r, 'positions.update', $company->id);
         $this->positionBelongs($company, $position);
 
-        return new DirectoryResource($this->change->position($company, $position, $r->safe()->only(['title', 'parent_position_id'])));
+        return $this->positionResource($this->change->position($company, $position, $r->safe()->only(['title', 'parent_position_id'])));
     }
 
     public function deletePosition(Request $r, Company $company, Position $position)

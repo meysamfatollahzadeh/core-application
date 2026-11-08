@@ -194,4 +194,25 @@ class ManagementApiTest extends TestCase
         $this->getJson('/api/organization/company-position-options?company_id='.$a->id.'&selected='.$last)->assertOk()->assertJsonPath('data.0.position_path', 'Company / Root / Leaf 100');
         $this->getJson('/api/organization/reporting-position-options?page=2')->assertOk()->assertJsonPath('data.0.position_path', 'Company / Root / Leaf 99');
     }
+
+    public function test_position_directory_and_edits_return_complete_position_and_parent_paths(): void
+    {
+        $org = new ManageOrganization;
+        $a = $org->company(null, ['title' => 'Company']);
+        $b = $org->company(null, ['title' => 'Other']);
+        $this->login(['positions.view', 'positions.create', 'positions.update'], $a->id);
+        $base = "/api/companies/$a->id/positions";
+        $root = $this->postJson($base, ['title' => 'Root'])->assertCreated()->assertJsonPath('data.position_path', 'Company / Root')->assertJsonPath('data.parent_path', null)->json('data.id');
+        $middle = $this->postJson($base, ['title' => 'Division', 'parent_position_id' => $root])->assertCreated()->json('data.id');
+        $leaf = $this->postJson($base, ['title' => 'Specialist', 'parent_position_id' => $middle])->assertCreated()->assertJsonPath('data.title', 'Specialist')
+            ->assertJsonPath('data.position_path', 'Company / Root / Division / Specialist')->assertJsonPath('data.parent_path', 'Company / Root / Division')->json('data.id');
+        $this->getJson($base.'?search=Specialist&per_page=1')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.position_path', 'Company / Root / Division / Specialist')->assertJsonPath('data.0.parent_path', 'Company / Root / Division');
+        $this->getJson($base.'?per_page=1&page=3')->assertOk()->assertJsonPath('data.0.parent_path', 'Company / Root / Division');
+        $this->getJson($base.'?selected='.$middle.'&per_page=1')->assertOk()->assertJsonPath('data.0.position_path', 'Company / Root / Division');
+        $this->patchJson($base.'/'.$root, ['title' => 'Renamed'])->assertOk()->assertJsonPath('data.title', 'Renamed')->assertJsonPath('data.parent_path', null);
+        $this->getJson($base.'/'.$leaf)->assertOk()->assertJsonPath('data.position_path', 'Company / Renamed / Division / Specialist')->assertJsonPath('data.parent_path', 'Company / Renamed / Division');
+        $this->patchJson($base.'/'.$leaf, ['title' => 'Lead', 'parent_position_id' => $root])->assertOk()->assertJsonPath('data.title', 'Lead')->assertJsonPath('data.position_path', 'Company / Renamed / Lead')->assertJsonPath('data.parent_path', 'Company / Renamed');
+        $this->getJson("/api/companies/$b->id/positions")->assertForbidden();
+        $this->getJson("/api/companies/$b->id/positions/$leaf")->assertForbidden();
+    }
 }
