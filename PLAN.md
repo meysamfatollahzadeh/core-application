@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **User-requested persistent appearance and logout-confirmation review revision in progress.**
+- Status: **Persistent appearance and logout-confirmation review revision verified; awaiting explicit phase-completion review.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -387,11 +387,11 @@ Ordered revision steps:
 
 1. [x] Implement additive performances schema/model/resource, authenticated self-preference API/gateway and meaningful database/authorization tests.
 2. [x] Implement server-first theme initialization and persistence, connected theme group and shared logout confirmation.
-3. [ ] Verify backend regressions, typecheck/build, dark initial SSR and refresh/login continuity, auto behavior, connected controls and cancel/confirm logout in the browser; record actual evidence and commit scoped changes.
+3. [x] Verify backend regressions, typecheck/build, dark initial SSR and refresh/login continuity, auto behavior, connected controls and cancel/confirm logout in the browser; record actual evidence and commit scoped changes.
 
 Acceptance: existing and newly imported users default to {"theme":"auto"}; another user's preferences cannot be changed via this endpoint; unrelated JSON keys survive updates; invalid modes and anonymous updates are rejected. Stored dark is present in initial HTML and survives hydration without a light interval, refresh and later login. Theme writes stay on origin 8081 with CSRF validation and no browser bearer exposure. Cancel preserves the login; confirm logs out. No phase docs/ update or integration is authorized by this request.
 
-Appearance revision progress: **2 of 3 steps completed**. Phase step 10 remains gated by explicit completion approval.
+Appearance revision progress: **3 of 3 steps completed**. Phase step 10 remains gated by explicit completion approval.
 
 ### Appearance revision step 1 evidence
 
@@ -404,3 +404,13 @@ Appearance revision progress: **2 of 3 steps completed**. Phase step 10 remains 
 - Vuetify now initializes after SSR Login identity resolution, with preference/resolved mode hydrated consistently. Authenticated JSON preference wins over presentation cookies and legacy browser storage; auto continues device tracking.
 - Shared logout confirmation replaces direct header/home logout handlers. Theme controls are one connected toggle with disabled saving state and rollback/error feedback on persistence failure.
 - Nuxt typecheck, seven frontend utility tests and production build passed. A real stored-dark request returned dark initial application HTML despite explicit light presentation cookies. CSRF-free mutation and invalid mode were rejected through the real gateway.
+
+### Appearance revision step 3 evidence
+
+- Verification totals: full PostgreSQL backend suite 49 tests / 279 assertions; seven frontend utility tests; Nuxt typecheck and production build passed. No application changes followed those checks. Existing nonfatal vue-router/volar typecheck warning remains.
+- Real Playwright verification monitored the application theme classes from initial DOM creation through hydration and refresh. Stored dark produced only dark, despite a light device setting and stale light localStorage. Separate HTTP SSR verification covered contradictory light presentation cookies.
+- The connected header buttons saved light through the real gateway and retained it after refresh. Auto was saved and followed live dark/light device changes. A fresh OIDC login retained stored dark in both the identity response and initial SSR HTML without relying on a previous browser appearance cookie.
+- Cancellation of the confirmation dialog sent zero logout requests and retained authenticated controls; confirmation sent exactly one logout request and returned to the anonymous home through the existing OIDC flow. A browser-only simulated preference-save failure displayed the Persian error and rolled the UI back to the previous dark preference.
+- Inspected settled dark account-menu and logout-dialog screenshots: output/playwright/appearance-account-dark.png and appearance-logout-confirm.png (local ignored review artifacts). Initial screenshot captures were repeated after overlay transitions completed.
+- Expired review authentication was refreshed for the browser checks. The development account's original auto preference was restored via its protected self API; verification logins were ended and the browser closed. Encrypted review-cookie fixtures were deleted. No roles, locations or identities were reassigned; no other sessions were explicitly revoked.
+- Backend implementation committed separately in 6848d85; frontend implementation committed in 3295baa. git diff --check passed. No docs/ closeout, rebase, merge, push or branch deletion was performed; phase step 10 still awaits explicit completion approval.
