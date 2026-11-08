@@ -55,8 +55,8 @@ realm توسعه در هر دو Keycloak، `organization-dev` است. Camunda ا
 
 ```bash
 docker compose exec -T backend php artisan login:sources:upsert --config-file=/run/organization/sources/primary.json
-docker compose exec -T backend php artisan login:import-members --source=primary --dry-run
-docker compose exec -T backend php artisan login:import-members --source=primary
+docker compose exec -T backend php artisan login:import-members --source=primary --building-area=AREA_ID --dry-run
+docker compose exec -T backend php artisan login:import-members --source=primary --building-area=AREA_ID
 ```
 
 برای منبع دوم، `secondary` را جایگزین کنید. مقدار `--source` همیشه slug است؛ شناسهٔ عددی دیتابیس ورودی این فرمان نیست. در جدول `members` رابطه با `user_source_id` ذخیره می‌شود و ترکیب `(uuid, user_source_id)` یونیک است.
@@ -72,7 +72,7 @@ docker compose exec -T backend php artisan login:import-members --source=primary
 سپس اجرا کنید:
 
 ```bash
-docker compose exec -T backend php artisan login:import-members --source=primary --mapping-file=/run/organization/member-map.json
+docker compose exec -T backend php artisan login:import-members --source=primary --building-area=AREA_ID --mapping-file=/run/organization/member-map.json
 ```
 
 User با شناسهٔ ۱۲۳ باید موجود باشد. این نگاشت اتصال قبلی یک Member را خودکار جابه‌جا نمی‌کند. حساب‌های هم‌نام یا دارای ایمیل مشابه بین منابع، خودکار یکی نمی‌شوند.
@@ -139,3 +139,8 @@ python3 scripts/smoke-provider-recovery.py
 ```
 
 این فرمان برای ارتقا، ایمپورت یا راه‌اندازی روزمره لازم نیست.
+
+
+## تکمیل فاز دوم
+
+ایمپورت User جدید به ناحیه اولیه صریح نیاز دارد؛ `AREA_ID` را با شناسه ناحیه واقعی جایگزین کنید. آماده‌سازی محل کاربران موجود، قرارداد اجباری‌شدن ناحیه و مدیریت اولیه دسترسی در [راهنمای شرکت و پرسنل](organization.fa.md) آمده است. `migrate` معمولی جایگزین اجرای صریح `organization:require-locations` پس از آماده‌سازی کاربران موجود نیست.

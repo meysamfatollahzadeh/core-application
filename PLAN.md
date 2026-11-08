@@ -3,10 +3,10 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Modal Escape refinement verified; awaiting explicit phase-completion review.**
+- Status: **Completion explicitly approved; documentation and Git integration in progress.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
-- Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
+- Explicit plan approval received in chat on 2026-11-07; implementation authorized. Explicit completion approval received on 2026-11-08 after all review revisions; documentation and integration now authorized.
 - Branch: `codex/feature/company-personnel-access`.
 - Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
 - The previous plan and its Login/maintenance evidence remain in Git history; this is the only current root plan.
@@ -218,7 +218,7 @@ Repeat for mutation permissions. Company route queries/creates/updates must bind
 | 7 of 10 | Build Persian company/chart/building/personnel and reporting interfaces; verify initial SSR, validation, default locations and responsive themes. | Complete |
 | 8 of 10 | Build shared role/permission and scoped direct/position-role interfaces; verify effective-access feedback, no inheritance and permission removal on next request. | Complete |
 | 9 of 10 | Complete meaningful backend/browser/build/integration checks, migration rehearsal and review fixes; commit actual evidence in PLAN.md; report 9 of 10 and pause for explicit completion approval. | Complete |
-| 10 of 10 | Only after completion approval, create/update English technical documentation and Persian usage/operations guides, validate them, commit closeout, rebase/revalidate, merge/push master and delete integrated branches per section 11. | Blocked by future completion approval |
+| 10 of 10 | Only after completion approval, create/update English technical documentation and Persian usage/operations guides, validate them, commit closeout, rebase/revalidate, merge/push master and delete integrated branches per section 11. | In progress after explicit completion approval |
 
 Backend changes may span several scoped commits; frontend, shared development scripts and documentation use separate commits. Every progress/status change to this plan is committed. Do not mark steps complete based only on code being written.
 
@@ -535,3 +535,14 @@ The user clarified that Escape must close dialogs while overlay clicks must not.
 Refinement progress: **2 of 2 steps completed**. This supersedes the previous Escape-blocking behavior; no phase closeout or integration authorized.
 
 Verification: Nuxt typecheck/build and git diff --check passed (existing nonfatal vue-router/volar warning). Real browser checks confirmed source-selection overlay clicks keep it open and Escape closes it; an unsaved position form retained its typed title after overlay click; first Escape closed only the nested parent-choice menu and second Escape closed the form. Escape dismissed logout confirmation without logging out, and explicit confirmation still completed logout. No business data was saved; verification browser closed and encrypted fixture removed. Busy guards remain in each handler. Backend unchanged and not retested. Frontend committed separately; no docs/ closeout or integration performed.
+
+
+## Approved phase closeout — 2026-11-08
+
+The user explicitly stated that the changes are approved after the final Escape refinement. This satisfies the completion gate for the entire reviewed Phase 2 and its authorized revisions. Earlier statements of pending approval/no integration are historical evidence and are superseded by this approval. No additional account/role assignment is requested.
+
+- English technical docs added for database/business behavior and all management API contracts; Login API updated for performances and browser appearance. Historical Phase 1 baseline docs are clearly marked.
+- Persian usage/operations guide added for organization/personnel/access, location backfill and explicit initial administration; existing import/usage guides updated. No new application or infrastructure changes are part of closeout.
+- Final checks and Git integration results will be recorded below before phase completion.
+
+Closeout verification before synchronization: local links in all 10 Markdown documentation files passed; git diff --check passed; full PostgreSQL suite passed 52 tests / 332 assertions; all seven frontend tests, Nuxt typecheck and production build passed. Existing nonfatal vue-router/volar warning remains. No application code changed during documentation closeout. Git synchronization/integration is the remaining portion of step 10.
