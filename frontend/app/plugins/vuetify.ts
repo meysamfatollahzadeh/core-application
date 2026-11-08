@@ -17,6 +17,7 @@ export default defineNuxtPlugin({ name: 'vuetify', order: 30, setup(nuxtApp) {
     locale: { locale: 'fa', messages: { fa }, rtl: { fa: true } },
     icons: { defaultSet: 'mdi', aliases, sets: { mdi } },
     defaults: {
+      VDialog: { persistent: true },
       VBtn: { elevation: 0, rounded: 'lg' },
       VCard: { elevation: 0, rounded: 'lg' },
     },
