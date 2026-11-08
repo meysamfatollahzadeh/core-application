@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **User-requested access subject-label review revision in progress.**
+- Status: **Access subject-label review revision verified; awaiting explicit phase-completion review.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -496,11 +496,18 @@ Revision progress: **2 of 2 steps completed**. Acceptance: root-to-leaf company-
 The user requested full position names/ancestor paths instead of position IDs in access assignment and position-role forms, and real user names instead of user IDs in user-role forms. Preserve selected option records from existing authorized endpoints rather than manufacturing numeric labels. Existing position_path supplies company/root/ancestor context; add optional identifier-free labels in these selectors and enable hierarchy wrapping for positions. Pass the selected record into role dialogs; show complete, wrapping subject titles in all entry points. No database, backend API or permission changes.
 
 1. [x] Implement selected-record propagation and readable user/position labels in access selection and role dialogs.
-2. [ ] Verify typecheck/build, existing frontend regressions and real browser user/position dialog subjects without saving roles; commit implementation and evidence.
+2. [x] Verify typecheck/build, existing frontend regressions and real browser user/position dialog subjects without saving roles; commit implementation and evidence.
 
-Revision progress: **1 of 2 steps completed**. Acceptance: access selectors and dialogs display actual user names/full position paths with no ID placeholders, IDs remain unchanged internally for API operations, and long subjects wrap on mobile. No phase closeout or integration authorized.
+Revision progress: **2 of 2 steps completed**. Acceptance: access selectors and dialogs display actual user names/full position paths with no ID placeholders, IDs remain unchanged internally for API operations, and long subjects wrap on mobile. No phase closeout or integration authorized.
 
 ### Access subject-label step 1 evidence
 
 - Remote choices can emit the original authorized selected record and optionally omit numeric label suffixes. Access assignment passes real selected user/position records into role dialogs instead of fabricating ID-based titles; controls stay disabled until matching labels are resolved.
 - Access position selection uses the shared complete-path/wrapping mode; position-role dialog titles prefer position_path for both access-page and directory entry points. User-role titles use the selected name. Dialog headings wrap in dedicated CSS. No API/schema/permission changes.
+
+### Access subject-label step 2 evidence
+
+- Nuxt typecheck, all seven existing frontend navigation/appearance tests, production build and git diff --check passed. Existing nonfatal vue-router/volar warning remains. Backend unchanged; prior 52-test backend result was not rerun for this frontend-only revision.
+- Real browser selections from authorized personnel and position endpoints displayed actual names/full paths without numeric suffixes. User-role dialog title exactly matched the selected user name; position-role title exactly matched the selected full path. At 390px the full heading wrapped without clipping or document overflow.
+- Inspected local ignored screenshots output/playwright/access-user-role-name.png and access-position-role-path-mobile.png. Both forms were cancelled without saving; no role or other business data was changed. Verification logout completed, browser closed and encrypted cookie fixture removed. Only frontend restarted after building.
+- Frontend committed in 0bf5712. No docs/ closeout, rebase, merge, push or branch deletion performed; phase step 10 remains pending explicit completion approval.
