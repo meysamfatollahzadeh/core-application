@@ -423,7 +423,12 @@ Scope and implementation: replace the /admin list with semantic group sections a
 
 Design: keep the established organization palette (light background #F3F6F8, surface #FFFFFF, blue #24577A, teal #087F83, dark surface #22313E), Vazirmatn and RTL alignment. Group titles sit above compact square tiles with centered icon/title/description; group accents use blue, teal and amber theme tokens. Desktop tiles stay a readable size while using the available width; mobile tiles wrap without clipped Persian text. Dedicated CSS only.
 
-1. [ ] Replace the dashboard list with grouped, permission-filtered square destination cards and responsive theme-aware styling.
+1. [x] Replace the dashboard list with grouped, permission-filtered square destination cards and responsive theme-aware styling.
 2. [ ] Verify typecheck/build, existing permission tests, authenticated dashboard rendering, restricted-access groups and desktop/mobile visual layout; commit implementation and evidence.
 
-Dashboard revision progress: **0 of 2 steps completed**. Acceptance: only authorized links and nonempty groups render, all cards have local icons/title/description, square layout remains readable on mobile and desktop in both themes, and direct unauthorized routes retain existing 403 enforcement. No docs/ closeout or integration is authorized.
+Dashboard revision progress: **1 of 2 steps completed**. Acceptance: only authorized links and nonempty groups render, all cards have local icons/title/description, square layout remains readable on mobile and desktop in both themes, and direct unauthorized routes retain existing 403 enforcement. No docs/ closeout or integration is authorized.
+
+### Dashboard revision step 1 evidence
+
+- Replaced the flat list with titled semantic group sections and square linked cards containing local icons, headings and descriptions. Shared useAdminSections supplies only authorized cards and nonempty groups; route/API guards are unchanged.
+- Dedicated CSS supplies responsive grids, blue/teal/amber accents, both theme surfaces and visible focus states. Nuxt typecheck passed (existing nonfatal vue-router/volar warning); all seven existing navigation/appearance tests passed inside the frontend container.
