@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Persistent modal review revision verified; awaiting explicit phase-completion review.**
+- Status: **User-requested modal Escape refinement in progress.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -524,3 +524,12 @@ Revision progress: **2 of 2 steps completed**. Acceptance: overlay clicks preser
 Step 1: shared VDialog persistent default applied; all eight local conditional overrides removed. Existing explicit cancel/close, busy-state disabling and successful-action handlers are preserved, including confirmation dialogs. No backend changes.
 
 Step 2 evidence: Nuxt typecheck and production build passed (existing nonfatal vue-router/volar warning); git diff --check passed. Real browser tests verified overlay-click persistence of the source selection, an unsaved company form and logout confirmation. The typed company title survived overlay clicks and Escape; explicit cancel closed the form without saving. Confirmed logout still completed normally. No business data was created/changed; verification browser closed and its encrypted cookie fixture deleted. Only frontend restarted after build. Backend unchanged and not retested for this UI-only default. Implementation committed separately; no docs/ closeout or integration performed.
+
+### Authorized Escape refinement — 2026-11-08
+
+The user clarified that Escape must close dialogs while overlay clicks must not. Keep the shared persistent default for overlay protection and handle Vuetify's topmost-dialog Escape event explicitly for each dialog's existing model/close action. Preserve existing busy/submitting protection; a nested autocomplete menu consumes its first Escape before the parent dialog closes. No database/API changes.
+
+1. [ ] Restore Escape dismissal across forms, confirmations and source selection while keeping overlay protection and busy guards.
+2. [ ] Verify typecheck/build and browser overlay/Escape/cancel behavior including a nested selection menu; commit changes and evidence.
+
+Refinement progress: **0 of 2 steps completed**. This supersedes the previous Escape-blocking behavior; no phase closeout or integration authorized.
