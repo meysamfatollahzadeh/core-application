@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **User-requested position directory hierarchy review revision in progress.**
+- Status: **Position directory hierarchy review revision verified; awaiting explicit phase-completion review.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -473,12 +473,20 @@ Revision progress: **3 of 3 steps completed**. Acceptance: labels read company /
 The user requested full ancestor paths for positions and their chart parents in the position directory and create/edit forms. Reuse the approved position-path resolver and wrapping selector. Add position_path and nullable parent_path to position list/detail/create/update responses, preserving leaf title and parent ID for correct editing. Resolve paths in batches after filtering/pagination so ancestors outside the page remain present. Keep current position-view authorization for parent choices; no schema or permission changes.
 
 1. [x] Add complete directory/parent paths and API regression coverage; show paths in table and parent options plus a live full-path preview in create/edit while the title field edits only the leaf.
-2. [ ] Verify backend tests, frontend typecheck/build and real browser list/create/edit paths including mobile wrapping; commit scoped changes and evidence.
+2. [x] Verify backend tests, frontend typecheck/build and real browser list/create/edit paths including mobile wrapping; commit scoped changes and evidence.
 
-Revision progress: **1 of 2 steps completed**. Acceptance: root-to-leaf company-qualified paths remain complete after search/pagination, root parents display as root, create/edit preview and selected parent show the whole hierarchy without changing the stored leaf title. No docs/ closeout or integration authorized; phase step 10 remains pending explicit completion approval.
+Revision progress: **2 of 2 steps completed**. Acceptance: root-to-leaf company-qualified paths remain complete after search/pagination, root parents display as root, create/edit preview and selected parent show the whole hierarchy without changing the stored leaf title. No docs/ closeout or integration authorized; phase step 10 remains pending explicit completion approval.
 
 ### Position directory revision step 1 evidence
 
 - Position list/detail/create/update responses expose complete position_path and nullable parent_path through the existing batched resolver; leaf title and parent ID remain unchanged. Parent options continue using the authorized company position directory.
 - Table and deletion context show paths. Parent selection wraps and reports its selected path to a live full-path preview that follows title/parent changes in create/edit. The title field retains only the editable leaf name.
 - Pint passed; all 11 ManagementApiTest cases passed (99 assertions), including root/deep paths, search/page/selected ancestors, renamed ancestors, title-only editing and company denial. Nuxt typecheck passed with the existing nonfatal vue-router/volar warning.
+
+### Position directory revision step 2 evidence
+
+- Full PostgreSQL backend suite passed: 52 tests, 332 assertions. Frontend typecheck, seven existing navigation/appearance tests and production build passed; no code edits followed verification. Only frontend was restarted after building.
+- Real directory API and authenticated SSR included complete paths. Playwright compared full position and parent paths in the table, verified edit input retains only the leaf title, and checked that changing the leaf updates the full-path preview. Create selected a deep parent and verified all ancestors in the resulting preview.
+- At 390px the selected parent wrapped completely without horizontal document overflow. Inspected local ignored screenshots: output/playwright/position-directory-list.png, position-directory-edit.png and position-directory-create-mobile.png. Forms were cancelled without saving; no live positions, roles or assignments were changed by verification.
+- Verification logout completed through the existing OIDC flow; the browser was closed and its encrypted cookie fixture deleted. git diff --check passed; dedicated CSS and shared hierarchy-selector rules preserved.
+- Backend changes committed in 677a6c5 and frontend in 330fded. No docs/ closeout, rebase, merge, push or branch deletion performed. Phase step 10 still requires explicit completion approval.
