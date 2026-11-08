@@ -2,8 +2,9 @@
 import type { DirectoryItem, DirectoryPage } from '~/composables/useManagement'
 const props = withDefaults(defineProps<{ endpoint: string; label: string; multiple?: boolean; disabled?: boolean; hierarchy?: boolean }>(), { multiple: false, disabled: false, hierarchy: false })
 const model = defineModel<T>({ required: true })
+const emit = defineEmits<{ 'selected-path': [path: string | null] }>()
 const api = useManagement()
-const items = ref<{ title: string; value: number }[]>([])
+const items = ref<{ title: string; value: number; path?: string }[]>([])
 const search = ref('')
 const page = ref(1)
 const last = ref(1)
@@ -25,7 +26,7 @@ async function load(append = false) {
     const selectedIds = Array.isArray(model.value) ? model.value : model.value ? [model.value] : []
     const result = await api.get<DirectoryPage>(props.endpoint, { page: page.value, search: search.value, ...(selectedIds.length ? { selected: selectedIds.join(',') } : {}) })
     if (current !== generation) return
-    const next = result.data.map(item => ({ title: itemLabel(item), value: item.id }))
+    const next = result.data.map(item => ({ title: itemLabel(item), value: item.id, path: typeof item.position_path === 'string' ? item.position_path : undefined }))
     const selected = new Set(Array.isArray(model.value) ? model.value : model.value ? [model.value] : [])
     const existing = append ? items.value : items.value.filter(item => selected.has(item.value))
     items.value = [...new Map([...existing, ...next].map(item => [item.value, item])).values()]
@@ -40,6 +41,7 @@ watch(() => model.value, value => {
   const ids = Array.isArray(value) ? value : value ? [value] : []
   if (ids.some(id => !items.value.some(item => item.value === id))) { page.value = 1; load() }
 }, { deep: true })
+watchEffect(() => emit('selected-path', items.value.find(item => item.value === model.value)?.path ?? null))
 onMounted(() => load())
 onBeforeUnmount(() => clearTimeout(timer))
 </script>
