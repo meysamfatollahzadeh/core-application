@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="T extends number | number[] | null">
 import type { DirectoryItem, DirectoryPage } from '~/composables/useManagement'
-const props = withDefaults(defineProps<{ endpoint: string; label: string; multiple?: boolean; disabled?: boolean }>(), { multiple: false, disabled: false })
+const props = withDefaults(defineProps<{ endpoint: string; label: string; multiple?: boolean; disabled?: boolean; hierarchy?: boolean }>(), { multiple: false, disabled: false, hierarchy: false })
 const model = defineModel<T>({ required: true })
 const api = useManagement()
 const items = ref<{ title: string; value: number }[]>([])
@@ -13,7 +13,7 @@ let timer: ReturnType<typeof setTimeout> | undefined
 let generation = 0
 function itemLabel(item: DirectoryItem) {
   const prefix = item.company_title ?? item.building_title
-  const title = prefix ? `${prefix} / ${item.title}` : (item.title ?? item.name ?? '')
+  const title = item.position_path ?? (prefix ? `${prefix} / ${item.title}` : (item.title ?? item.name ?? ''))
   const identifier = item.key ? String(item.key) : `شناسه ${item.id.toLocaleString('fa-IR')}`
   return `${title} (${identifier})`
 }
@@ -36,11 +36,16 @@ async function load(append = false) {
 }
 watch(search, () => { clearTimeout(timer); timer = setTimeout(() => { page.value = 1; load() }, 300) })
 watch(() => props.endpoint, () => { page.value = 1; items.value = []; load() })
+watch(() => model.value, value => {
+  const ids = Array.isArray(value) ? value : value ? [value] : []
+  if (ids.some(id => !items.value.some(item => item.value === id))) { page.value = 1; load() }
+}, { deep: true })
 onMounted(() => load())
 onBeforeUnmount(() => clearTimeout(timer))
 </script>
 <template>
-  <v-autocomplete v-model="model" v-model:search="search" :label="label" :items="items" :multiple="multiple" :chips="multiple" :closable-chips="multiple" :disabled="disabled" :loading="busy" :error-messages="error" item-title="title" item-value="value" no-filter clearable no-data-text="نتیجه‌ای پیدا نشد؛ عنوان یا نام دیگری جست‌وجو کنید." variant="outlined">
+  <v-autocomplete v-model="model" v-model:search="search" :label="label" :items="items" :multiple="multiple" :chips="multiple" :closable-chips="multiple" :disabled="disabled" :loading="busy" :error-messages="error" :class="{ 'position-choice': hierarchy }" :list-props="{ class: hierarchy ? 'position-choice-menu' : undefined }" item-title="title" item-value="value" no-filter clearable no-data-text="نتیجه‌ای پیدا نشد؛ عنوان یا نام دیگری جست‌وجو کنید." variant="outlined">
+    <template v-if="hierarchy && !multiple" #selection="{ item }"><span class="position-choice-selection">{{ item.title }}</span></template>
     <template #append-item><v-btn v-if="page < last" block variant="text" :loading="busy" @click.stop="page++; load(true)">نمایش موارد بیشتر</v-btn></template>
   </v-autocomplete>
 </template>

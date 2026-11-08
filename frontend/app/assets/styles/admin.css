@@ -129,3 +129,11 @@
 .account-theme .v-btn-toggle > .v-btn { margin: 0; border-radius: 0 !important; }
 .account-theme .v-btn-toggle > .v-btn + .v-btn { border-inline-start: 1px solid rgba(var(--v-theme-on-surface), 0.14); }
 .account-theme .theme-feedback { margin-top: 10px; font-size: 0.75rem; color: rgba(var(--v-theme-on-surface), 0.7); }
+.assignment-position-path { min-width: 220px; max-width: 420px; white-space: normal; overflow-wrap: anywhere; }
+.assignment-report-paths { list-style: none; padding: 0; min-width: 240px; max-width: 480px; overflow-wrap: anywhere; }
+.assignment-report-paths li + li { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(var(--v-theme-on-surface), 0.1); }
+.position-choice-menu.v-list .v-list-item-title { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.9; overflow-wrap: anywhere; }
+.position-choice-menu .v-list-item { padding-block: 10px; }
+.v-autocomplete.position-choice .v-autocomplete__selection { max-width: 100%; height: auto; min-height: 24px; }
+.position-choice-selection, .v-autocomplete.position-choice .v-autocomplete__selection-text, .v-autocomplete.position-choice .v-chip__content { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.9; }
+.v-autocomplete.position-choice .v-chip { height: auto; min-height: 32px; max-width: 100%; padding-block: 4px; }
