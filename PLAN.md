@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Persistent appearance and logout-confirmation review revision verified; awaiting explicit phase-completion review.**
+- Status: **User-requested grouped dashboard review revision in progress.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -414,3 +414,16 @@ Appearance revision progress: **3 of 3 steps completed**. Phase step 10 remains 
 - Inspected settled dark account-menu and logout-dialog screenshots: output/playwright/appearance-account-dark.png and appearance-logout-confirm.png (local ignored review artifacts). Initial screenshot captures were repeated after overlay transitions completed.
 - Expired review authentication was refreshed for the browser checks. The development account's original auto preference was restored via its protected self API; verification logins were ended and the browser closed. Encrypted review-cookie fixtures were deleted. No roles, locations or identities were reassigned; no other sessions were explicitly revoked.
 - Backend implementation committed separately in 6848d85; frontend implementation committed in 3295baa. git diff --check passed. No docs/ closeout, rebase, merge, push or branch deletion was performed; phase step 10 still awaits explicit completion approval.
+
+## Authorized grouped dashboard review revision — 2026-11-08
+
+The user requested a dashboard organized by titled groups, with square link cards containing an icon, title and explanatory text. Render a card only when the user can open its destination. This is an authorized frontend review revision on the current feature branch; no new phase or completion approval is implied.
+
+Scope and implementation: replace the /admin list with semantic group sections and a responsive square-card grid. Reuse useAdminSections and the same permission predicates used by the navigation and route middleware; filter individual cards and empty groups before rendering. Retain existing backend enforcement, empty/unavailable states, SSR identity and light/dark/auto behavior. No database or API changes.
+
+Design: keep the established organization palette (light background #F3F6F8, surface #FFFFFF, blue #24577A, teal #087F83, dark surface #22313E), Vazirmatn and RTL alignment. Group titles sit above compact square tiles with centered icon/title/description; group accents use blue, teal and amber theme tokens. Desktop tiles stay a readable size while using the available width; mobile tiles wrap without clipped Persian text. Dedicated CSS only.
+
+1. [ ] Replace the dashboard list with grouped, permission-filtered square destination cards and responsive theme-aware styling.
+2. [ ] Verify typecheck/build, existing permission tests, authenticated dashboard rendering, restricted-access groups and desktop/mobile visual layout; commit implementation and evidence.
+
+Dashboard revision progress: **0 of 2 steps completed**. Acceptance: only authorized links and nonempty groups render, all cards have local icons/title/description, square layout remains readable on mobile and desktop in both themes, and direct unauthorized routes retain existing 403 enforcement. No docs/ closeout or integration is authorized.
