@@ -529,7 +529,7 @@ Step 2 evidence: Nuxt typecheck and production build passed (existing nonfatal v
 
 The user clarified that Escape must close dialogs while overlay clicks must not. Keep the shared persistent default for overlay protection and handle Vuetify's topmost-dialog Escape event explicitly for each dialog's existing model/close action. Preserve existing busy/submitting protection; a nested autocomplete menu consumes its first Escape before the parent dialog closes. No database/API changes.
 
-1. [ ] Restore Escape dismissal across forms, confirmations and source selection while keeping overlay protection and busy guards.
+1. [x] Restore Escape dismissal across forms, confirmations and source selection while keeping overlay protection and busy guards.
 2. [ ] Verify typecheck/build and browser overlay/Escape/cancel behavior including a nested selection menu; commit changes and evidence.
 
-Refinement progress: **0 of 2 steps completed**. This supersedes the previous Escape-blocking behavior; no phase closeout or integration authorized.
+Refinement progress: **1 of 2 steps completed**. This supersedes the previous Escape-blocking behavior; no phase closeout or integration authorized.
