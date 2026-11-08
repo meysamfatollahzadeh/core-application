@@ -3,9 +3,9 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Completion explicitly approved; documentation and Git integration in progress.**
+- Status: **Complete and integrated after explicit completion approval.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
-- Implementation progress: **9 of 10 steps completed**.
+- Implementation progress: **10 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Explicit completion approval received on 2026-11-08 after all review revisions; documentation and integration now authorized.
 - Branch: `codex/feature/company-personnel-access`.
 - Baseline: `2be9b0c149b7e6ca81e6e1f6d5929852f8dcda14`; clean working tree, origin fetched, master synchronized using `git merge --ff-only origin/master`, then this branch created before replacing PLAN.md.
@@ -218,7 +218,7 @@ Repeat for mutation permissions. Company route queries/creates/updates must bind
 | 7 of 10 | Build Persian company/chart/building/personnel and reporting interfaces; verify initial SSR, validation, default locations and responsive themes. | Complete |
 | 8 of 10 | Build shared role/permission and scoped direct/position-role interfaces; verify effective-access feedback, no inheritance and permission removal on next request. | Complete |
 | 9 of 10 | Complete meaningful backend/browser/build/integration checks, migration rehearsal and review fixes; commit actual evidence in PLAN.md; report 9 of 10 and pause for explicit completion approval. | Complete |
-| 10 of 10 | Only after completion approval, create/update English technical documentation and Persian usage/operations guides, validate them, commit closeout, rebase/revalidate, merge/push master and delete integrated branches per section 11. | In progress after explicit completion approval |
+| 10 of 10 | Only after completion approval, create/update English technical documentation and Persian usage/operations guides, validate them, commit closeout, rebase/revalidate, merge/push master and delete integrated branches per section 11. | Complete; approved documentation, rebase/revalidation, no-ff merge and push succeeded |
 
 Backend changes may span several scoped commits; frontend, shared development scripts and documentation use separate commits. Every progress/status change to this plan is committed. Do not mark steps complete based only on code being written.
 
@@ -548,3 +548,11 @@ The user explicitly stated that the changes are approved after the final Escape 
 Closeout verification before synchronization: local links in all 10 Markdown documentation files passed; git diff --check passed; full PostgreSQL suite passed 52 tests / 332 assertions; all seven frontend tests, Nuxt typecheck and production build passed. Existing nonfatal vue-router/volar warning remains. No application code changed during documentation closeout. Git synchronization/integration is the remaining portion of step 10.
 
 Synchronization evidence: git fetch origin succeeded; origin/master remained at 2be9b0c. git rebase origin/master reported the feature branch already up to date, with no conflicts and identical tree a8023aced717b8b376686d7edb540f13dba8f16f. Post-rebase PostgreSQL suite again passed 52 tests / 332 assertions; frontend typecheck and seven tests again passed. The successful production build applies to the identical code tree. Only documentation/plan evidence changed afterward. Ready for no-ff integration; push/deletion results are not yet claimed.
+
+
+## Final integration result
+
+- Step 10 of 10 completed after explicit user approval. Documentation and all implementation/review evidence were committed on the feature branch.
+- origin/master was fetched successfully; feature rebase reported up to date with no conflicts. Post-rebase checks passed: PostgreSQL 52 tests / 332 assertions, frontend typecheck and seven tests. Production build passed on the identical application tree.
+- master was updated with merge --ff-only origin/master, then the verified feature was merged with --no-ff. Merge 11408ee was successfully pushed to origin/master (2be9b0c..11408ee).
+- This final plan-only audit is recorded on the retained feature branch after advancing it to the successful merge. It will follow the same fetch/rebase/documentation-validation/no-ff/push sequence before integrated-branch cleanup. Actual final push and branch-deletion results are reported in the chat closeout; no unpublished integration is claimed here.
