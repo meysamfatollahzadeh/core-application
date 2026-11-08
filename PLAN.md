@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **User-requested administration UI review revisions in progress; completion approval remains pending.**
+- Status: **Implementation and UI review revisions verified — awaiting explicit phase-completion review.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -320,7 +320,7 @@ After approval:
 
 Implementation and verification are ready for user review: **9 of 10 steps completed**. Review screenshots are local ignored artifacts under output/playwright/, including phase2-companies-desktop.png, phase2-chart-desktop.png, phase2-personnel-mobile.png, phase2-personnel-dark.png and phase2-position-roles.png; they show disposable test data.
 
-The original environment deliberately has no administrator grant. An operator may later use the already implemented access:bootstrap command with an explicitly chosen existing source slug and subject; no account is selected automatically. Do not grant either existing user administrative access without a new explicit instruction.
+At the 2026-11-07 handoff, the original environment deliberately had no administrator grant. At the 2026-11-08 UI review, two pre-existing global user-role assignments were found; this revision did not create or remove them. The access:bootstrap command still requires an explicitly chosen source slug and subject; do not assign or revoke either user's roles without a new explicit instruction.
 
 Await separate explicit phase-completion approval. Only then perform step 10 documentation, final closeout and the approved Git integration lifecycle. This handoff does not mark the phase complete or integrated.
 
@@ -341,11 +341,11 @@ Ordered revision steps (separate from the phase's 10-step lifecycle):
 
 1. [x] Implement the grouped permission model, shared desktop/mobile drawer and header account/theme/logout controls.
 2. [x] Implement the dedicated 403 flow and finish full-width content, contrasted surfaces, colored left-aligned list actions and responsive refinements.
-3. [ ] Verify TypeScript/build, SSR and client permission behavior, drawer breakpoints/keyboard behavior, theme and header logout; inspect desktop/mobile screenshots and commit the frontend changes and this revision's evidence.
+3. [x] Verify TypeScript/build, SSR and client permission behavior, drawer breakpoints/keyboard behavior, theme and header logout; inspect desktop/mobile screenshots and commit the frontend changes and this revision's evidence.
 
 Acceptance: parents appear only with an authorized child; company-only rights never open a global page or another company; direct denied URLs return a dedicated 403 page with HTTP 403; mobile has a right-side closable overlay drawer, desktop uses the available width; header identity is server-resolved, logout follows the existing OIDC synchronization, and original role assignments are not changed for verification. No docs/ update or integration is authorized by this request.
 
-Revision progress: **2 of 3 steps completed**. The prior phase implementation remains at its 9-of-10 review handoff; step 10 still requires explicit completion approval.
+Revision progress: **3 of 3 steps completed**. The prior phase implementation remains at its 9-of-10 review handoff; step 10 still requires explicit completion approval.
 
 ### UI revision step 1 evidence
 
@@ -358,3 +358,15 @@ Revision progress: **2 of 3 steps completed**. The prior phase implementation re
 - Added a Persian 403 component, explicit /403 route and custom Nuxt error page. SSR denied routes return HTTP 403 before protected page data loads; client navigation redirects to /403. Invalid/unauthorized company query values use the same gate.
 - A real authenticated SSR request for an unauthorized company returned the dedicated 403 page without the position directory; /403 returned 403; anonymous administration navigation redirected to the normal login home. Header identity and permission groups were present in private SSR HTML without credentials.
 - Full-width administration, separated navigation/content theme surfaces and semantic blue/teal/amber/red left-side list actions implemented in dedicated CSS/Vuetify APIs. Nuxt build passed; only frontend was restarted before browser QA.
+
+### UI revision step 3 evidence — 2026-11-08
+
+- Final Nuxt typecheck, four Node navigation/security tests, and Nuxt production build all passed. The existing nonfatal vue-router/volar plugin-loading warning appeared during typecheck. No backend or database behavior changed, so the prior 45-test backend result is historical and was not rerun for this frontend revision.
+- Real authenticated SSR included the user's name and source in the header and filtered navigation data, with private/no-store headers and no bearer/provider tokens. An invalid/out-of-scope company URL returned HTTP 403 with the dedicated Persian denied page before rendering the position directory. Explicit /403 also returned HTTP 403; anonymous administration navigation retained its redirect to the login home.
+- Playwright inspected the 1600px desktop workspace, 390px mobile drawer and a 320px viewport without document overflow. Verified right-side overlay, two-level groups, left-positioned operation columns, semantic button colors and visually distinct navigation/content surfaces.
+- Browser assertions verified drawer closure on page selection, Escape closure and focus return to the hamburger control. Semantic button/menuitem roles were added to group activators and account logout. Automatic theme followed live dark/light device changes; appearance behavior is shared with the custom error page.
+- A read-only browser-only interception of the effective-access response simulated a personnel-only company grant: organization/access parents disappeared, the authorized personnel group remained, and client back-navigation to the now-denied company page redirected to /403. This test did not alter application roles or weaken backend enforcement; actual SSR denial was tested separately against the live gateway.
+- Real logout from the header account menu ended the test's own login flow, returned to the anonymous home and removed authenticated header controls. The test browser was closed and .runtime/admin-ui-review-browser.json was deleted.
+- Final data/service checks: two users and two pre-existing global user-role assignments, unchanged by this revision; all nine long-running development services healthy. Only frontend was restarted. Dependency manifests/locks, backend, Compose ports and docs/ have no revision changes.
+- CSS separation and git diff --check passed. Local ignored review screenshots: output/playwright/admin-ui-desktop.png, admin-ui-mobile.png, admin-ui-mobile-menu.png, admin-ui-account.png and admin-ui-forbidden.png.
+- All three UI revision steps are complete. The phase remains at its 9-of-10 completion-review gate; no documentation closeout, rebase, merge, push or branch deletion was performed.
