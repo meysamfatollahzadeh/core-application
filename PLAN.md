@@ -339,10 +339,16 @@ Scope and method:
 
 Ordered revision steps (separate from the phase's 10-step lifecycle):
 
-1. [ ] Implement the grouped permission model, shared desktop/mobile drawer and header account/theme/logout controls.
+1. [x] Implement the grouped permission model, shared desktop/mobile drawer and header account/theme/logout controls.
 2. [ ] Implement the dedicated 403 flow and finish full-width content, contrasted surfaces, colored left-aligned list actions and responsive refinements.
 3. [ ] Verify TypeScript/build, SSR and client permission behavior, drawer breakpoints/keyboard behavior, theme and header logout; inspect desktop/mobile screenshots and commit the frontend changes and this revision's evidence.
 
 Acceptance: parents appear only with an authorized child; company-only rights never open a global page or another company; direct denied URLs return a dedicated 403 page with HTTP 403; mobile has a right-side closable overlay drawer, desktop uses the available width; header identity is server-resolved, logout follows the existing OIDC synchronization, and original role assignments are not changed for verification. No docs/ update or integration is authorized by this request.
 
-Revision progress: **0 of 3 steps completed**. The prior phase implementation remains at its 9-of-10 review handoff; step 10 still requires explicit completion approval.
+Revision progress: **1 of 3 steps completed**. The prior phase implementation remains at its 9-of-10 review handoff; step 10 still requires explicit completion approval.
+
+### UI revision step 1 evidence
+
+- Shared permission predicates now drive both menu groups and route access. Empty parents are removed after filtering children. Shared Vuetify drawer/header implemented across administration pages, using installed drawer breakpoint/focus/route-watcher behavior.
+- Account menu displays the SSR identity/source and provides existing protected logout plus light/dark/system controls. Existing role assignments were read, not modified.
+- Nuxt typecheck passed; four meaningful navigation tests passed (empty groups, scoped/global isolation, unknown pages and revoked/unavailable access).
