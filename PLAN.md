@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Grouped dashboard review revision verified; awaiting explicit phase-completion review.**
+- Status: **User-requested assignment position-path review revision in progress.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -441,3 +441,15 @@ Dashboard revision progress: **2 of 2 steps completed**. Acceptance: only author
 - A browser-only interception of the access response limited the test display to company-scoped personnel.view. Exactly one personnel card and its group remained; unauthorized cards and empty groups disappeared, and the remaining card opened /admin/personnel. The simulation did not change stored roles or backend enforcement. Screenshot: output/playwright/dashboard-restricted.png.
 - The test's own login was ended through confirmed OIDC logout, its browser closed and encrypted cookie fixture removed. No user preferences, identities, locations or role assignments were changed. Existing 403 middleware was reused without changes; its shared permission tests passed.
 - Frontend changes committed in f87d549; git diff --check and component CSS-separation check passed. No phase documentation, integration, push or branch deletion performed. Phase completion remains at the explicit review gate.
+
+## Authorized assignment position-path review revision — 2026-11-08
+
+The user requested complete position and manager-position labels in assignments, including consecutive ancestor titles, in both the list and create/edit forms. This is an authorized review revision on the current phase branch.
+
+Design/method: add an Organization service that resolves requested positions and all ancestors in a batched PostgreSQL recursive query, producing root-to-leaf labels prefixed by company to distinguish cross-company managers. Resolve ancestors independently of pagination/search so a leaf's path stays complete. Preserve existing title/ID fields and add position_path plus report_paths to assignment responses, and position_path to both company/reporting position option responses. Existing endpoint authorization remains unchanged; labels reveal only the chart context of positions already allowed by those endpoints. No schema changes.
+
+1. [ ] Implement shared position-path resolution, additive assignment/option response fields and meaningful API tests for deep paths, cross-company managers, pagination and selection scope.
+2. [ ] Display full paths in assignment rows, edit/delete context and create/edit selectors; allow paths and selected chips to wrap using dedicated CSS.
+3. [ ] Run relevant backend regression checks, frontend typecheck/build, and browser checks for list/create/edit hierarchy labels; commit scoped changes and verification evidence.
+
+Revision progress: **0 of 3 steps completed**. Acceptance: labels read company / root / ... / selected position, including reporting targets from another company; no truncated selected titles, lost ancestors across option pages, or relaxed permissions. No phase documentation or integration is authorized; phase step 10 still awaits explicit completion approval.
