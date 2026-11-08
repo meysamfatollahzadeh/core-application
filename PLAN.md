@@ -516,7 +516,9 @@ Revision progress: **2 of 2 steps completed**. Acceptance: access selectors and 
 
 The user requested that modal forms stay open when their overlay is clicked. Set the shared Vuetify VDialog default to persistent and remove local conditional-persistence overrides so all existing form/confirmation dialogs consistently require their explicit cancel/close/action buttons. Vuetify persistent also prevents accidental Escape/back dismissal; existing busy-state controls and programmatic success closure remain intact. No database/API/permission changes.
 
-1. [ ] Apply the shared dialog default and remove weaker local overrides.
+1. [x] Apply the shared dialog default and remove weaker local overrides.
 2. [ ] Verify typecheck/build and browser overlay-click preservation of an unsaved form plus explicit cancel closure; commit implementation and evidence.
 
-Revision progress: **0 of 2 steps completed**. Acceptance: overlay clicks preserve open dialogs and entered values, explicit cancel/close still works, and successful actions can still close programmatically. No phase closeout or integration authorized.
+Revision progress: **1 of 2 steps completed**. Acceptance: overlay clicks preserve open dialogs and entered values, explicit cancel/close still works, and successful actions can still close programmatically. No phase closeout or integration authorized.
+
+Step 1: shared VDialog persistent default applied; all eight local conditional overrides removed. Existing explicit cancel/close, busy-state disabling and successful-action handlers are preserved, including confirmation dialogs. No backend changes.
