@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **User-requested modal Escape refinement in progress.**
+- Status: **Modal Escape refinement verified; awaiting explicit phase-completion review.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -530,6 +530,8 @@ Step 2 evidence: Nuxt typecheck and production build passed (existing nonfatal v
 The user clarified that Escape must close dialogs while overlay clicks must not. Keep the shared persistent default for overlay protection and handle Vuetify's topmost-dialog Escape event explicitly for each dialog's existing model/close action. Preserve existing busy/submitting protection; a nested autocomplete menu consumes its first Escape before the parent dialog closes. No database/API changes.
 
 1. [x] Restore Escape dismissal across forms, confirmations and source selection while keeping overlay protection and busy guards.
-2. [ ] Verify typecheck/build and browser overlay/Escape/cancel behavior including a nested selection menu; commit changes and evidence.
+2. [x] Verify typecheck/build and browser overlay/Escape/cancel behavior including a nested selection menu; commit changes and evidence.
 
-Refinement progress: **1 of 2 steps completed**. This supersedes the previous Escape-blocking behavior; no phase closeout or integration authorized.
+Refinement progress: **2 of 2 steps completed**. This supersedes the previous Escape-blocking behavior; no phase closeout or integration authorized.
+
+Verification: Nuxt typecheck/build and git diff --check passed (existing nonfatal vue-router/volar warning). Real browser checks confirmed source-selection overlay clicks keep it open and Escape closes it; an unsaved position form retained its typed title after overlay click; first Escape closed only the nested parent-choice menu and second Escape closed the form. Escape dismissed logout confirmation without logging out, and explicit confirmation still completed logout. No business data was saved; verification browser closed and encrypted fixture removed. Busy guards remain in each handler. Backend unchanged and not retested. Frontend committed separately; no docs/ closeout or integration performed.
