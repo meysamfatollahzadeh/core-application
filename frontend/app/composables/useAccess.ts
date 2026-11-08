@@ -1,8 +1,9 @@
 import type { AccessState } from '#shared/types/access'
+import { hasPermission } from '#shared/utils/admin-navigation'
 export function useAccess() {
   const state = useState<AccessState>('access', () => ({ status: 'anonymous', global: [], companies: {}, visible_companies: [] }))
   function can(key: string, company?: number | null) {
-    return state.value.status === 'ready' && (state.value.global.includes(key) || (company != null && (state.value.companies[String(company)] ?? []).includes(key)))
+    return hasPermission(state.value, key, company)
   }
   async function refresh() {
     if (useLogin().state.value.status !== 'authenticated') {
