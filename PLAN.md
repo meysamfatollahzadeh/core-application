@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Implementation verified — awaiting explicit phase-completion review.**
+- Status: **User-requested administration UI review revisions in progress; completion approval remains pending.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -323,3 +323,26 @@ Implementation and verification are ready for user review: **9 of 10 steps compl
 The original environment deliberately has no administrator grant. An operator may later use the already implemented access:bootstrap command with an explicitly chosen existing source slug and subject; no account is selected automatically. Do not grant either existing user administrative access without a new explicit instruction.
 
 Await separate explicit phase-completion approval. Only then perform step 10 documentation, final closeout and the approved Git integration lifecycle. This handoff does not mark the phase complete or integrated.
+
+## Authorized UI review revision — 2026-11-08
+
+The user explicitly requested these revisions during the existing phase review. Continue on the current feature branch; this is not a new business phase or completion approval. Database design, authentication mechanisms, permission semantics and backend API contracts do not change.
+
+Scope and method:
+
+- Move navigation into a shared Vuetify application drawer: persistent on desktop and hamburger-controlled temporary drawer opening from the RTL start side on mobile. Apply it to the administration home and all section pages.
+- Group related pages into two-level Organization, Personnel and Access menus. Filter children by current effective permissions, then remove empty parents. Use the same section authorization rules for menu visibility and direct URL navigation.
+- Render a dedicated Persian 403 page for authenticated users denied a section or requested company. Preserve a real HTTP 403 on initial SSR, avoid loading protected content, and handle client navigation and loss of permissions without loops. Unauthenticated requests retain the existing login behavior; unavailable identity/access remains 503.
+- Add an authenticated header account menu with user name, identity source, local user ID, theme selection and logout using the existing protected logout/CSRF flow. Preserve SSR authentication and automatic live theme changes.
+- Expand desktop administration to available width, distinguish the navigation surface from the content surface, use clear blue/teal/amber action colors with red destructive actions, and place action columns/buttons physically on the left of RTL lists.
+- Visual tokens: navigation navy #183A52, navigation foreground #E7F0F7, working background #F3F6F8, white surface #FFFFFF, primary blue #24577A, teal action #087F83; preserve Vazirmatn and accessible dark-mode equivalents. Use dedicated CSS, local icons and Vuetify APIs only. The layout is a header above a right-side navigation drawer and one broad content surface; no decorative dashboard metrics are added.
+
+Ordered revision steps (separate from the phase's 10-step lifecycle):
+
+1. [ ] Implement the grouped permission model, shared desktop/mobile drawer and header account/theme/logout controls.
+2. [ ] Implement the dedicated 403 flow and finish full-width content, contrasted surfaces, colored left-aligned list actions and responsive refinements.
+3. [ ] Verify TypeScript/build, SSR and client permission behavior, drawer breakpoints/keyboard behavior, theme and header logout; inspect desktop/mobile screenshots and commit the frontend changes and this revision's evidence.
+
+Acceptance: parents appear only with an authorized child; company-only rights never open a global page or another company; direct denied URLs return a dedicated 403 page with HTTP 403; mobile has a right-side closable overlay drawer, desktop uses the available width; header identity is server-resolved, logout follows the existing OIDC synchronization, and original role assignments are not changed for verification. No docs/ update or integration is authorized by this request.
+
+Revision progress: **0 of 3 steps completed**. The prior phase implementation remains at its 9-of-10 review handoff; step 10 still requires explicit completion approval.
