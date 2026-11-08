@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Assignment position-path review revision verified; awaiting explicit phase-completion review.**
+- Status: **User-requested position directory hierarchy review revision in progress.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -467,3 +467,12 @@ Revision progress: **3 of 3 steps completed**. Acceptance: labels read company /
 - Mobile QA found Vuetify's default single-selection ellipsis and fixed it with a conditional selection slot plus explicit wrapping/auto-height CSS. Repeated 390px checks confirmed no document overflow and no clipped selected-position or manager-chip text, including the existing manager loaded into edit. Inspected desktop/list/options and mobile/create/selected/edit screenshots under output/playwright/assignment-path-*.png (local ignored artifacts).
 - Forms were cancelled without saving. The live data changed independently during review; verification did not create, replace or delete assignments, roles or positions. Browser logout ended only the verification flow, the browser was closed and its encrypted fixture removed. Only the frontend was restarted after builds.
 - Backend committed in 2f6afbb and frontend in d9b1453. git diff --check and no-inline/component-style checks passed. No docs/ closeout, integration, push or branch deletion performed; phase step 10 remains gated by explicit completion approval.
+
+## Authorized position directory hierarchy review revision — 2026-11-08
+
+The user requested full ancestor paths for positions and their chart parents in the position directory and create/edit forms. Reuse the approved position-path resolver and wrapping selector. Add position_path and nullable parent_path to position list/detail/create/update responses, preserving leaf title and parent ID for correct editing. Resolve paths in batches after filtering/pagination so ancestors outside the page remain present. Keep current position-view authorization for parent choices; no schema or permission changes.
+
+1. [ ] Add complete directory/parent paths and API regression coverage; show paths in table and parent options plus a live full-path preview in create/edit while the title field edits only the leaf.
+2. [ ] Verify backend tests, frontend typecheck/build and real browser list/create/edit paths including mobile wrapping; commit scoped changes and evidence.
+
+Revision progress: **0 of 2 steps completed**. Acceptance: root-to-leaf company-qualified paths remain complete after search/pagination, root parents display as root, create/edit preview and selected parent show the whole hierarchy without changing the stored leaf title. No docs/ closeout or integration authorized; phase step 10 remains pending explicit completion approval.
