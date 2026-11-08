@@ -140,3 +140,4 @@
 .position-path-preview { margin-bottom: 20px; padding: 12px 16px; border-inline-start: 3px solid rgb(var(--v-theme-primary)); background: rgba(var(--v-theme-primary), 0.06); overflow-wrap: anywhere; }
 .position-path-preview > span { font-size: 0.75rem; color: rgba(var(--v-theme-on-surface), 0.7); }
 .position-path-preview p { margin-top: 6px; font-size: 0.85rem; line-height: 2; }
+.grant-role-dialog .v-card-title { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; font-size: 1.1rem; line-height: 1.9; }

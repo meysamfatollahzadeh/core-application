@@ -1,10 +1,10 @@
 <script setup lang="ts" generic="T extends number | number[] | null">
 import type { DirectoryItem, DirectoryPage } from '~/composables/useManagement'
-const props = withDefaults(defineProps<{ endpoint: string; label: string; multiple?: boolean; disabled?: boolean; hierarchy?: boolean }>(), { multiple: false, disabled: false, hierarchy: false })
+const props = withDefaults(defineProps<{ endpoint: string; label: string; multiple?: boolean; disabled?: boolean; hierarchy?: boolean; showIdentifier?: boolean }>(), { multiple: false, disabled: false, hierarchy: false, showIdentifier: true })
 const model = defineModel<T>({ required: true })
-const emit = defineEmits<{ 'selected-path': [path: string | null] }>()
+const emit = defineEmits<{ 'selected-path': [path: string | null]; 'selected-item': [item: DirectoryItem | null] }>()
 const api = useManagement()
-const items = ref<{ title: string; value: number; path?: string }[]>([])
+const items = ref<{ title: string; value: number; path?: string; record: DirectoryItem }[]>([])
 const search = ref('')
 const page = ref(1)
 const last = ref(1)
@@ -15,6 +15,7 @@ let generation = 0
 function itemLabel(item: DirectoryItem) {
   const prefix = item.company_title ?? item.building_title
   const title = item.position_path ?? (prefix ? `${prefix} / ${item.title}` : (item.title ?? item.name ?? ''))
+  if (!props.showIdentifier) return String(title)
   const identifier = item.key ? String(item.key) : `شناسه ${item.id.toLocaleString('fa-IR')}`
   return `${title} (${identifier})`
 }
@@ -26,7 +27,7 @@ async function load(append = false) {
     const selectedIds = Array.isArray(model.value) ? model.value : model.value ? [model.value] : []
     const result = await api.get<DirectoryPage>(props.endpoint, { page: page.value, search: search.value, ...(selectedIds.length ? { selected: selectedIds.join(',') } : {}) })
     if (current !== generation) return
-    const next = result.data.map(item => ({ title: itemLabel(item), value: item.id, path: typeof item.position_path === 'string' ? item.position_path : undefined }))
+    const next = result.data.map(item => ({ title: itemLabel(item), value: item.id, path: typeof item.position_path === 'string' ? item.position_path : undefined, record: item }))
     const selected = new Set(Array.isArray(model.value) ? model.value : model.value ? [model.value] : [])
     const existing = append ? items.value : items.value.filter(item => selected.has(item.value))
     items.value = [...new Map([...existing, ...next].map(item => [item.value, item])).values()]
@@ -42,6 +43,7 @@ watch(() => model.value, value => {
   if (ids.some(id => !items.value.some(item => item.value === id))) { page.value = 1; load() }
 }, { deep: true })
 watchEffect(() => emit('selected-path', items.value.find(item => item.value === model.value)?.path ?? null))
+watchEffect(() => emit('selected-item', items.value.find(item => item.value === model.value)?.record ?? null))
 onMounted(() => load())
 onBeforeUnmount(() => clearTimeout(timer))
 </script>
