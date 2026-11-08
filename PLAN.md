@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Access subject-label review revision verified; awaiting explicit phase-completion review.**
+- Status: **User-requested persistent modal review revision in progress.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -511,3 +511,12 @@ Revision progress: **2 of 2 steps completed**. Acceptance: access selectors and 
 - Real browser selections from authorized personnel and position endpoints displayed actual names/full paths without numeric suffixes. User-role dialog title exactly matched the selected user name; position-role title exactly matched the selected full path. At 390px the full heading wrapped without clipping or document overflow.
 - Inspected local ignored screenshots output/playwright/access-user-role-name.png and access-position-role-path-mobile.png. Both forms were cancelled without saving; no role or other business data was changed. Verification logout completed, browser closed and encrypted cookie fixture removed. Only frontend restarted after building.
 - Frontend committed in 0bf5712. No docs/ closeout, rebase, merge, push or branch deletion performed; phase step 10 remains pending explicit completion approval.
+
+## Authorized persistent modal review revision — 2026-11-08
+
+The user requested that modal forms stay open when their overlay is clicked. Set the shared Vuetify VDialog default to persistent and remove local conditional-persistence overrides so all existing form/confirmation dialogs consistently require their explicit cancel/close/action buttons. Vuetify persistent also prevents accidental Escape/back dismissal; existing busy-state controls and programmatic success closure remain intact. No database/API/permission changes.
+
+1. [ ] Apply the shared dialog default and remove weaker local overrides.
+2. [ ] Verify typecheck/build and browser overlay-click preservation of an unsaved form plus explicit cancel closure; commit implementation and evidence.
+
+Revision progress: **0 of 2 steps completed**. Acceptance: overlay clicks preserve open dialogs and entered values, explicit cancel/close still works, and successful actions can still close programmatically. No phase closeout or integration authorized.
