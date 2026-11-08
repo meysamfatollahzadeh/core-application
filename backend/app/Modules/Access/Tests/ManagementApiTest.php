@@ -151,4 +151,47 @@ class ManagementApiTest extends TestCase
         $this->getJson('/api/organization/company-position-options?company_id='.$a->id.'&selected='.$foreign->id)->assertOk()->assertJsonMissing(['id' => $foreign->id, 'title' => 'Foreign']);
         $this->getJson('/api/organization/company-position-options?company_id='.$a->id.'&selected=invalid')->assertUnprocessable();
     }
+
+    public function test_assignment_paths_include_all_ancestors_and_cross_company_manager_context(): void
+    {
+        $org = new ManageOrganization;
+        $a = $org->company(null, ['title' => 'شرکت الف']);
+        $b = $org->company(null, ['title' => 'شرکت ب']);
+        $root = $org->position($a, null, ['title' => 'مدیریت']);
+        $middle = $org->position($a, null, ['title' => 'فناوری', 'parent_position_id' => $root->id]);
+        $leaf = $org->position($a, null, ['title' => 'کارشناس', 'parent_position_id' => $middle->id]);
+        $foreignRoot = $org->position($b, null, ['title' => 'مدیریت']);
+        $manager = $org->position($b, null, ['title' => 'فناوری', 'parent_position_id' => $foreignRoot->id]);
+        $actor = $this->login(['user_positions.create', 'user_positions.view', 'user_positions.update'], $a->id);
+        $path = 'شرکت الف / مدیریت / فناوری / کارشناس';
+        $managerPath = 'شرکت ب / مدیریت / فناوری';
+        $body = ['user_id' => $actor->id, 'position_id' => $leaf->id, 'report_position_ids' => [$manager->id]];
+        $created = $this->postJson("/api/companies/$a->id/user-positions", $body)->assertCreated()
+            ->assertJsonPath('data.position_title', 'کارشناس')->assertJsonPath('data.position_path', $path)
+            ->assertJsonPath('data.report_titles.0', 'شرکت ب / فناوری')->assertJsonPath('data.report_paths.0', $managerPath);
+        $id = $created->json('data.id');
+        $this->getJson("/api/companies/$a->id/user-positions")->assertOk()->assertJsonPath('data.0.position_path', $path)->assertJsonPath('data.0.report_paths.0', $managerPath);
+        $this->getJson("/api/companies/$a->id/user-positions/$id")->assertOk()->assertJsonPath('data.position_path', $path);
+        $this->putJson("/api/companies/$a->id/user-positions/$id", ['report_position_ids' => [$root->id]])->assertOk()->assertJsonPath('data.report_paths.0', 'شرکت الف / مدیریت');
+        $this->getJson('/api/organization/company-position-options?company_id='.$a->id.'&search='.urlencode('کارشناس'))->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.position_path', $path);
+        $this->getJson('/api/organization/reporting-position-options?selected='.$manager->id.'&search='.urlencode('فناوری'))->assertOk()->assertJsonPath('data.0.id', $manager->id)->assertJsonPath('data.0.position_path', $managerPath);
+        $this->getJson("/api/companies/$b->id/user-positions")->assertForbidden();
+    }
+
+    public function test_paginated_position_options_resolve_ancestors_outside_the_page(): void
+    {
+        $org = new ManageOrganization;
+        $a = $org->company(null, ['title' => 'Company']);
+        $root = $org->position($a, null, ['title' => 'Root']);
+        $this->login(['user_positions.create'], $a->id);
+        DB::transaction(function () use ($a, $root) {
+            for ($i = 0; $i < 101; $i++) {
+                DB::table('positions')->insert(['company_id' => $a->id, 'title' => 'Leaf '.$i, 'parent_position_id' => $root->id]);
+            }
+        });
+        $last = DB::table('positions')->where('company_id', $a->id)->max('id');
+        $this->getJson('/api/organization/company-position-options?company_id='.$a->id.'&page=2')->assertOk()->assertJsonPath('data.0.position_path', 'Company / Root / Leaf 99');
+        $this->getJson('/api/organization/company-position-options?company_id='.$a->id.'&selected='.$last)->assertOk()->assertJsonPath('data.0.position_path', 'Company / Root / Leaf 100');
+        $this->getJson('/api/organization/reporting-position-options?page=2')->assertOk()->assertJsonPath('data.0.position_path', 'Company / Root / Leaf 99');
+    }
 }

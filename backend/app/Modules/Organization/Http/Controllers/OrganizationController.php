@@ -12,6 +12,7 @@ use App\Modules\Organization\Models\Building;
 use App\Modules\Organization\Models\BuildingArea;
 use App\Modules\Organization\Models\Company;
 use App\Modules\Organization\Models\Position;
+use App\Modules\Organization\Services\PositionPaths;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -208,7 +209,7 @@ class OrganizationController extends Controller
 
         OptionSelection::prioritize($r, $q, 'positions.id');
 
-        return response()->json($q->orderBy('positions.id')->paginate(100));
+        return $this->positionOptionsResponse($q->orderBy('positions.id')->paginate(100));
     }
 
     public function companyPositionOptions(Request $r)
@@ -223,7 +224,15 @@ class OrganizationController extends Controller
 
         OptionSelection::prioritize($r, $q, 'positions.id');
 
-        return response()->json($q->orderBy('id')->paginate(100));
+        return $this->positionOptionsResponse($q->orderBy('id')->paginate(100));
+    }
+
+    private function positionOptionsResponse($page)
+    {
+        $paths = app(PositionPaths::class)->labels($page->getCollection()->pluck('id')->all());
+        $page->through(fn ($position) => [...(array) ($position instanceof Position ? $position->getAttributes() : $position), 'position_path' => $paths[$position->id]]);
+
+        return response()->json($page);
     }
 
     public function locationOptions(Request $r)

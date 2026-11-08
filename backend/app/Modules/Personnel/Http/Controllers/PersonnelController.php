@@ -8,11 +8,13 @@ use App\Modules\Login\Models\User;
 use App\Modules\Organization\Http\Requests\OptionSelection;
 use App\Modules\Organization\Models\Company;
 use App\Modules\Organization\Models\Position;
+use App\Modules\Organization\Services\PositionPaths;
 use App\Modules\Personnel\Actions\ManagePersonnel;
 use App\Modules\Personnel\Http\Requests\AssignmentRequest;
 use App\Modules\Personnel\Http\Requests\PersonnelRequest;
 use App\Modules\Personnel\Models\UserPosition;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class PersonnelController extends Controller
@@ -74,12 +76,28 @@ class PersonnelController extends Controller
 
     private function assignmentData($assignment): array
     {
-        $data = (array) $assignment;
-        $data['report_position_ids'] = DB::table('user_position_reports')->where('user_position_id', $assignment->id)->orderBy('report_to_position_id')->pluck('report_to_position_id')->all();
+        return $this->assignmentRows([$assignment])->first();
+    }
 
-        $data['report_titles'] = DB::table('user_position_reports')->join('positions', 'positions.id', '=', 'report_to_position_id')->join('companies', 'companies.id', '=', 'positions.company_id')->where('user_position_id', $assignment->id)->orderBy('report_to_position_id')->selectRaw("companies.title || ' / ' || positions.title as title")->pluck('title')->all();
+    private function assignmentRows(iterable $assignments): Collection
+    {
+        $rows = collect($assignments);
+        $reports = DB::table('user_position_reports')->join('positions', 'positions.id', '=', 'report_to_position_id')->join('companies', 'companies.id', '=', 'positions.company_id')
+            ->whereIn('user_position_id', $rows->pluck('id'))->orderBy('report_to_position_id')
+            ->select('user_position_id', 'report_to_position_id')->selectRaw("companies.title || ' / ' || positions.title as title")->get();
+        $paths = app(PositionPaths::class)->labels($rows->pluck('position_id')->merge($reports->pluck('report_to_position_id'))->all());
+        $byAssignment = $reports->groupBy('user_position_id');
 
-        return $data;
+        return $rows->map(function ($assignment) use ($paths, $byAssignment): array {
+            $targets = $byAssignment->get($assignment->id, collect());
+
+            return [...(array) $assignment,
+                'position_path' => $paths[$assignment->position_id],
+                'report_position_ids' => $targets->pluck('report_to_position_id')->all(),
+                'report_titles' => $targets->pluck('title')->all(),
+                'report_paths' => $targets->map(fn ($target) => $paths[$target->report_to_position_id])->all(),
+            ];
+        });
     }
 
     public function assignments(Request $r, Company $company)
@@ -91,7 +109,7 @@ class PersonnelController extends Controller
             $q->where('users.name', 'ilike', '%'.$r->string('search').'%');
         }
         $page = $q->orderBy('user_positions.id')->paginate(25);
-        $page->through(fn ($a) => $this->assignmentData($a));
+        $page->setCollection($this->assignmentRows($page->items()));
 
         return response()->json($page);
     }
@@ -145,7 +163,7 @@ class PersonnelController extends Controller
         $this->allow($r, 'personnel.view');
         $r->validate(['page' => ['nullable', 'integer', 'min:1']]);
         $page = $this->assignmentsQuery()->where('user_id', $user->id)->orderBy('user_positions.id')->paginate(25);
-        $page->through(fn ($a) => $this->assignmentData($a));
+        $page->setCollection($this->assignmentRows($page->items()));
 
         return response()->json($page);
     }
