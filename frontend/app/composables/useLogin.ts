@@ -5,7 +5,7 @@ export function useLogin() {
   async function refresh() {
     if (checking) return
     checking = true
-    try { state.value = await $fetch<LoginState>('/gateway/login/me') }
+    try { state.value = await $fetch<LoginState>('/gateway/login/me'); await useAccess().refresh() }
     catch { state.value = { ...state.value, status: 'unavailable', identity: null } }
     finally { checking = false }
   }

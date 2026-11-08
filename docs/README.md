@@ -1,17 +1,20 @@
-# Phase 1 documentation
+# Project documentation
 
-The user approved the implementation and the numeric Member source relationship after review on 2026-11-04. The approved phase and documentation are complete; completion is recorded in [PLAN.md](../PLAN.md).
+Phase 2 implementation and review revisions were explicitly approved on 2026-11-08. The current approved system includes Login, Organization, Personnel and Access. Integration progress and verification are recorded in [PLAN.md](../PLAN.md).
 
 ## Technical documentation — English
 
-- [Architecture, infrastructure and Login business behavior](technical/architecture.md)
-- [Database schema, constraints and migrations](technical/database.md)
-- [Login API and browser gateway contracts](technical/login-api.md)
-- [Validation evidence and test commands](technical/validation.md)
+- [Phase 2 architecture, database changes and business behavior](technical/organization-personnel-access.md)
+- [Management API contracts](technical/management-api.md)
+- [Login API and browser gateway, including user appearance](technical/login-api.md)
+- [Validation evidence and commands](technical/validation.md)
+- [Phase 1 infrastructure and Login architecture baseline](technical/architecture.md)
+- [Phase 1 identity database baseline](technical/database.md)
 
 ## Guides — Persian
 
-- [راه‌اندازی، نگهداری و مدیریت منابع ورود](guides/development.fa.md)
-- [راهنمای ورود، خروج و ظاهر سامانه](guides/usage.fa.md)
+- [شرکت، پرسنل، نقش‌ها، مجوزها و عملیات فاز دوم](guides/organization.fa.md)
+- [راه‌اندازی، نگهداری و منابع ورود](guides/development.fa.md)
+- [ورود، خروج و ظاهر سامانه](guides/usage.fa.md)
 
-The documents describe the implemented development environment. They do not define a production deployment or a new phase. Local diagrams explain the implemented architecture and database relationships.
+Phase 1 baseline documents are historical; Phase 2 additions supersede their former Login-only scope. These documents describe the development system, not a production deployment or a new phase.

@@ -1,5 +1,7 @@
 # Phase 1 database design and changes
 
+> Historical Phase 1 baseline. Current Organization/Personnel/Access and user-location/appearance changes are documented in [Phase 2](organization-personnel-access.md). Its additions supersede the former Login-only scope below.
+
 ## Ownership
 
 Laravel owns `organization_app`. Keycloak primary/secondary and Camunda own their separate databases and migrations. Redis is used for cache, throttling and bounded protocol/lock records, not Laravel browser sessions. This phase introduces the Login domain and Sanctum storage; no tables for another business module, local passwords or password resets are introduced.

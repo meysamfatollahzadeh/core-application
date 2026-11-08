@@ -1,4 +1,14 @@
-# Phase 1 verification evidence
+# Verification evidence
+
+## Phase 2 approved closeout — 2026-11-08
+
+The user explicitly approved the implementation and review changes. Latest implementation verification: PostgreSQL backend **52 tests / 332 assertions**, seven frontend tests, Nuxt typecheck and production build passed. The existing nonfatal vue-router/volar warning remains. Real browser checks covered SSR/403 and scoped menus, grouped dashboard, mobile drawer/focus, persistent theme without stored-dark light flash, full hierarchy labels in lists/forms, actual role-subject names, logout confirmation, overlay protection and Escape dismissal including nested menus.
+
+Isolated fresh-environment/management OIDC acceptance, location backfill and rollback/re-upgrade/concurrency evidence are recorded in PLAN.md. Review tests did not reset active data or reassign operator roles. No infrastructure/dependency versions changed. Final closeout and post-synchronization validation results are recorded in PLAN.md.
+
+Commands: backend `php artisan test --compact`; frontend `npm run typecheck`, `node --experimental-strip-types --test tests/admin-navigation.test.ts tests/appearance.test.ts`, and `npm run build`, run through Docker Compose. `scripts/smoke-management.py` deliberately refuses the active development project; destructive/outage acceptance is for isolated environments.
+
+## Historical Phase 1 evidence
 
 ## Reviewed implementation
 

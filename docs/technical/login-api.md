@@ -15,7 +15,8 @@ Successful object responses normally use HTTP 200. Token/transaction responses a
 | `GET /sources` | Public; 60/minute | Active source summaries, ordered by title |
 | `POST /sources/{slug}/authorize` | Public; 20/minute; browser binding | One authorization URL with source-bound state, nonce and PKCE |
 | `POST /sources/{slug}/callback` | Public; 30/minute; code/state/binding proof | Finite Sanctum credential for a verified imported Member |
-| `GET /me` | Sanctum plus upstream validity middleware | Sanitized current user/source/member |
+| `GET /me` | Sanctum plus upstream validity middleware | Sanitized current user/source/member, including performances |
+| `PATCH /performances` | Sanctum plus upstream validity; 60/minute | Atomically update own theme |
 | `POST /logout` | Sanctum; 30/minute | Immediate local revocation and bounded RP logout handoff |
 | `POST /logout/continue` | Public; 30/minute; handoff/binding proof | Single-use provider POST form parameters |
 | `POST /sources/{slug}/backchannel-logout` | Verified provider signature; 120/minute | Scoped grant revocation, `{"status":"ok"}` |
@@ -69,10 +70,16 @@ The token is shown once; Laravel stores its hash. Local expiry is finite and is 
 `GET /api/login/me` requires a valid local token with `login:access` and a currently valid upstream grant:
 
 ```json
-{"data":{"user":{"id":1,"name":"کاربر آزمایشی"},"source":{"slug":"primary","title":"کاربران سازمان"},"member":{"id":1,"uuid":"<external-subject>"}}}
+{"data":{"user":{"id":1,"name":"کاربر آزمایشی","performances":{"theme":"auto"}},"source":{"slug":"primary","title":"کاربران سازمان"},"member":{"id":1,"uuid":"<external-subject>"}}}
 ```
 
 The API does not expose UserSource.data, source numeric ID, Sanctum secret or provider tokens. Responses are private/no-store. A source/config/identity mismatch or inactive upstream grant returns 401; unavailable upstream verification returns 503 and retains the otherwise valid local credential.
+
+### Persistent appearance
+
+`PATCH /api/login/performances` accepts `{"theme":"auto"}`, `{"theme":"light"}` or `{"theme":"dark"}` and returns `{"data":{"performances":{"theme":"dark"}}}` for the chosen value. The target is always the authenticated user; user_id and performances body fields are prohibited. Invalid modes return 422, missing/revoked authentication 401 and unavailable provider validity 503. Other JSON keys are preserved; responses are private/no-store. The database/model default is `{"theme":"auto"}` for existing and newly imported users.
+
+Browsers call PATCH `/gateway/login/performances` with only theme plus the standard Origin/CSRF proof. Nuxt performs server-only Bearer transport. SSR reads the authenticated preference before Vuetify renders, so an explicit dark setting does not hydrate from an initial light theme. Auto uses device hints when available and reacts to live device changes; an unknown first-request device scheme cannot be inferred server-side. Appearance cookies are presentation hints, not credentials.
 
 ### Logout and handoff
 
@@ -113,6 +120,7 @@ Invalid logout claims return 400. Signature/decoding failure uses the shared `in
 | `GET /gateway/login/sources` | Same active source-summary envelope |
 | `POST /gateway/login/sources/{slug}/authorize` | `{"url":"<same-origin-provider-authorization-url>"}` |
 | `GET /gateway/login/me` | Login status, sanitized identity, CSRF proof and `canLogout`; HTTP 200 for represented states |
+| `PATCH /gateway/login/performances` | `{"data":{"performances":{"theme":"auto|light|dark"}}}` for the requested theme |
 | `POST /gateway/login/logout` | `{"url":"/login/logout"}` or a local completion/error URL |
 | `GET /login/callback/{slug}` | Sets/clears protected cookies and issues a 303 redirect |
 | `GET /login/logout` | Same-origin provider logout POST form, or a 303 error redirect |
@@ -121,12 +129,12 @@ Invalid logout claims return 400. Signature/decoding failure uses the shared `in
 Identity gateway shape:
 
 ```json
-{"status":"authenticated","identity":{"user":{"id":1,"name":"کاربر آزمایشی"},"source":{"slug":"primary","title":"کاربران سازمان"},"member":{"id":1,"uuid":"<external-subject>"}},"csrf":"<browser-csrf-proof>","canLogout":true}
+{"status":"authenticated","identity":{"user":{"id":1,"name":"کاربر آزمایشی","performances":{"theme":"auto"}},"source":{"slug":"primary","title":"کاربران سازمان"},"member":{"id":1,"uuid":"<external-subject>"}},"csrf":"<browser-csrf-proof>","canLogout":true}
 ```
 
 `status` is `authenticated`, `anonymous` or `unavailable`. The latter two have `identity:null`. Unavailable verification retains `canLogout:true` when a credential cookie exists, allowing local logout. On SSR, `unavailable` sets the **page** status to 503. Backend 401 clears the credential and becomes anonymous.
 
-Browser POST gateway requests must send exact application `Origin` and `X-CSRF-Token` matching the proof returned for that browser. Nuxt compares it against an encrypted HttpOnly cookie without a session store. The credential, login transaction, CSRF and logout cookies use path `/`, HttpOnly and SameSite=Lax. Credential TTL is bounded by the API expiry; login pending is five minutes, logout pending two minutes and CSRF one day. Secure follows HTTPS with the approved local HTTP exception. The old `organization_session` cookie is expired.
+Browser POST/PATCH/PUT/DELETE gateway requests must send exact application `Origin` and `X-CSRF-Token` matching the proof returned for that browser. Nuxt compares it against an encrypted HttpOnly cookie without a session store. The credential, login transaction, CSRF and logout cookies use path `/`, HttpOnly and SameSite=Lax. Credential TTL is bounded by the API expiry; login pending is five minutes, logout pending two minutes and CSRF one day. Secure follows HTTPS with the approved local HTTP exception. The old `organization_session` cookie is expired.
 
 ## Errors and infrastructure endpoint
 
@@ -142,4 +150,4 @@ Browser POST gateway requests must send exact application `Origin` and `X-CSRF-T
 
 Module protocol failures use `{"error":"<machine-code>"}`. Laravel validation uses its normal `message`/`errors` envelope; unauthenticated/unknown-route responses use framework JSON. Do not assume every failure has the same envelope. Nuxt sanitizes forwarded errors and never forwards raw provider credentials/error bodies.
 
-`GET /api/health` is a separate readiness API checking PostgreSQL/Redis and returning infrastructure status. `/up` is framework health routing. The former session prototype `/api/auth/*` is removed. This phase adds no other business APIs.
+`GET /api/health` is a separate readiness API checking PostgreSQL/Redis and returning infrastructure status. `/up` is framework health routing. The former session prototype `/api/auth/*` is removed. Organization, Personnel and Access APIs are documented in [management-api.md](management-api.md).

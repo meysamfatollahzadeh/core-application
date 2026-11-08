@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     backendUrl: 'http://backend:8000',
     appOrigin: 'http://localhost:8081',
   },
-  css: ['vuetify/styles', '~/assets/styles/main.css'],
+  css: ['vuetify/styles', '~/assets/styles/main.css', '~/assets/styles/admin.css'],
   build: { transpile: ['vuetify'] },
   vite: {
     plugins: [vuetify({ autoImport: true })],

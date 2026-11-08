@@ -5,7 +5,10 @@ namespace Tests\Feature\Login;
 use App\Modules\Login\Models\Member;
 use App\Modules\Login\Models\User;
 use App\Modules\Login\Models\UserSource;
+use App\Modules\Organization\Models\Building;
+use App\Modules\Organization\Models\BuildingArea;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -26,10 +29,12 @@ class ImportMembersTest extends TestCase
 
             return Http::response($first < 2 ? [['id' => 'subject-'.$first, 'username' => 'same-name', 'enabled' => true]] : []);
         });
-        $this->artisan('login:import-members', ['--source' => 'primary', '--dry-run' => true])->assertSuccessful();
+        $this->artisan('login:import-members', ['--source' => 'primary', '--dry-run' => true])->assertFailed();
         $this->assertDatabaseCount('users', 0);
-        $this->artisan('login:import-members', ['--source' => 'primary'])->assertSuccessful();
-        $this->artisan('login:import-members', ['--source' => 'primary'])->assertSuccessful();
+        $this->artisan('login:import-members', ['--source' => 'primary', '--building-area' => $this->areaId(), '--dry-run' => true])->assertSuccessful();
+        $this->assertDatabaseCount('users', 0);
+        $this->artisan('login:import-members', ['--source' => 'primary', '--building-area' => $this->areaId()])->assertSuccessful();
+        $this->artisan('login:import-members', ['--source' => 'primary', '--building-area' => $this->areaId()])->assertSuccessful();
         $this->assertDatabaseCount('members', 2);
         $this->assertDatabaseCount('users', 2);
         $this->assertSame([$source->id], Member::pluck('user_source_id')->unique()->values()->all());
@@ -65,5 +70,18 @@ class ImportMembersTest extends TestCase
         Http::preventStrayRequests();
         $this->artisan('login:import-members', ['--source' => (string) $source->id])->assertFailed();
         Http::assertNothingSent();
+    }
+
+    private function areaId(): int
+    {
+        return DB::transaction(function () {
+            $existing = DB::table('building_areas')->value('id');
+            if ($existing) {
+                return $existing;
+            }
+            $building = Building::create(['title' => 'Import test']);
+
+            return BuildingArea::create(['building_id' => $building->id, 'title' => 'نامشخص', 'is_default' => true])->id;
+        });
     }
 }

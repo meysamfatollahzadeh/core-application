@@ -13,7 +13,7 @@ use Throwable;
 
 class ImportLoginMembers extends Command
 {
-    protected $signature = 'login:import-members {--source= : UserSource slug} {--dry-run} {--mapping-file= : Private subject-to-user-id JSON map}';
+    protected $signature = 'login:import-members {--source= : UserSource slug} {--dry-run} {--building-area= : Required area for newly created users} {--mapping-file= : Private subject-to-user-id JSON map}';
 
     protected $description = 'Import enabled Keycloak users into local membership records';
 
@@ -26,6 +26,10 @@ class ImportLoginMembers extends Command
             return self::FAILURE;
         }
         try {
+            $areaId = $this->option('building-area');
+            if ($areaId && ! DB::table('building_areas')->where('id', $areaId)->exists()) {
+                throw new RuntimeException('Invalid building area');
+            }
             $mapping = [];
             if ($path = $this->option('mapping-file')) {
                 $mapping = json_decode(file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
@@ -54,7 +58,7 @@ class ImportLoginMembers extends Command
                         continue;
                     }
                     $seen[$subject] = true;
-                    $created += DB::transaction(function () use ($source, $remote, $subject, $mapping, $dryRun): int {
+                    $created += DB::transaction(function () use ($source, $remote, $subject, $mapping, $dryRun, $areaId): int {
                         UserSource::where('slug', $source->slug)->lockForUpdate()->firstOrFail();
                         $existing = Member::where('user_source_id', $source->id)->where('uuid', $subject)->first();
                         if ($existing) {
@@ -64,9 +68,12 @@ class ImportLoginMembers extends Command
 
                             return 0;
                         }
+                        if (! isset($mapping[$subject]) && ! $areaId) {
+                            throw new RuntimeException('New users require --building-area');
+                        }
                         if (! $dryRun) {
                             $name = trim(($remote['firstName'] ?? '').' '.($remote['lastName'] ?? '')) ?: ($remote['username'] ?? 'کاربر سازمان');
-                            $user = isset($mapping[$subject]) ? User::findOrFail($mapping[$subject]) : User::create(['name' => mb_substr($name, 0, 255)]);
+                            $user = isset($mapping[$subject]) ? User::findOrFail($mapping[$subject]) : User::create(['name' => mb_substr($name, 0, 255), 'building_area_id' => $areaId]);
                             Member::create(['uuid' => $subject, 'user_source_id' => $source->id, 'user_id' => $user->id]);
                         }
 

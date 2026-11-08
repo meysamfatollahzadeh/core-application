@@ -12,7 +12,14 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory;
 
-    protected $fillable = ['name'];
+    protected $attributes = ['performances' => '{"theme":"auto"}'];
+
+    protected function casts(): array
+    {
+        return ['performances' => 'array'];
+    }
+
+    protected $fillable = ['name', 'building_area_id'];
 
     protected static function newFactory(): UserFactory
     {

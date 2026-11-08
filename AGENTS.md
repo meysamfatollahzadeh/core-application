@@ -40,7 +40,7 @@
 
 ## Backend and authentication architecture
 
-- Build the Laravel backend as a modular API. Keep each business module's routes, models, actions/services, requests, resources, migrations, commands, providers and tests together. The current authorized business scope is the Login module only.
+- Build the Laravel backend as a modular API. Keep each business module's routes, models, actions/services, requests, resources, migrations, commands, providers and tests together. The authorized business scope includes Login and the Organization, Personnel and Access modules defined in the approved Phase 2 PLAN.md.
 - Use Laravel Sanctum API token authentication with `Authorization: Bearer ...`. Do not use Laravel sessions, the `web` guard, or Sanctum's session-based SPA authentication for application login.
 - Stateless means no server-side browser login session; Sanctum token persistence/revocation and short-lived OIDC protocol transactions are still required. Do not describe Sanctum personal access tokens as storage-free JWT authentication.
 - Use `UserSource`, `Member` and `User` for source configuration, external identity membership and local users. Identify a Keycloak account by `(uuid, user_source_id)`; never assume a subject is unique across sources or automatically merge people by name/email.

@@ -4,6 +4,7 @@ namespace Tests\Feature\Login;
 
 use App\Modules\Login\Models\Member;
 use App\Modules\Login\Models\PersonalAccessToken;
+use App\Modules\Login\Models\User;
 use App\Modules\Login\Models\UserSource;
 use Firebase\JWT\JWT;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -225,5 +226,22 @@ class TokenLifecycleTest extends TestCase
         $this->assertStringNotContainsString('id_token_hint', $form->json('endpoint'));
         $this->assertSame($result->json('state'), $form->json('fields.state'));
         $this->postJson('/api/login/logout/continue', ['browser_binding' => $this->binding, 'handoff' => $handoff])->assertUnauthorized();
+    }
+
+    public function test_performances_updates_only_the_authenticated_user_preserve_other_keys_and_require_valid_upstream(): void
+    {
+        $bearer = $this->login();
+        $member = Member::where('uuid', 'external-subject')->firstOrFail();
+        $other = User::factory()->create();
+        $member->user->forceFill(['performances' => ['theme' => 'auto', 'density' => 'comfortable']])->save();
+        $this->withToken($bearer)->patchJson('/api/login/performances', ['theme' => 'dark'])->assertOk()->assertJsonPath('data.performances.theme', 'dark')->assertJsonPath('data.performances.density', 'comfortable');
+        $this->assertSame(['theme' => 'auto'], $other->fresh()->performances);
+        $this->withToken($bearer)->getJson('/api/login/me')->assertOk()->assertJsonPath('data.user.performances.theme', 'dark');
+        $this->withToken($bearer)->patchJson('/api/login/performances', ['theme' => 'system'])->assertUnprocessable();
+        $this->withToken($bearer)->patchJson('/api/login/performances', ['theme' => 'light', 'user_id' => $other->id])->assertUnprocessable();
+        $this->assertSame('dark', $member->user->fresh()->performances['theme']);
+        $this->upstreamActive = false;
+        $this->withToken($bearer)->patchJson('/api/login/performances', ['theme' => 'light'])->assertUnauthorized();
+        $this->assertSame('dark', $member->user->fresh()->performances['theme']);
     }
 }

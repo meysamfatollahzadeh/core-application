@@ -1,5 +1,7 @@
 # Phase 1 architecture and business behavior
 
+> Historical Phase 1 baseline. Current Organization/Personnel/Access and user-location/appearance changes are documented in [Phase 2](organization-personnel-access.md). Its additions supersede the former Login-only scope below.
+
 ## Scope and repository
 
 This phase provides Docker development infrastructure and the Login module of an organizational monorepo. Keycloak owns credentials and identity lifecycle. Laravel stores local users, imported memberships, source configuration and revocable Sanctum credentials. Nuxt provides SSR and the browser credential gateway.
