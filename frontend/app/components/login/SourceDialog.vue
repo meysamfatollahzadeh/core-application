@@ -25,7 +25,7 @@ async function select(slug: string) {
 }
 </script>
 <template>
-  <v-dialog v-model="open" max-width="480" aria-labelledby="source-dialog-title">
+  <v-dialog v-model="open" @keydown.esc="!selected && (open = false)" max-width="480" aria-labelledby="source-dialog-title">
     <v-card>
       <v-card-title id="source-dialog-title" class="pt-6 px-6">انتخاب حساب سازمانی</v-card-title>
       <v-card-text>
