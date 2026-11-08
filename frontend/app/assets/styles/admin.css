@@ -57,9 +57,22 @@
 .admin-empty { text-align: center !important; padding: 40px 16px !important; color: rgba(var(--v-theme-on-surface), 0.7); }
 .admin-help { font-size: 0.85rem; line-height: 2; max-width: 70ch; }
 .admin-start { max-width: none; margin: 0; }
-.admin-start-list .v-list-subheader { color: rgb(var(--v-theme-primary)); font-size: 0.85rem; font-weight: 650; padding-inline: 24px; }
-.admin-start-list .v-list-item { padding: 16px 24px; min-height: 76px; }
-.admin-start-list .v-list-item + .v-list-item { border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08); }
+.admin-dashboard-groups { display: grid; gap: 36px; }
+.admin-dashboard-group { min-width: 0; }
+.admin-dashboard-group-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.admin-dashboard-group-heading h2 { font-size: 1.1rem; font-weight: 650; }
+.admin-dashboard-group-heading::after { content: ''; flex: 1; height: 1px; margin-inline-start: 8px; background: rgba(var(--v-theme-on-surface), 0.12); }
+.admin-shortcut-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 220px)); gap: 16px; }
+.admin-shortcut { aspect-ratio: 1; min-width: 0; color: rgb(var(--v-theme-on-surface)); background: rgb(var(--v-theme-surface)); }
+.admin-shortcut--organization { --shortcut-accent: var(--v-theme-primary); }
+.admin-shortcut--personnel { --shortcut-accent: var(--v-theme-success); }
+.admin-shortcut--access { --shortcut-accent: var(--v-theme-warning); }
+.admin-shortcut:hover { border-color: rgba(var(--shortcut-accent), 0.65) !important; }
+.admin-shortcut:focus-visible { outline: 3px solid rgb(var(--shortcut-accent)); outline-offset: 3px; }
+.admin-shortcut-content { height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px 16px; }
+.admin-shortcut-icon { flex-shrink: 0; margin-bottom: 14px; }
+.admin-shortcut h3 { font-size: 0.95rem; font-weight: 650; line-height: 1.8; }
+.admin-shortcut p { margin-top: 8px; font-size: 0.78rem; line-height: 1.9; color: rgba(var(--v-theme-on-surface), 0.72); max-width: 24ch; }
 .position-tree { list-style: none; padding-inline-start: 20px; }
 .position-tree li { border-inline-start: 1px solid rgba(var(--v-theme-primary), 0.3); padding-inline-start: 20px; margin-block: 12px; }
 .position-tree span { display: inline-block; padding-block: 4px; }
@@ -81,6 +94,13 @@
 }
 @media (max-width: 760px) { .grant-columns { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 600px) {
+  .admin-dashboard-groups { gap: 28px; }
+  .admin-dashboard-group-heading h2 { font-size: 1rem; }
+  .admin-shortcut-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .admin-shortcut-content { padding: 12px; }
+  .admin-shortcut-icon { margin-bottom: 8px; }
+  .admin-shortcut h3 { font-size: 0.85rem; }
+  .admin-shortcut p { margin-top: 4px; font-size: 0.72rem; line-height: 1.8; }
   .header-content.admin-header-content { padding-inline: 8px; gap: 4px; }
   .admin-application .brand { gap: 4px; }
   .admin-application .brand-icon, .admin-application .brand-full { display: none; }
@@ -104,6 +124,7 @@
   .admin-row-actions .v-btn__content { white-space: normal; line-height: 1.8; }
   .assignments-table table { min-width: 660px; }
 }
+@media (max-width: 380px) { .admin-shortcut-grid { grid-template-columns: minmax(0, 240px); } }
 .account-theme .v-btn-toggle { gap: 0; overflow: hidden; border: 1px solid rgba(var(--v-theme-on-surface), 0.18); border-radius: 10px; }
 .account-theme .v-btn-toggle > .v-btn { margin: 0; border-radius: 0 !important; }
 .account-theme .v-btn-toggle > .v-btn + .v-btn { border-inline-start: 1px solid rgba(var(--v-theme-on-surface), 0.14); }
