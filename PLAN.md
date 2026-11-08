@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **Implementation and UI review revisions verified — awaiting explicit phase-completion review.**
+- Status: **User-requested persistent appearance and logout-confirmation review revision in progress.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -370,3 +370,25 @@ Revision progress: **3 of 3 steps completed**. The prior phase implementation re
 - Final data/service checks: two users and two pre-existing global user-role assignments, unchanged by this revision; all nine long-running development services healthy. Only frontend was restarted. Dependency manifests/locks, backend, Compose ports and docs/ have no revision changes.
 - CSS separation and git diff --check passed. Local ignored review screenshots: output/playwright/admin-ui-desktop.png, admin-ui-mobile.png, admin-ui-mobile-menu.png, admin-ui-account.png and admin-ui-forbidden.png.
 - All three UI revision steps are complete. The phase remains at its 9-of-10 completion-review gate; no documentation closeout, rebase, merge, push or branch deletion was performed.
+
+## Authorized persistent appearance review revision — 2026-11-08
+
+The user explicitly requested a JSON user field named `performances`, persistent default appearance, no light-first refresh for a stored dark theme, logout confirmation and connected theme buttons. This is an authorized review revision on the same feature branch, not phase-completion approval.
+
+Database/API design and method:
+
+- Add users.performances as NOT NULL PostgreSQL JSONB, default {"theme":"auto"}, with object/string/allowed-value checks for theme in auto/light/dark. Backfill existing rows with the database default without modifying identities, grants, locations or credentials; cast to an array in the canonical Login User model. Preserve the exact requested field name.
+- Return the current user's performances in the existing sanitized Login identity resource. Add PATCH /api/login/performances behind existing Bearer/upstream validity checks; accept only a validated theme, derive the target from the authenticated user and update that JSON path atomically, preserving unrelated JSON keys. No administrator permission or user ID is required for one's own preference.
+- Add the equivalent Nuxt server gateway mutation with existing Origin/CSRF protections and server-only Bearer transport. Initialize Vuetify after SSR identity resolution using the stored preference; hydrate with the same mode/resolved theme. Authenticated preferences override legacy browser storage. For auto, use validated device-color hints/cookies when available and continue tracking live device changes; absent initial device hints, the server cannot infer an unknown device setting.
+- Store only non-secret appearance/device hints in presentation cookies for SSR fallback/anonymous continuity, never authentication credentials. Keep authenticated HTML private/no-store and preserve existing SSR identity isolation.
+- Replace direct logout handlers with a shared confirmation dialog on the header and home control. Cancellation sends no logout request; confirmation uses the existing synchronized logout flow. Render theme options as one connected segmented button group with no per-button rounding/gaps. All custom styling remains in dedicated CSS.
+
+Ordered revision steps:
+
+1. [ ] Implement additive performances schema/model/resource, authenticated self-preference API/gateway and meaningful database/authorization tests.
+2. [ ] Implement server-first theme initialization and persistence, connected theme group and shared logout confirmation.
+3. [ ] Verify backend regressions, typecheck/build, dark initial SSR and refresh/login continuity, auto behavior, connected controls and cancel/confirm logout in the browser; record actual evidence and commit scoped changes.
+
+Acceptance: existing and newly imported users default to {"theme":"auto"}; another user's preferences cannot be changed via this endpoint; unrelated JSON keys survive updates; invalid modes and anonymous updates are rejected. Stored dark is present in initial HTML and survives hydration without a light interval, refresh and later login. Theme writes stay on origin 8081 with CSRF validation and no browser bearer exposure. Cancel preserves the login; confirm logs out. No phase docs/ update or integration is authorized by this request.
+
+Appearance revision progress: **0 of 3 steps completed**. Phase step 10 remains gated by explicit completion approval.
