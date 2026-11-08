@@ -3,7 +3,7 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-07.
-- Status: **User-requested assignment position-path review revision in progress.**
+- Status: **Assignment position-path review revision verified; awaiting explicit phase-completion review.**
 - The user approved the domain model and subsequently explicitly approved this phase plan. Model/plan approval does not approve the completed phase.
 - Implementation progress: **9 of 10 steps completed**.
 - Explicit plan approval received in chat on 2026-11-07; implementation authorized. Separate completion approval remains required.
@@ -450,12 +450,20 @@ Design/method: add an Organization service that resolves requested positions and
 
 1. [x] Implement shared position-path resolution, additive assignment/option response fields and meaningful API tests for deep paths, cross-company managers, pagination and selection scope.
 2. [x] Display full paths in assignment rows, edit/delete context and create/edit selectors; allow paths and selected chips to wrap using dedicated CSS.
-3. [ ] Run relevant backend regression checks, frontend typecheck/build, and browser checks for list/create/edit hierarchy labels; commit scoped changes and verification evidence.
+3. [x] Run relevant backend regression checks, frontend typecheck/build, and browser checks for list/create/edit hierarchy labels; commit scoped changes and verification evidence.
 
-Revision progress: **2 of 3 steps completed**. Acceptance: labels read company / root / ... / selected position, including reporting targets from another company; no truncated selected titles, lost ancestors across option pages, or relaxed permissions. No phase documentation or integration is authorized; phase step 10 still awaits explicit completion approval.
+Revision progress: **3 of 3 steps completed**. Acceptance: labels read company / root / ... / selected position, including reporting targets from another company; no truncated selected titles, lost ancestors across option pages, or relaxed permissions. No phase documentation or integration is authorized; phase step 10 still awaits explicit completion approval.
 
 ### Assignment position-path steps 1 and 2 evidence
 
 - Added a shared recursive ancestor resolver with cycle protection and same-company traversal. Option labels resolve only requested page IDs; assignment page labels and reporting targets resolve in batches. Existing title/ID fields are preserved with additive position_path/report_paths.
 - Full PostgreSQL backend suite passed: 51 tests, 304 assertions. New API tests verify deep root-to-leaf labels, company-qualified foreign managers, create/detail/list/update responses, selected options, ancestors outside search/page results and continued company-scope denial. Pint passed on four changed PHP files (explicit paths because Git is unavailable inside the container).
 - Assignment rows show full position paths and individual manager paths. Create/edit selectors wrap option and selected-chip text; edit/delete context also shows the full path. Remote choices reload missing selected labels when switching edited records. Dedicated CSS only; initial Nuxt typecheck passed with the existing nonfatal vue-router/volar warning.
+
+### Assignment position-path step 3 evidence
+
+- Final frontend typecheck, seven existing navigation/appearance tests, and production build passed. Backend suite passed 51 tests / 304 assertions before frontend-only refinements; no subsequent PHP changes. The existing nonfatal vue-router/volar warning remains.
+- Real authenticated gateway responses included the existing five-level position path and manager path. Browser assertions compared those responses with the table and inspected complete labels in edit context, reporting options and the creation position selector.
+- Mobile QA found Vuetify's default single-selection ellipsis and fixed it with a conditional selection slot plus explicit wrapping/auto-height CSS. Repeated 390px checks confirmed no document overflow and no clipped selected-position or manager-chip text, including the existing manager loaded into edit. Inspected desktop/list/options and mobile/create/selected/edit screenshots under output/playwright/assignment-path-*.png (local ignored artifacts).
+- Forms were cancelled without saving. The live data changed independently during review; verification did not create, replace or delete assignments, roles or positions. Browser logout ended only the verification flow, the browser was closed and its encrypted fixture removed. Only the frontend was restarted after builds.
+- Backend committed in 2f6afbb and frontend in d9b1453. git diff --check and no-inline/component-style checks passed. No docs/ closeout, integration, push or branch deletion performed; phase step 10 remains gated by explicit completion approval.
