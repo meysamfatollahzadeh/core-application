@@ -385,10 +385,16 @@ Database/API design and method:
 
 Ordered revision steps:
 
-1. [ ] Implement additive performances schema/model/resource, authenticated self-preference API/gateway and meaningful database/authorization tests.
+1. [x] Implement additive performances schema/model/resource, authenticated self-preference API/gateway and meaningful database/authorization tests.
 2. [ ] Implement server-first theme initialization and persistence, connected theme group and shared logout confirmation.
 3. [ ] Verify backend regressions, typecheck/build, dark initial SSR and refresh/login continuity, auto behavior, connected controls and cancel/confirm logout in the browser; record actual evidence and commit scoped changes.
 
 Acceptance: existing and newly imported users default to {"theme":"auto"}; another user's preferences cannot be changed via this endpoint; unrelated JSON keys survive updates; invalid modes and anonymous updates are rejected. Stored dark is present in initial HTML and survives hydration without a light interval, refresh and later login. Theme writes stay on origin 8081 with CSRF validation and no browser bearer exposure. Cancel preserves the login; confirm logs out. No phase docs/ update or integration is authorized by this request.
 
-Appearance revision progress: **0 of 3 steps completed**. Phase step 10 remains gated by explicit completion approval.
+Appearance revision progress: **1 of 3 steps completed**. Phase step 10 remains gated by explicit completion approval.
+
+### Appearance revision step 1 evidence
+
+- Additive JSONB performances migration applied successfully to the development database, with auto defaults and validated theme shape. Canonical User cast/default and sanitized identity resource updated; self-only PATCH API and protected Nuxt gateway implemented.
+- Full PostgreSQL backend suite passed: 49 tests, 279 assertions. New checks cover populated migration defaults, new-user defaults, invalid JSON/theme rejection, anonymous/foreign-user-input denial, preserving unrelated keys and upstream revocation enforcement.
+- Nuxt typecheck and seven navigation/appearance utility tests passed. No identity, role or location records were reassigned.
