@@ -1,5 +1,6 @@
+import type { Performances } from './appearance'
 export type LoginIdentity = {
-  user: { id: number; name: string }
+  user: { id: number; name: string; performances: Performances }
   source: { slug: string; title: string }
   member: { id: number; uuid: string }
 }

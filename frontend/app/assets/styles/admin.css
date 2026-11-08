@@ -104,3 +104,7 @@
   .admin-row-actions .v-btn__content { white-space: normal; line-height: 1.8; }
   .assignments-table table { min-width: 660px; }
 }
+.account-theme .v-btn-toggle { gap: 0; overflow: hidden; border: 1px solid rgba(var(--v-theme-on-surface), 0.18); border-radius: 10px; }
+.account-theme .v-btn-toggle > .v-btn { margin: 0; border-radius: 0 !important; }
+.account-theme .v-btn-toggle > .v-btn + .v-btn { border-inline-start: 1px solid rgba(var(--v-theme-on-surface), 0.14); }
+.account-theme .theme-feedback { margin-top: 10px; font-size: 0.75rem; color: rgba(var(--v-theme-on-surface), 0.7); }

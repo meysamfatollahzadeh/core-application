@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { mdiDomain, mdiMenu, mdiAccountCircleOutline, mdiChevronDown, mdiLogout } from '@mdi/js'
 
-const { mode, themes } = useAppearance()
+const { mode, themes, saving: themeSaving, error: themeError } = useAppearance()
+const { busy: logoutBusy, requestLogout } = useLogout()
 const { state: login, refresh } = useLogin()
 const route = useRoute()
 const isAdmin = computed(() => route.path === '/admin' || route.path.startsWith('/admin/'))
 const identity = computed(() => login.value.identity)
 const drawer = ref<boolean | null>(null)
 const accountMenu = ref(false)
-const logoutBusy = ref(false)
-const message = ref('')
 let recheck: ReturnType<typeof setInterval> | undefined
 function recheckVisible() { if (document.visibilityState === 'visible') refresh() }
 watch(() => login.value.status, status => { if (status === 'anonymous' && isAdmin.value) navigateTo('/') })
@@ -19,14 +18,6 @@ function closeNavigation() {
 }
 function onMenuKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape' && drawer.value && !accountMenu.value && window.matchMedia('(max-width: 959px)').matches) closeNavigation()
-}
-async function logout() {
-  logoutBusy.value = true
-  message.value = ''
-  try {
-    const result = await $fetch<{ url: string }>('/gateway/login/logout', { method: 'POST', headers: { 'X-CSRF-TOKEN': login.value.csrf } })
-    window.location.assign(result.url)
-  } catch { message.value = 'خروج انجام نشد. دوباره تلاش کنید.'; logoutBusy.value = false }
 }
 onMounted(() => {
   window.addEventListener('keydown', onMenuKeydown)
@@ -62,10 +53,9 @@ onBeforeUnmount(() => {
           <v-card class="account-menu" min-width="280" max-width="340" border>
             <div class="account-details"><v-avatar color="primary" variant="tonal" size="44"><v-icon :icon="mdiAccountCircleOutline" /></v-avatar><div><strong>{{ identity?.user.name ?? 'حساب سازمانی' }}</strong><p>{{ identity?.source.title ?? 'بررسی وضعیت حساب ممکن نشد' }}</p><p v-if="identity">شناسه کاربر: {{ identity.user.id.toLocaleString('fa-IR') }}</p></div></div>
             <v-divider />
-            <div class="account-theme"><p>ظاهر سامانه</p><v-btn-toggle v-model="mode" mandatory divided color="primary" variant="tonal" aria-label="حالت نمایش"><v-btn v-for="item in themes" :key="item.value" :value="item.value" :prepend-icon="item.icon">{{ item.title }}</v-btn></v-btn-toggle></div>
+            <div class="account-theme"><p>ظاهر سامانه</p><v-btn-toggle v-model="mode" mandatory divided rounded="lg" :disabled="themeSaving" color="primary" variant="tonal" aria-label="حالت نمایش"><v-btn v-for="item in themes" :key="item.value" :value="item.value" :rounded="false" :prepend-icon="item.icon">{{ item.title }}</v-btn></v-btn-toggle><p v-if="themeSaving" class="theme-feedback" role="status">در حال ذخیره…</p><v-alert v-if="themeError" class="mt-3" type="error" variant="tonal" density="compact" role="alert">{{ themeError }}</v-alert></div>
             <v-divider />
-            <v-list class="account-actions"><v-list-item :prepend-icon="mdiLogout" title="خروج از حساب" role="menuitem" base-color="error" :disabled="logoutBusy" @click="logout"><template #append><v-progress-circular v-if="logoutBusy" indeterminate size="20" width="2" color="error" /></template></v-list-item></v-list>
-            <v-alert v-if="message" type="error" variant="tonal" density="compact" class="ma-3" role="alert">{{ message }}</v-alert>
+            <v-list class="account-actions"><v-list-item :prepend-icon="mdiLogout" title="خروج از حساب" role="menuitem" base-color="error" :disabled="logoutBusy" @click="accountMenu = false; requestLogout()"><template #append><v-progress-circular v-if="logoutBusy" indeterminate size="20" width="2" color="error" /></template></v-list-item></v-list>
           </v-card>
         </v-menu>
         <v-menu v-else>
@@ -77,6 +67,7 @@ onBeforeUnmount(() => {
     <v-navigation-drawer v-if="isAdmin && login.status === 'authenticated'" id="admin-navigation" v-model="drawer" :mobile-breakpoint="960" location="start" width="272" color="navigation" class="admin-drawer" aria-label="منوی مدیریت" :touchless="false">
       <AdminNavigation @close="closeNavigation" />
     </v-navigation-drawer>
+    <LogoutDialog />
     <v-main>
       <v-container :fluid="isAdmin" class="workspace" :class="{ 'admin-workspace': isAdmin }">
         <v-alert v-if="isAdmin && login.status === 'unavailable'" type="warning" variant="tonal" role="alert">بررسی وضعیت حساب ممکن نشد. ارتباط با سرویس هویت را بررسی کنید.<v-btn variant="text" @click="refresh">بررسی دوباره</v-btn></v-alert>

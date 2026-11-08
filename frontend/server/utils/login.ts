@@ -70,7 +70,7 @@ export function sourceSlug(event: H3Event): string {
   if (!slug || slug.length > 63 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw createError({ statusCode: 404, message: 'Unknown source' })
   return slug
 }
-export async function loginApi<T>(event: H3Event, path: string, options: { method?: 'GET' | 'POST'; body?: Record<string, unknown>; token?: string } = {}): Promise<T> {
+export async function loginApi<T>(event: H3Event, path: string, options: { method?: 'GET' | 'POST' | 'PATCH'; body?: Record<string, unknown>; token?: string } = {}): Promise<T> {
   try {
     return await $fetch<T>(useRuntimeConfig(event).backendUrl + '/api/login' + path, {
       method: options.method ?? 'GET', body: options.body,
