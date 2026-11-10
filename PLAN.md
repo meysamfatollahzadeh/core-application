@@ -271,3 +271,10 @@ The user explicitly confirmed reviewing the changes and approved phase completio
 - Added English Phase 3 technical documentation covering database changes, business behavior, all connection API contracts, authorization, concurrency, token removal and explicitly unchanged categories. Added a Persian usage/operations guide for creation, connections, indicator, migration conflicts, permission grants and import/dry-run behavior. Updated the documentation index and existing API, development, organization, usage and historical-baseline pointers to remove current import-only assumptions.
 - Full PostgreSQL suite: 76 passed / 491 assertions. Ten frontend tests, Nuxt typecheck, fresh production build and git diff --check passed. All 52 local Markdown links/anchors in 12 documentation files passed; the operational PHP example passed lint without executing its permission grant. Existing nonfatal Volar/build-timing warnings remain.
 - No application or infrastructure code changed during documentation closeout. Documentation is ready to commit on the feature branch; synchronization, rebase and integration are not yet claimed.
+
+### Synchronization and post-rebase verification
+
+- Documentation committed as `abc756a`; working tree was clean before fetching origin. Fetch succeeded and origin/master remained at `84e6f4c1bd143a6da7fe6902922cf94a25534240`.
+- `git rebase origin/master` reported the feature already up to date, without conflicts. Verified unchanged application trees: backend `0170c26fe58526b423a0137f660ec5ba338906c9`, frontend `ec348af8d1720c878fe7e4b116c33b64210b9cba`.
+- After rebase: full PostgreSQL suite again passed 76 tests / 491 assertions; Nuxt typecheck and all 10 frontend tests passed. The fresh successful production build applies to these identical application trees. All 52 documentation links/anchors and the PHP example lint passed again. No unresolved conflicts or failing checks remain.
+- Ready for the approved no-ff merge and push. Actual integration and branch cleanup results are not yet claimed.
