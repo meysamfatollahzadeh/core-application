@@ -7,6 +7,7 @@ export const adminSections = [
   { key: 'personnel', group: 'personnel', title: 'فهرست پرسنل', description: 'اطلاعات مشترک افراد و محل استقرار فعلی', permission: 'personnel.view', scoped: true },
   { key: 'assignments', group: 'personnel', title: 'سمت‌ها و گزارش‌دهی', description: 'انتساب افراد به سمت‌ها و انتخاب پوزیشن‌های مدیر', permission: 'user_positions.view', scoped: true },
   { key: 'roles', group: 'access', title: 'نقش‌ها و مجوزها', description: 'تعریف مشترک نقش‌ها و مجوزهای عملیاتی', permission: 'roles.view', scoped: false },
+  { key: 'login-sources', group: 'access', title: 'سورس‌های ورود', description: 'مدیریت اتصال‌های ورود و وضعیت دسترسی به آن‌ها', permission: 'login_sources.view', scoped: false },
   { key: 'grants', group: 'access', title: 'تخصیص دسترسی', description: 'نقش‌های مستقیم کاربران و نقش‌های پوزیشن‌ها', permission: 'access.assign', scoped: true },
 ] as const
 
