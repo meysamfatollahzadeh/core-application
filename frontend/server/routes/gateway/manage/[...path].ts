@@ -7,9 +7,13 @@ const endpoints: [RegExp, string[]][] = [
   [/^personnel\/options$/, ['GET']],
   [/^(companies|buildings|roles)$/, ['GET', 'POST']],
   [/^(companies|buildings|roles)\/[1-9]\d*$/, ['GET', 'PATCH', 'DELETE']],
-  [/^personnel$/, ['GET']],
+  [/^personnel$/, ['GET', 'POST']],
   [/^personnel\/[1-9]\d*$/, ['GET', 'PATCH']],
   [/^personnel\/[1-9]\d*\/positions$/, ['GET']],
+  [/^personnel\/[1-9]\d*\/members$/, ['GET', 'POST']],
+  [/^personnel\/[1-9]\d*\/members\/[1-9]\d*$/, ['DELETE']],
+  [/^personnel\/[1-9]\d*\/member-sources$/, ['GET']],
+  [/^personnel\/[1-9]\d*\/member-sources\/[a-z0-9]+(?:-[a-z0-9]+)*\/accounts$/, ['GET']],
   [/^permissions$/, ['GET']],
   [/^roles\/[1-9]\d*\/permissions$/, ['PUT']],
   [/^personnel\/[1-9]\d*\/global-roles$/, ['GET', 'PUT']],
@@ -47,9 +51,11 @@ export default defineEventHandler(async event => {
       retry: 0, timeout: 170000, redirect: 'error',
     })
   } catch (error: unknown) {
-    const failure = error as { status?: number; data?: { message?: string; errors?: Record<string, string[]>; assignment_ids?: number[] } }
+    const failure = error as { status?: number; data?: { error?: string; message?: string; errors?: Record<string, string[]>; assignment_ids?: number[] } }
     const status = failure.status && [401, 403, 404, 409, 422, 429, 503].includes(failure.status) ? failure.status : 503
     if (status === 401) clearCookie(event, authCookie)
-    throw createError({ statusCode: status, message: 'Management request failed', data: { errors: status === 422 ? failure.data?.errors : undefined, assignment_ids: failure.data?.assignment_ids } })
+    const reasons = ['source_inactive', 'source_changed', 'user_source_occupied', 'identity_already_connected', 'membership_conflict', 'account_ineligible', 'provider_directory_unconfigured', 'provider_directory_unavailable']
+    const reason = failure.data?.error
+    throw createError({ statusCode: status, message: 'Management request failed', data: { reason: reason && reasons.includes(reason) ? reason : undefined, errors: status === 422 ? failure.data?.errors : undefined, assignment_ids: failure.data?.assignment_ids } })
   }
 })
