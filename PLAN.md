@@ -6,7 +6,7 @@
 - Status: **Approved; implementation in progress.**
 - Explicit approval: the user approved this complete plan in chat on 2026-11-10 and requested implementation plus development permission synchronization. Completion approval remains pending.
 - Planning revision: the user requested explicit execution of permission synchronization in the development environment so the new administration section is ready for manual testing. This request does not approve the complete phase plan.
-- Implementation progress: **4 of 7 steps completed**.
+- Implementation progress: **5 of 7 steps completed**.
 - Branch: `codex/feature/login-source-management`.
 - Baseline: `e070cf820eae0a2449c79b30276235e51a1d18e6`.
 - Preparation: verified a clean master working tree, fetched origin, switched to master, updated using `git merge --ff-only origin/master` (already up to date), and created this feature branch before replacing PLAN.md.
@@ -135,7 +135,7 @@ Under the existing authenticated management API prefix, using the source slug fo
 - Referenced-source deletion returns 409 without deleting or modifying Users/Members/remote identities. Concurrent attachment cannot leave orphaned relationships.
 - Public source selection, imported-member-only callbacks, existing Keycloak login/logout, upstream checks and personnel account management continue to work.
 - Browser verification covers create, edit without secret replacement, secret replacement, activity changes, deletion conflict, empty-source deletion, permission visibility and current-source deactivation. Check mobile layout and light/dark modes.
-- Actual commands and results will be recorded here during execution. No implementation checks have run at proposal time.
+- Actual execution results are recorded below. The proposed acceptance scope has been implemented and verified; separate completion approval is still required.
 
 ## 10. Execution evidence
 
@@ -145,3 +145,16 @@ Under the existing authenticated management API prefix, using the source slug fo
 - Step 3 completed: exact Nuxt gateway route/method allowlist, sanitized lifecycle error reasons, shared typed source contracts and global-only admin navigation. Existing server Bearer exchange, CSRF and no-store controls remain in place.
 - Step 4 completed: Persian source list, create/edit forms, derived callback previews, retained-secret hints, optional directory configuration removal, impact confirmations and referenced-deletion guidance. Responsive dedicated CSS follows the existing panel.
 - Frontend verification so far: `npm run typecheck` exited 0 (existing Vue route-block plugin warning); 11 Node tests passed, including global-only source navigation.
+
+- Step 5 completed: verification and manual-test preparation finished.
+- Development permission synchronization actually executed: `docker compose exec -T backend php artisan access:sync-permissions`, exit 0, output `Catalog synchronized; no user grants created.` Verified exactly five `login_sources.*` entries, all five attached to the existing system-administrator role, and one existing direct global administrator with effective source-view access. No new user grants or custom-role expansions were created.
+- Applied the configured allowlist using `docker compose up -d --no-deps backend`; three development provider origins are configured. All nine running services subsequently reported healthy.
+- Full backend suite: `docker compose exec -T backend php artisan test --compact`, exit 0, **89 tests / 621 assertions**. The new tests were then colocated under Login's Tests directory and registered in phpunit.xml; `docker compose exec -T backend php artisan test --compact app/Modules/Login/Tests` passed **13 tests / 130 assertions** from their final location.
+- PostgreSQL concurrency tests use independent processes and source-row barriers. Both callback/deactivation lock orders leave zero tokens; both attachment/deletion lock orders preserve source/member integrity.
+- Final frontend checks: `docker compose exec -T frontend npm run typecheck`, exit 0; `docker compose exec -T frontend npm run build`, exit 0; Node test runner over admin-navigation, appearance and management-errors passed **12 tests**. Typecheck emits a Vue route-block plugin warning and build emits plugin timing warnings; neither caused a failure.
+- Real OIDC-backed HTTP/gateway acceptance verified authenticated initial SSR, no credential leakage, source pagination/detail sanitization, CSRF rejection, disallowed gateway methods, blank-secret retention, secret replacement, activation/deactivation, referenced-source deletion 409 and empty-source deletion 204.
+- Current-source deactivation acceptance used a fresh real OIDC-backed token and a temporary local source/Member pointing to the same authority, isolating the test from the actual primary source and other credentials. Deactivation invalidated that browser token immediately; the subsequent identity response was anonymous. Temporary source/Member/token fixtures were removed; existing source configuration, personnel and grants were preserved.
+- Browser UI acceptance on the 8081 origin verified existing administrator login, navigation, creation of an inactive disposable source, edit-form loading, title change without secret replacement and referenced-deletion guidance. A stale form-state issue found during reopen was corrected and rechecked. Visual checks covered desktop, 390px mobile list/form and dark mode; automatic theme was restored afterward. Local screenshot: `output/playwright/phase4-login-sources.jpg` (ignored artifact).
+- Gateway failures initially lost no-store through Nuxt's generic error renderer. Source-specific handled JSON failures now retain private/no-store headers, including validation, CSRF and unknown-method errors; the real gateway acceptance passed after the correction.
+- Browser automation fallback: the Playwright CLI package fetch failed due unavailable npm DNS; verification continued successfully with the connected in-app browser. Transient automatic access-review timeouts succeeded on their permitted retry; no remaining access blocker exists.
+- Manual-test entry point: `http://localhost:8081/admin/login-sources`, or Management → Access → Login sources. Existing system-administrator access is ready; source endpoints outside the configured allowlist require operator configuration before saving.
