@@ -3,9 +3,9 @@
 ## 1. Status, baseline and approval gates
 
 - Prepared: 2026-11-10 (Asia/Tehran).
-- Status: **Completion approved; documentation and integration in progress.**
+- Status: **Complete and integrated after explicit completion approval.**
 - Explicit plan approval and separate completion approval received in chat on 2026-11-10. Completion approval includes the reviewed connection indicator and explicitly authorizes phase documentation, integration into master and push.
-- Implementation progress: **7 of 8 steps completed**.
+- Implementation progress: **8 of 8 steps completed**.
 - Branch: `codex/feature/personnel-account-linking`.
 - Baseline: `84e6f4c1bd143a6da7fe6902922cf94a25534240`.
 - Planning preparation: verified a clean working tree on master; fetched origin successfully; switched to master; `git merge --ff-only origin/master` reported already up to date; created the feature branch before replacing this file. HEAD and origin/master both matched the baseline.
@@ -157,7 +157,7 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 5. [x] **Nuxt gateway and Personnel interface.** Extend allowlisted routes/error transport, add creation and account dialogs/actions, permission-based controls, result eligibility/owner labels and resilient source/profile states. Keep frontend commits separate from backend commits; commit evidence.
 6. [x] **Automated verification.** Run targeted and full PostgreSQL backend suites, meaningful concurrency/integrity regressions, existing frontend tests, Nuxt typecheck/build and diff checks. Fix failures on this branch and record actual results and limitations.
 7. [x] **Browser acceptance and review handoff.** Verify creation, remote search, successful and blocked connections, inactive/disabled sources/accounts, same-source search lockout, local-only deletion, selective revocation and self-detach across the gateway. Check desktop/mobile, RTL, themes, focus and dialog behavior. Use isolated fixtures and preserve unrelated development data; record actual cleanup. Pause for explicit user completion approval; small requested fixes repeat relevant checks.
-8. [ ] **Approved documentation, closeout and integration.** Only after explicit completion approval, update English technical docs for schema, business behavior and API contracts and Persian usage/operations guides, including permission assignment, import conflicts and reconnecting Users with no Members. Record and commit closeout. Fetch origin, rebase feature onto latest origin/master, resolve conflicts with git rebase --continue and repeat relevant validation. Update master with --ff-only, merge the verified feature using --no-ff and push master. If upstream advances, repeat synchronization/rebase/validation before retrying; never reset or force-push master. Delete local feature with git branch -d and any published remote feature only after successful integration/push. Report actual results and preserve the branch if blocked.
+8. [x] **Approved documentation, closeout and integration.** Only after explicit completion approval, update English technical docs for schema, business behavior and API contracts and Persian usage/operations guides, including permission assignment, import conflicts and reconnecting Users with no Members. Record and commit closeout. Fetch origin, rebase feature onto latest origin/master, resolve conflicts with git rebase --continue and repeat relevant validation. Update master with --ff-only, merge the verified feature using --no-ff and push master. If upstream advances, repeat synchronization/rebase/validation before retrying; never reset or force-push master. Delete local feature with git branch -d and any published remote feature only after successful integration/push. Report actual results and preserve the branch if blocked.
 
 ## 9. Acceptance criteria and verification matrix
 
@@ -278,3 +278,11 @@ The user explicitly confirmed reviewing the changes and approved phase completio
 - `git rebase origin/master` reported the feature already up to date, without conflicts. Verified unchanged application trees: backend `0170c26fe58526b423a0137f660ec5ba338906c9`, frontend `ec348af8d1720c878fe7e4b116c33b64210b9cba`.
 - After rebase: full PostgreSQL suite again passed 76 tests / 491 assertions; Nuxt typecheck and all 10 frontend tests passed. The fresh successful production build applies to these identical application trees. All 52 documentation links/anchors and the PHP example lint passed again. No unresolved conflicts or failing checks remain.
 - Ready for the approved no-ff merge and push. Actual integration and branch cleanup results are not yet claimed.
+
+## Final integration result
+
+- Step 8 of 8 completed after separate explicit completion approval. English technical documentation, Persian usage/operations guidance, implementation, review changes and verification evidence were committed on the feature branch.
+- Origin fetch succeeded; feature rebase was already up to date with no conflicts. Post-rebase PostgreSQL checks passed 76 tests / 491 assertions, Nuxt typecheck and all 10 frontend tests passed, and the production build passed on the identical application tree. Documentation links and PHP example lint passed. No application or infrastructure changes were introduced by closeout.
+- Master was updated with `git merge --ff-only origin/master` and the verified feature merged with `--no-ff`. Merge `a11cda178ef6e26229b07e024479deabd12b2dd3` was successfully pushed to origin/master (`84e6f4c..a11cda1`).
+- This final plan-only audit is being committed on the retained feature after fast-forwarding it to the successful merge. Its publication will follow the same fetch/rebase/documentation-check/no-ff/push workflow. Backend/frontend trees remain `0170c26fe58526b423a0137f660ec5ba338906c9` and `ec348af8d1720c878fe7e4b116c33b64210b9cba`; no additional application retest is needed for the audit if these trees remain identical.
+- After successful audit publication, delete the fully integrated local feature branch and any published phase counterpart. Final audit push and actual branch-cleanup results will be reported in the chat closeout; they are not claimed in advance here.
