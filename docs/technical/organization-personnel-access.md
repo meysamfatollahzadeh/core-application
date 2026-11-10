@@ -2,6 +2,8 @@
 
 Completion was explicitly approved in chat on 2026-11-08, including the reviewed administration UI, persistent appearance, hierarchy labels and modal behavior. This document extends the historical Phase 1 architecture/database documents. API details are in [management-api.md](management-api.md); operational instructions are in the [Persian guide](../guides/organization.fa.md).
 
+> Phase 3 adds local personnel creation, independent account-connection permissions, per-source membership limits and selective token revocation. Its [approved technical specification](personnel-account-connections.md) supersedes the corresponding Phase 2 baseline behavior below.
+
 ## Module boundaries and unchanged infrastructure
 
 Organization owns companies, position charts, buildings/areas and position-path resolution. Personnel owns current profile/location editing, user-position assignments and reporting targets. Access owns shared roles, the application permission catalog, delegation and effective authorization. Each module keeps its controllers, requests, actions, models, migrations, providers, commands and tests together under `backend/app/Modules/`.

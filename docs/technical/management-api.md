@@ -13,7 +13,10 @@ These implemented routes extend [Login](login-api.md). Base URL: `http://localho
 | GET, POST /companies/{company}/positions; GET, PATCH, DELETE .../positions/{position} | positions.R in company; nested ownership enforced |
 | GET, POST /buildings; GET, PATCH, DELETE /buildings/{building}; same methods on /buildings/{building}/areas[/{area}] | global buildings.R |
 | GET /personnel; GET /personnel/{user}; GET /personnel/{user}/positions | global personnel.view |
+| POST /personnel | global personnel.create; required name and building_area_id |
 | PATCH /personnel/{user} | global personnel.update |
+| GET, POST /personnel/{user}/members; DELETE /personnel/{user}/members/{member} | global personnel.members.manage; nested ownership on deletion |
+| GET /personnel/{user}/member-sources; GET /personnel/{user}/member-sources/{slug}/accounts | global personnel.members.manage; source slug and live Keycloak search |
 | GET /companies/{company}/personnel | personnel.view in company |
 | GET, POST /companies/{company}/user-positions; GET, PUT, DELETE .../user-positions/{assignment} | user_positions.R in company |
 | GET, POST /roles; GET, PATCH, DELETE /roles/{role} | global roles.R |
@@ -29,7 +32,7 @@ Read-only selector endpoints have independent bounded authorization and do not e
 | --- | --- |
 | /organization/company-position-options?company_id=N | access.assign or user_positions.create/update in N; company position options with position_path |
 | /organization/reporting-position-options | any user_positions.create/update grant; cross-company position options with company_id, company_title and position_path |
-| /organization/location-options | global personnel.update; areas with building context |
+| /organization/location-options | global personnel.create OR personnel.update; areas with building context |
 | /personnel/options | user_positions.create or access.assign grant; minimal user id/name options |
 | /access/role-options[?company_id=N] | access.assign in scope; only delegable roles |
 
@@ -41,7 +44,7 @@ Selectors paginate at 100 (role options use their controller's bounded paginatio
 {"title":"Company or building or area title"}
 ```
 
-Titles are strings up to 255 characters. Position create requires title and accepts nullable parent_position_id; PATCH accepts changed title/parent only. company_id is derived from the route and cannot move a position. Personnel PATCH accepts name and/or building_area_id; no local user creation/deletion/password endpoint exists.
+Titles are strings up to 255 characters. Position create requires title and accepts nullable parent_position_id; PATCH accepts changed title/parent only. company_id is derived from the route and cannot move a position. Personnel POST requires name and building_area_id and creates only a local User; PATCH accepts name and/or building_area_id. No local User deletion or password endpoint exists. Connection payloads, source states, eligibility, pagination and stable errors are specified in [Phase 3 account contracts](personnel-account-connections.md#api-contracts).
 
 Assignment creation and reporting replacement:
 
@@ -69,7 +72,7 @@ Position scope is company/global only, never an arbitrary company ID. Company-on
 
 ## Responses, paths and errors
 
-Organization directories use `data`, `links`, `meta`; raw personnel/access/assignment paginators use `data` with top-level pagination fields including current_page, last_page and total. Normal directories default to 25 and validate per_page up to 100; assignment pages use 25. Search is a validated title/name substring (max 100); hierarchy labels remain complete even when ancestors are outside search/page results. Follow server pagination rather than assuming every response has meta.
+Organization directories use `data`, `links`, `meta`; raw personnel/access/assignment paginators use `data` with top-level pagination fields including current_page, last_page and total. Normal directories default to 25 and validate per_page up to 100; assignment pages use 25. Search is a validated title/name substring (max 100); hierarchy labels remain complete even when ancestors are outside search/page results. Follow server pagination rather than assuming every response has meta. Global/company personnel rows additionally include boolean has_active_member, derived from local Members whose sources are active; no Member identities are exposed by this indicator. Remote account search uses page/per_page/has_more instead of the ordinary paginator; see [account search contracts](personnel-account-connections.md#api-contracts).
 
 Position list/detail/create/update adds these fields without changing title or IDs:
 
@@ -85,4 +88,4 @@ Roots have parent_path null. Directory listings retain immediate parent_title. A
 
 GET /access/me returns `{"data":{"global":["positions.view"],"companies":{"1":["user_positions.view"]},"visible_companies":[{"id":1,"title":"Company"}]}}`. visible_companies is selector context, not blanket permission; every operation still checks its own key/scope. Role detail adds permission_ids. Role assignment GET/PUT responses use role_ids or grants.
 
-Creation returns 201, reads/updates 200 and deletion 204. Errors: 401 invalid login/upstream grant; 403 missing authority/delegation or gateway CSRF/Origin denial; 404 missing/nested ownership mismatch; 409 dependencies, administrator protection or domain constraints; 422 validation; 429 throttling; 503 unavailable identity/provider verification. Error responses are sanitized; clients must not depend on one identical framework/protocol error envelope. No endpoints permit clearing a required location, modifying protected default areas, or bypassing chart/report invariants.
+Creation returns 201, reads/updates 200 and deletion 204. Errors: 401 invalid login/upstream grant; 403 missing authority/delegation or gateway CSRF/Origin denial; 404 missing/nested ownership mismatch; 409 dependencies, administrator protection or domain constraints; 422 validation; 429 throttling; 503 unavailable identity/provider verification. Account connection conflicts and directory-provider errors also use the [stable Phase 3 error codes](personnel-account-connections.md#failures-and-gateway-reasons). Error responses are sanitized; clients must not depend on one identical framework/protocol error envelope. No endpoints permit clearing a required location, modifying protected default areas, or bypassing chart/report invariants.

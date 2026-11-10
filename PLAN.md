@@ -265,3 +265,9 @@ Revision progress: **2 of 2 steps completed**. No phase closeout documentation o
 ## Approved phase closeout — 2026-11-10
 
 The user explicitly confirmed reviewing the changes and approved phase completion, documentation, integration into master and push. This satisfies the separate completion gate and supersedes earlier pending-approval notes, which remain historical evidence. Step 8 is now authorized. Record actual validation, rebase, merge, push and cleanup outcomes; do not infer successful integration before executing it.
+
+### Step 8 documentation and pre-synchronization evidence
+
+- Added English Phase 3 technical documentation covering database changes, business behavior, all connection API contracts, authorization, concurrency, token removal and explicitly unchanged categories. Added a Persian usage/operations guide for creation, connections, indicator, migration conflicts, permission grants and import/dry-run behavior. Updated the documentation index and existing API, development, organization, usage and historical-baseline pointers to remove current import-only assumptions.
+- Full PostgreSQL suite: 76 passed / 491 assertions. Ten frontend tests, Nuxt typecheck, fresh production build and git diff --check passed. All 52 local Markdown links/anchors in 12 documentation files passed; the operational PHP example passed lint without executing its permission grant. Existing nonfatal Volar/build-timing warnings remain.
+- No application or infrastructure code changed during documentation closeout. Documentation is ready to commit on the feature branch; synchronization, rebase and integration are not yet claimed.
