@@ -245,7 +245,12 @@ The user explicitly requested marking personnel who have no Member, or whose Mem
 - Database design: no migrations or stored status columns; derive the boolean from current data without remote Keycloak calls. Existing directory permissions and company filtering remain unchanged. Do not expose Member/source identities to directory-only readers.
 - Acceptance: zero Members and inactive-only connections are marked; at least one active-source connection removes the marker, including mixed active/inactive connections. Verify status changes after attach/detach or source activity changes, correct company filtering and boolean serialization. Verify readable RTL light/dark/mobile presentation without relying on color alone.
 
-1. [ ] Add the list indicator API and focused regressions; commit backend changes and evidence.
+1. [x] Add the list indicator API and focused regressions; commit backend changes and evidence.
 2. [ ] Add the frontend chip and directory refresh; verify typecheck/build and browser presentation; commit frontend changes and evidence.
 
-Revision progress: **0 of 2 steps completed**. No phase closeout documentation or integration is authorized by this revision.
+Revision progress: **1 of 2 steps completed**. No phase closeout documentation or integration is authorized by this revision.
+
+### Connection-indicator revision step 1 evidence
+
+- Added `has_active_member` using a correlated EXISTS query against active local sources; no Keycloak queries, schema changes or Member identity disclosure. Global and company directories share the calculation.
+- PostgreSQL MemberConnectionTest and ManagementApiTest: 24 passed / 203 assertions. Covered no Members, inactive-only and mixed connections, loss of the active connection, source activation, boolean output, directory-only authority and company boundaries. Pint passed both changed PHP files.

@@ -31,6 +31,7 @@ class PersonnelController extends Controller
     {
         $d = $r->validate(['search' => ['nullable', 'string', 'max:100'], 'page' => ['nullable', 'integer', 'min:1'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100']]);
         $q = User::query()->join('building_areas', 'building_areas.id', '=', 'users.building_area_id')->join('buildings', 'buildings.id', '=', 'building_areas.building_id')->select('users.id', 'users.name', 'users.building_area_id')->selectRaw("buildings.title || ' / ' || building_areas.title as location_title");
+        $q->withExists(['members as has_active_member' => fn ($q) => $q->whereHas('userSource', fn ($source) => $source->where('is_active', true))]);
         if (! empty($d['search'])) {
             $q->where('users.name', 'ilike', '%'.$d['search'].'%');
         }

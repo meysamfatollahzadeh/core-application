@@ -220,4 +220,41 @@ class MemberConnectionTest extends TestCase
         $this->postJson($url, ['source_slug' => 'primary', 'uuid' => 'gone'])->assertUnprocessable()->assertJsonPath('error', 'account_ineligible');
         $this->assertDatabaseCount('members', 0);
     }
+
+    public function test_directory_marks_missing_active_connections_and_preserves_company_scope(): void
+    {
+        $this->login(['personnel.view']);
+        $unlinked = User::factory()->create();
+        $inactive = User::factory()->create();
+        $mixed = User::factory()->create();
+        $source = UserSource::factory()->create(['is_active' => false]);
+        Member::factory()->create(['user_id' => $inactive->id, 'user_source_id' => $source->id]);
+        Member::factory()->create(['user_id' => $mixed->id, 'user_source_id' => $source->id]);
+        $active = Member::factory()->create(['user_id' => $mixed->id]);
+        $outside = Member::factory()->create();
+        $company = Company::create(['title' => 'Directory scope']);
+        foreach ([$unlinked, $inactive, $mixed] as $user) {
+            DB::table('company_user_role')->insert(['user_id' => $user->id, 'company_id' => $company->id, 'role_id' => Role::first()->id]);
+        }
+        foreach (['/api/personnel', '/api/companies/'.$company->id.'/personnel'] as $endpoint) {
+            $response = $this->getJson($endpoint.'?per_page=100')->assertOk();
+            $rows = collect($response->json('data'))->keyBy('id');
+            $this->assertFalse($rows[$unlinked->id]['has_active_member']);
+            $this->assertFalse($rows[$inactive->id]['has_active_member']);
+            $this->assertTrue($rows[$mixed->id]['has_active_member']);
+            $this->assertArrayNotHasKey('members', $rows[$mixed->id]);
+            if (str_contains($endpoint, '/companies/')) {
+                $this->assertCount(3, $rows);
+                $this->assertFalse($rows->has($outside->user_id));
+            }
+        }
+        $active->delete();
+        $rows = collect($this->getJson('/api/personnel')->assertOk()->json('data'))->keyBy('id');
+        $this->assertFalse($rows[$mixed->id]['has_active_member']);
+        $source->update(['is_active' => true]);
+        $rows = collect($this->getJson('/api/personnel')->assertOk()->json('data'))->keyBy('id');
+        $this->assertTrue($rows[$mixed->id]['has_active_member']);
+        $this->assertTrue($rows[$inactive->id]['has_active_member']);
+        Http::assertNothingSent();
+    }
 }
