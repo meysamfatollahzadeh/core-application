@@ -22,6 +22,7 @@ x-backend-environment: &backend-environment
   QUEUE_CONNECTION: sync
   OIDC_ISSUER: http://localhost:8081/auth/realms/organization-dev
   OIDC_INTERNAL_ISSUER: http://keycloak:8080/auth/realms/organization-dev
+  LOGIN_SOURCE_ALLOWED_ORIGINS: ${LOGIN_SOURCE_ALLOWED_ORIGINS:-http://localhost:8081,http://keycloak:8080,http://keycloak-secondary:8080}
   OIDC_CLIENT_ID: organization-backend
   OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
   CAMUNDA_URL: http://camunda:8080
