@@ -149,6 +149,8 @@
 .member-account-details p { margin-top: 4px; font-size: 0.85rem; }
 .member-owner { font-weight: 600; }
 .member-subject { font-size: 0.75rem !important; }
+.admin-table .personnel-connection-warning.v-chip { height: auto; min-height: 26px; max-width: 100%; padding-block: 3px; }
+.personnel-connection-warning .v-chip__content { white-space: normal; line-height: 1.8; }
 .member-search { display: flex; align-items: center; gap: 12px; }
 .member-pagination { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 @media (max-width: 600px) {

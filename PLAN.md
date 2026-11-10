@@ -246,11 +246,18 @@ The user explicitly requested marking personnel who have no Member, or whose Mem
 - Acceptance: zero Members and inactive-only connections are marked; at least one active-source connection removes the marker, including mixed active/inactive connections. Verify status changes after attach/detach or source activity changes, correct company filtering and boolean serialization. Verify readable RTL light/dark/mobile presentation without relying on color alone.
 
 1. [x] Add the list indicator API and focused regressions; commit backend changes and evidence.
-2. [ ] Add the frontend chip and directory refresh; verify typecheck/build and browser presentation; commit frontend changes and evidence.
+2. [x] Add the frontend chip and directory refresh; verify typecheck/build and browser presentation; commit frontend changes and evidence.
 
-Revision progress: **1 of 2 steps completed**. No phase closeout documentation or integration is authorized by this revision.
+Revision progress: **2 of 2 steps completed**. No phase closeout documentation or integration is authorized by this revision.
 
 ### Connection-indicator revision step 1 evidence
 
 - Added `has_active_member` using a correlated EXISTS query against active local sources; no Keycloak queries, schema changes or Member identity disclosure. Global and company directories share the calculation.
 - PostgreSQL MemberConnectionTest and ManagementApiTest: 24 passed / 203 assertions. Covered no Members, inactive-only and mixed connections, loss of the active connection, source activation, boolean output, directory-only authority and company boundaries. Pint passed both changed PHP files.
+
+### Connection-indicator revision step 2 evidence
+
+- Added the warning-colored disconnected-link icon and Persian text next to personnel without an active-source connection. Text remains readable without color; dedicated CSS allows multiline labels without clipping at mobile widths. Account-dialog close refreshes the directory so successful connection changes update the indicator.
+- Nuxt typecheck, all 10 existing frontend tests, final production build and git diff --check passed. The existing nonfatal Volar warning remains. Named Chrome checks verified missing/inactive rows marked and active rows unmarked, desktop light and 390px dark appearance, no horizontal document overflow or clipped label text, and removal of the marker after account-dialog close refreshes changed list data. UI scenarios used intercepted responses; actual database semantics were verified by the 24 PostgreSQL tests in step 1.
+- Ignored screenshots output/playwright/personnel-indicator-desktop.png and personnel-indicator-mobile-dark.png were visually inspected. No personnel, Member, source or role data was created or changed for browser testing; the isolated login was logged out, its encrypted cookie fixture removed and its browser closed. Frontend dev was restarted after build.
+- Revision step 2 of 2 completed; main phase remains 7 of 8 pending explicit completion approval. No docs/ closeout, rebase, merge, push or branch deletion performed.

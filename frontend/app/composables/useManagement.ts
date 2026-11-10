@@ -1,4 +1,4 @@
-export type DirectoryItem = { id: number; title?: string; name?: string; [key: string]: unknown }
+export type DirectoryItem = { id: number; title?: string; name?: string; has_active_member?: boolean; [key: string]: unknown }
 export type DirectoryPage = { data: DirectoryItem[]; meta?: { total: number; last_page: number }; total?: number; last_page?: number }
 export function managementError(error: unknown): string {
   const payload = (error as { data?: { reason?: string; data?: { reason?: string } } }).data
