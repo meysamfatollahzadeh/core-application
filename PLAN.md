@@ -236,3 +236,16 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 - Applied both grants atomically in the development database after checking the exact role key/title and existing permission catalog. Two role-permission rows were added; verified that both grants exist and all prior role permissions remain unchanged. No user-role assignments or application code changed.
 - This explicit operational grant supersedes the earlier pending-assignment note for this role only. Permission synchronization still does not implicitly grant the new capabilities to other existing roles. Authorization resolves current database grants on subsequent requests; refreshing the Personnel page exposes authorized controls without requiring a new login.
 - Completion approval is still pending. Progress remains 7 of 8; no phase closeout documentation or Git integration is authorized by this access-grant approval.
+
+## Authorized review revision — Personnel connection indicator
+
+The user explicitly requested marking personnel who have no Member, or whose Members are all associated with inactive sources. This is a bounded review revision within the current phase, authorized by the user's request. Main phase progress remains 7 of 8 and completion approval is still pending.
+
+- Scope and method: add a sanitized boolean `has_active_member` to the existing global/company personnel list responses using a database EXISTS query against Members and active UserSources. Show a warning chip with a local disconnected-link icon and Persian text `فاقد اتصال به منبع فعال` next to affected personnel. Status depends on local source activity, not remote account availability. Refresh the directory after closing account management so connection changes are reflected.
+- Database design: no migrations or stored status columns; derive the boolean from current data without remote Keycloak calls. Existing directory permissions and company filtering remain unchanged. Do not expose Member/source identities to directory-only readers.
+- Acceptance: zero Members and inactive-only connections are marked; at least one active-source connection removes the marker, including mixed active/inactive connections. Verify status changes after attach/detach or source activity changes, correct company filtering and boolean serialization. Verify readable RTL light/dark/mobile presentation without relying on color alone.
+
+1. [ ] Add the list indicator API and focused regressions; commit backend changes and evidence.
+2. [ ] Add the frontend chip and directory refresh; verify typecheck/build and browser presentation; commit frontend changes and evidence.
+
+Revision progress: **0 of 2 steps completed**. No phase closeout documentation or integration is authorized by this revision.
