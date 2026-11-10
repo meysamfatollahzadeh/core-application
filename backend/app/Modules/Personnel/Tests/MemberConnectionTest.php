@@ -206,4 +206,18 @@ class MemberConnectionTest extends TestCase
         $this->getJson('/api/personnel/'.$user->id.'/members')->assertOk()->assertJsonPath('data.0.uuid', $member->uuid)->assertJsonPath('data.0.profile_state', 'unavailable');
         $this->deleteJson('/api/personnel/'.$user->id.'/members/'.$member->id)->assertNoContent();
     }
+
+    public function test_missing_remote_account_and_inactive_attach_never_create_a_connection(): void
+    {
+        $user = $this->login(['personnel.members.manage']);
+        $source = $this->source();
+        $url = '/api/personnel/'.$user->id.'/members';
+        $source->update(['is_active' => false]);
+        $this->postJson($url, ['source_slug' => 'primary', 'uuid' => 'gone'])->assertConflict()->assertJsonPath('error', 'source_inactive');
+        Http::assertNothingSent();
+        $source->update(['is_active' => true]);
+        Http::fake(fn ($r) => str_ends_with($r->url(), '/token') ? Http::response(['access_token' => 'private']) : Http::response([], 404));
+        $this->postJson($url, ['source_slug' => 'primary', 'uuid' => 'gone'])->assertUnprocessable()->assertJsonPath('error', 'account_ineligible');
+        $this->assertDatabaseCount('members', 0);
+    }
 }

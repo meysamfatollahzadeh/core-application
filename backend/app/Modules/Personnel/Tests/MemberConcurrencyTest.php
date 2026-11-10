@@ -13,6 +13,54 @@ class MemberConcurrencyTest extends TestCase
 {
     use DatabaseMigrations;
 
+    public function test_detach_waiting_for_callback_removes_the_just_issued_token(): void
+    {
+        $member = Member::factory()->create();
+        $barrier = tempnam(sys_get_temp_dir(), 'member-callback-');
+        unlink($barrier);
+        $code = <<<'PHP'
+require 'vendor/autoload.php';
+$app=require 'bootstrap/app.php'; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$member=App\Modules\Login\Models\Member::findOrFail(getenv('MEMBER_ID')); $source=$member->userSource;
+if (getenv('ACTION')==='detach') {
+ app(App\Modules\Login\Actions\ManageMemberConnections::class)->detach($member->user,$member); echo 'detached'; exit;
+}
+$provider=Mockery::mock(App\Modules\Login\Services\ProviderClient::class);
+$provider->shouldReceive('exchange')->once()->andReturn(['id_token'=>'signed-test-identity','access_token'=>'test-access','refresh_token'=>'test-refresh','expires_in'=>300]);
+$provider->shouldReceive('validateIdentity')->once()->andReturn(['sub'=>$member->uuid,'sid'=>'test-callback-session']);
+$binding=str_repeat('b',64); $state=str_repeat('s',64);
+Illuminate\Support\Facades\Cache::put('login:transaction:'.$state,['slug'=>$source->slug,'config'=>$source->fingerprint(),'binding_hash'=>hash('sha256',$binding),'created_at'=>time(),'verifier'=>'test-verifier','nonce'=>'test-nonce'],300);
+Illuminate\Support\Facades\DB::listen(function($event) {
+ if(str_contains($event->sql,'user_sources') && str_contains($event->sql,'for update')) { file_put_contents(getenv('BARRIER'),'locked'); usleep(1000000); }
+});
+$result=(new App\Modules\Login\Actions\CompleteLogin($provider))->execute($source,$state,'test-code',$binding);
+echo isset($result['token'])?'issued':'failed';
+PHP;
+        $env = ['APP_ENV' => 'testing', 'APP_KEY' => config('app.key'), 'CACHE_STORE' => 'array', 'DB_DATABASE' => config('database.connections.pgsql.database'), 'MEMBER_ID' => $member->id, 'BARRIER' => $barrier];
+        $callback = new Process([PHP_BINARY, '-r', $code], base_path(), [...$env, 'ACTION' => 'callback']);
+        $detach = new Process([PHP_BINARY, '-r', $code], base_path(), [...$env, 'ACTION' => 'detach']);
+        try {
+            $callback->start();
+            $deadline = microtime(true) + 8;
+            while (! file_exists($barrier) && $callback->isRunning() && microtime(true) < $deadline) {
+                usleep(10000);
+            }
+            $this->assertFileExists($barrier, $callback->getErrorOutput());
+            $detach->start();
+            $callback->wait();
+            $detach->wait();
+            $this->assertSame(0, $callback->getExitCode(), $callback->getErrorOutput());
+            $this->assertSame('issued', $callback->getOutput());
+            $this->assertSame(0, $detach->getExitCode(), $detach->getErrorOutput());
+            $this->assertDatabaseMissing('members', ['id' => $member->id]);
+            $this->assertDatabaseCount('personal_access_tokens', 0);
+        } finally {
+            $callback->stop();
+            $detach->stop();
+            @unlink($barrier);
+        }
+    }
+
     public function test_parallel_attach_cannot_take_identity_or_duplicate_user_source(): void
     {
         $code = <<<'PHP'

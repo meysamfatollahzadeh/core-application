@@ -214,3 +214,8 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 - Full isolated PostgreSQL suite passed twice, including after formatting: 73 tests / 461 assertions. Ten frontend tests passed; Nuxt typecheck and production build passed. The existing nonfatal vue-router/volar plugin warning remains. Pint checked the 19 changed PHP files and fixed five style issues; git diff --check passed.
 - Development uniqueness migration completed successfully without conflicts or data reconciliation. Catalog sync registered new permissions while preserving existing roles from implicit new grants. Frontend dev service restarted after production build.
 - Browser tooling uses the already cached Playwright CLI and installed Chrome; no dependency/runtime changes were made. Browser acceptance remains in progress.
+
+### Step 7 verification additions — 2026-11-10
+
+- Added actual two-process callback/detach overlap coverage: callback issues a token while holding its source lock; waiting detach then removes that Member and the just-issued token. Added API checks for inactive attach and a remotely deleted account. Full PostgreSQL suite now passes 75 tests / 473 assertions; Pint passes both added test files.
+- Browser acceptance found a client-navigation race after self-detach. The frontend fix uses a full same-origin navigation to obtain anonymous SSR HTML; a repeat browser test verified the login button appears immediately after deleting the final current Member. No authentication mechanism or remote account behavior changed. Browser fixture cleanup and final evidence are still pending.
