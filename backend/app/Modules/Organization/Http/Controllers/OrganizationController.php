@@ -256,7 +256,7 @@ class OrganizationController extends Controller
 
     public function locationOptions(Request $r)
     {
-        $this->allow($r, 'personnel.update');
+        abort_unless($this->access->allows($r->user()->id, 'personnel.update') || $this->access->allows($r->user()->id, 'personnel.create'), 403, 'Permission denied.');
         $d = $r->validate(['search' => ['nullable', 'string', 'max:100'], 'page' => ['nullable', 'integer', 'min:1']]);
         $q = DB::table('building_areas')->join('buildings', 'buildings.id', '=', 'building_areas.building_id')->select('building_areas.id', 'building_areas.title', 'building_id', 'buildings.title as building_title');
         if (! empty($d['search'])) {

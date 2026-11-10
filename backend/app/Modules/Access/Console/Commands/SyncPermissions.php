@@ -21,6 +21,10 @@ class SyncPermissions extends Command
             $role = Role::firstOrCreate(['key' => 'system-administrator'], ['title' => 'مدیر سامانه']);
             foreach (PermissionCatalog::keys() as $key) {
                 $permission = Permission::firstOrCreate(['key' => $key], ['title' => PermissionCatalog::title($key)]);
+                // New sensitive capabilities require explicit assignment to existing roles.
+                if (! $role->wasRecentlyCreated && in_array($key, ['personnel.create', 'personnel.members.manage'], true)) {
+                    continue;
+                }
                 DB::table('role_permission')->insertOrIgnore(['role_id' => $role->id, 'permission_id' => $permission->id]);
             }
         });
