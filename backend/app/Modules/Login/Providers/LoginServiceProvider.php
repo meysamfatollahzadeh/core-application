@@ -4,6 +4,8 @@ namespace App\Modules\Login\Providers;
 
 use App\Modules\Login\Console\Commands\ImportLoginMembers;
 use App\Modules\Login\Console\Commands\UpsertLoginSource;
+use App\Modules\Login\Http\Middleware\PrivateSourceResponse;
+use App\Modules\Login\Http\Middleware\VerifyProviderGrant;
 use App\Modules\Login\Models\PersonalAccessToken;
 use App\Modules\Login\Services\LoginFailure;
 use Illuminate\Contracts\Debug\ExceptionHandler;
@@ -23,5 +25,8 @@ class LoginServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         Route::middleware('api')->prefix('api/login')->name('login.')
             ->group(__DIR__.'/../Routes/api.php');
+        Route::middleware(['api', PrivateSourceResponse::class, 'auth:sanctum', VerifyProviderGrant::class, 'throttle:60,1'])
+            ->prefix('api')->name('management.login-sources.')
+            ->group(__DIR__.'/../Routes/management.php');
     }
 }
