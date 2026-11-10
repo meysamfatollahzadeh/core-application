@@ -2,7 +2,7 @@
 
 ## Phase 4 approved closeout — 2026-11-10
 
-The user confirmed successful manual testing and explicitly approved completion, documentation, integration into master and push. Implementation verification passed **89 backend tests / 621 assertions**, **12 frontend tests**, Nuxt typecheck and production build. After colocating the new tests with Login and registering that directory in phpunit.xml, the focused suite passed **13 tests / 130 assertions**. Post-rebase verification results are recorded in [PLAN.md](../../PLAN.md).
+The user confirmed successful manual testing and explicitly approved completion, documentation, integration into master and push. Implementation verification passed **89 backend tests / 621 assertions**, **12 frontend tests**, Nuxt typecheck and production build. After colocating the new tests with Login and registering that directory in phpunit.xml, the focused suite passed **13 tests / 130 assertions**. Post-rebase verification again passed **89 backend tests / 621 assertions**, **12 frontend tests**, Nuxt typecheck and a fresh production build. The feature branch was already current on origin/master, with no conflicts. Frontend was restarted after build to restore development generation. Synchronization details are recorded in [PLAN.md](../../PLAN.md).
 
 Coverage includes independent global permissions, company-grant rejection, sanitized source resources, immutable slug/connected-source issuer, allowed provider origins, encrypted and preserved secrets, complete optional directory groups, source-scoped credential revocation, inactive-source rejection, restrictive deletion and shared CLI safeguards. Independent PostgreSQL processes cover callback/deactivation and attachment/deletion in both lock orders.
 

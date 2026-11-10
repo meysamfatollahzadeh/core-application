@@ -3,10 +3,10 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-10 (Asia/Tehran).
-- Status: **Completion approved; documentation and integration closeout in progress.**
+- Status: **Complete after explicit user completion approval; approved closeout prepared for Git integration.**
 - Explicit approval: the user approved this complete plan in chat on 2026-11-10 and requested implementation plus development permission synchronization. The user separately confirmed successful manual testing, approved phase completion, and explicitly authorized documentation, master integration and push in chat on 2026-11-10.
 - Planning revision: the user requested explicit execution of permission synchronization in the development environment so the new administration section is ready for manual testing. This request does not approve the complete phase plan.
-- Implementation progress: **6 of 7 steps completed**.
+- Implementation progress: **7 of 7 phase deliverables completed**; final merge/push/branch-cleanup execution is reported in the closeout chat..
 - Branch: `codex/feature/login-source-management`.
 - Baseline: `e070cf820eae0a2449c79b30276235e51a1d18e6`.
 - Preparation: verified a clean master working tree, fetched origin, switched to master, updated using `git merge --ff-only origin/master` (already up to date), and created this feature branch before replacing PLAN.md.
@@ -158,7 +158,13 @@ Under the existing authenticated management API prefix, using the source slug fo
 - Gateway failures initially lost no-store through Nuxt's generic error renderer. Source-specific handled JSON failures now retain private/no-store headers, including validation, CSRF and unknown-method errors; the real gateway acceptance passed after the correction.
 - Browser automation fallback: the Playwright CLI package fetch failed due unavailable npm DNS; verification continued successfully with the connected in-app browser. Transient automatic access-review timeouts succeeded on their permitted retry; no remaining access blocker exists.
 - Manual-test entry point: `http://localhost:8081/admin/login-sources`, or Management → Access → Login sources. Existing system-administrator access is ready; source endpoints outside the configured allowlist require operator configuration before saving.
-- Step 6 completed: backend, frontend, environment configuration and verification changes are committed separately on the feature branch, and the implementation is presented for user review. Completion approval is pending. No final phase documentation, rebase, merge, push or branch deletion has been performed; step 7 remains gated by explicit completion approval.
+- Step 6 completed: backend, frontend, environment configuration and verification changes are committed separately on the feature branch, and the implementation is presented for user review. At the review handoff, completion approval was pending and documentation/integration had not begun. The later explicit approval recorded below authorized step 7.
 
 - Closeout authorization: the user confirmed manual testing and explicitly approved completion, documentation, integration into master and push on 2026-11-10. Step 7 is now authorized and in progress.
 - Approved documentation closeout prepared: English source administration/database/business/API reference, Persian usage/permissions/origin-allowlist/CLI-recovery guide, index and cross-reference updates, and validation evidence. All local documentation links and new JSON examples passed checks; no application or schema changes were introduced during closeout.
+
+- Step 7 approved documentation and final validation completed: technical English and Persian usage/operations documentation are committed; database category explicitly records no schema changes.
+- Final synchronization: `git fetch origin` succeeded; `git rebase origin/master` reported the feature branch up to date on `e070cf820eae0a2449c79b30276235e51a1d18e6`, with no conflicts. Working tree was clean before rebase.
+- Post-rebase verification: full PostgreSQL backend suite passed **89 tests / 621 assertions** (52.34s); all **12 frontend tests**, Nuxt typecheck and fresh production build passed. Existing nonfatal Vue/plugin timing warnings remain. Documentation verification passed **67 local links** and JSON examples. Frontend was restarted after build to restore development generation.
+- The feature branch has not been published remotely (`git ls-remote --heads origin codex/feature/login-source-management` returned no ref), so no remote feature deletion is needed unless publication state changes.
+- This final feature-branch closeout commit precedes the authorized `master` fast-forward, `--no-ff` merge, normal push and local integrated-branch deletion. Do not infer those outcomes from this commit; the actual merge hash, push confirmation and cleanup results are reported in the final chat and visible in Git history. No force-push or master reset is authorized or required.
