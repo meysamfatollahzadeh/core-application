@@ -11,6 +11,7 @@ use App\Modules\Organization\Models\Position;
 use App\Modules\Organization\Services\PositionPaths;
 use App\Modules\Personnel\Actions\ManagePersonnel;
 use App\Modules\Personnel\Http\Requests\AssignmentRequest;
+use App\Modules\Personnel\Http\Requests\CreatePersonnelRequest;
 use App\Modules\Personnel\Http\Requests\PersonnelRequest;
 use App\Modules\Personnel\Models\UserPosition;
 use Illuminate\Http\Request;
@@ -56,6 +57,13 @@ class PersonnelController extends Controller
         $this->allow($r, 'personnel.update');
 
         return response()->json(['data' => $this->change->user($user, $r->validated())->only(['id', 'name', 'building_area_id'])]);
+    }
+
+    public function store(CreatePersonnelRequest $r)
+    {
+        $user = $this->change->user(new User, $r->validated());
+
+        return response()->json(['data' => $user->only(['id', 'name', 'building_area_id'])], 201);
     }
 
     public function companyPeople(Request $r, Company $company)

@@ -5,7 +5,7 @@
 - Prepared: 2026-11-10 (Asia/Tehran).
 - Status: **Approved; implementation in progress.**
 - Explicit plan approval received in chat on 2026-11-10; implementation authorized. Completion approval remains pending.
-- Implementation progress: **2 of 8 steps completed**.
+- Implementation progress: **3 of 8 steps completed**.
 - Branch: `codex/feature/personnel-account-linking`.
 - Baseline: `84e6f4c1bd143a6da7fe6902922cf94a25534240`.
 - Planning preparation: verified a clean working tree on master; fetched origin successfully; switched to master; `git merge --ff-only origin/master` reported already up to date; created the feature branch before replacing this file. HEAD and origin/master both matched the baseline.
@@ -152,7 +152,7 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 
 1. [x] **Database invariants and permission foundation.** Add conflict preflight and the User/source unique constraint; extend permission catalog/labels and creation location-options authorization. Verify fresh migration/rollback and conflict refusal on PostgreSQL. Commit scoped backend changes and plan evidence.
 2. [x] **Live Keycloak account reads.** Add reusable sanitized search/account lookup using configured read clients, bounded pagination, disabled/service-account handling and explicit provider failures. Test the requested search fields and the pinned Keycloak runtime's behavior. Commit Login changes and plan evidence.
-3. [ ] **Personnel creation and connection APIs.** Implement create/list/sources/search/attach/detach endpoints, independent global authorization, nested ownership, live attach validation, stable reason codes, transactional uniqueness and member-specific token deletion. Add focused API/integrity tests; commit backend work and evidence.
+3. [x] **Personnel creation and connection APIs.** Implement create/list/sources/search/attach/detach endpoints, independent global authorization, nested ownership, live attach validation, stable reason codes, transactional uniqueness and member-specific token deletion. Add focused API/integrity tests; commit backend work and evidence.
 4. [ ] **Import and authentication concurrency compatibility.** Bring bulk import/dry-run under the same constraints, cover pending batch conflicts, coordinate callback/removal locking, and verify selective revocation and fresh credential checks. Commit scoped backend changes and plan evidence.
 5. [ ] **Nuxt gateway and Personnel interface.** Extend allowlisted routes/error transport, add creation and account dialogs/actions, permission-based controls, result eligibility/owner labels and resilient source/profile states. Keep frontend commits separate from backend commits; commit evidence.
 6. [ ] **Automated verification.** Run targeted and full PostgreSQL backend suites, meaningful concurrency/integrity regressions, existing frontend tests, Nuxt typecheck/build and diff checks. Fix failures on this branch and record actual results and limitations.
@@ -193,3 +193,8 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 
 - Added sanitized source-configured directory search and exact subject lookup, service-account filtering, disabled-account visibility, raw-page continuation and safe provider errors. Profile results omit credentials/configuration.
 - AccountDirectoryTest: 3 passed / 10 assertions. Read-only checks against the running pinned Keycloak succeeded for username, first name, last name, email and exact user lookup; no identity data was changed.
+
+### Step 3 evidence — 2026-11-10
+
+- Added independent creation and connection-management APIs, source-slug binding, remote eligibility/configuration rechecks, per-source search guards, sanitized owner labels and local fallback listing. Attach/detach use source/User/Member locking; removal atomically deletes only matching tokens and the Member.
+- MemberConnectionTest: 9 passed / 75 assertions, including invalid creation, independent/global grants, cross-source connections, occupied identity rejection, inactive-source behavior, profile preservation, selective/last-member deletion, nested ownership and rollback on injected deletion failure.
