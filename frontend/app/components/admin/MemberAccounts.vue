@@ -80,7 +80,7 @@ async function detach() {
     await api.mutate(`${base}/members/${member.id}`, 'DELETE')
     deleting.value = null
     resetSearch()
-    if (self) { await login.refresh(); emit('close'); await navigateTo('/'); return }
+    if (self) { await navigateTo('/', { external: true, replace: true }); return }
     await load()
   } catch (error) { notice.value = managementError(error); deleting.value = null }
   finally { busy.value = false }
