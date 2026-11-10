@@ -1,7 +1,7 @@
 <?php
 
-use App\Modules\Personnel\Http\Controllers\PersonnelController as C;
 use App\Modules\Personnel\Http\Controllers\MemberConnectionController as M;
+use App\Modules\Personnel\Http\Controllers\PersonnelController as C;
 use Illuminate\Support\Facades\Route;
 
 Route::get('personnel/options', [C::class, 'options']);

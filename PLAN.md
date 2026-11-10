@@ -5,7 +5,7 @@
 - Prepared: 2026-11-10 (Asia/Tehran).
 - Status: **Approved; implementation in progress.**
 - Explicit plan approval received in chat on 2026-11-10; implementation authorized. Completion approval remains pending.
-- Implementation progress: **5 of 8 steps completed**.
+- Implementation progress: **6 of 8 steps completed**.
 - Branch: `codex/feature/personnel-account-linking`.
 - Baseline: `84e6f4c1bd143a6da7fe6902922cf94a25534240`.
 - Planning preparation: verified a clean working tree on master; fetched origin successfully; switched to master; `git merge --ff-only origin/master` reported already up to date; created the feature branch before replacing this file. HEAD and origin/master both matched the baseline.
@@ -155,7 +155,7 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 3. [x] **Personnel creation and connection APIs.** Implement create/list/sources/search/attach/detach endpoints, independent global authorization, nested ownership, live attach validation, stable reason codes, transactional uniqueness and member-specific token deletion. Add focused API/integrity tests; commit backend work and evidence.
 4. [x] **Import and authentication concurrency compatibility.** Bring bulk import/dry-run under the same constraints, cover pending batch conflicts, coordinate callback/removal locking, and verify selective revocation and fresh credential checks. Commit scoped backend changes and plan evidence.
 5. [x] **Nuxt gateway and Personnel interface.** Extend allowlisted routes/error transport, add creation and account dialogs/actions, permission-based controls, result eligibility/owner labels and resilient source/profile states. Keep frontend commits separate from backend commits; commit evidence.
-6. [ ] **Automated verification.** Run targeted and full PostgreSQL backend suites, meaningful concurrency/integrity regressions, existing frontend tests, Nuxt typecheck/build and diff checks. Fix failures on this branch and record actual results and limitations.
+6. [x] **Automated verification.** Run targeted and full PostgreSQL backend suites, meaningful concurrency/integrity regressions, existing frontend tests, Nuxt typecheck/build and diff checks. Fix failures on this branch and record actual results and limitations.
 7. [ ] **Browser acceptance and review handoff.** Verify creation, remote search, successful and blocked connections, inactive/disabled sources/accounts, same-source search lockout, local-only deletion, selective revocation and self-detach across the gateway. Check desktop/mobile, RTL, themes, focus and dialog behavior. Use isolated fixtures and preserve unrelated development data; record actual cleanup. Pause for explicit user completion approval; small requested fixes repeat relevant checks.
 8. [ ] **Approved documentation, closeout and integration.** Only after explicit completion approval, update English technical docs for schema, business behavior and API contracts and Persian usage/operations guides, including permission assignment, import conflicts and reconnecting Users with no Members. Record and commit closeout. Fetch origin, rebase feature onto latest origin/master, resolve conflicts with git rebase --continue and repeat relevant validation. Update master with --ff-only, merge the verified feature using --no-ff and push master. If upstream advances, repeat synchronization/rebase/validation before retrying; never reset or force-push master. Delete local feature with git branch -d and any published remote feature only after successful integration/push. Report actual results and preserve the branch if blocked.
 
@@ -208,3 +208,9 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 
 - Added global personnel creation and the account-connections dialog, source occupancy lockout, live search/pagination, owner/disabled-account indicators, explicit attachment, confirmed local removal, profile fallback and self-detach login-state refresh. New CSS is confined to the dedicated admin stylesheet.
 - Gateway allows only the new explicit routes/methods and transports allowlisted reason codes into actionable Persian messages. Existing CSRF, credential transport and no-store behavior remain in place. Nuxt typecheck and production build passed; all 10 frontend tests passed, including reason transport/error-message regressions. Real browser acceptance is still pending step 7.
+
+### Step 6 evidence — 2026-11-10
+
+- Full isolated PostgreSQL suite passed twice, including after formatting: 73 tests / 461 assertions. Ten frontend tests passed; Nuxt typecheck and production build passed. The existing nonfatal vue-router/volar plugin warning remains. Pint checked the 19 changed PHP files and fixed five style issues; git diff --check passed.
+- Development uniqueness migration completed successfully without conflicts or data reconciliation. Catalog sync registered new permissions while preserving existing roles from implicit new grants. Frontend dev service restarted after production build.
+- Browser tooling uses the already cached Playwright CLI and installed Chrome; no dependency/runtime changes were made. Browser acceptance remains in progress.

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Login;
 
+use App\Modules\Login\Actions\ManageMemberConnections;
 use App\Modules\Login\Models\Member;
 use App\Modules\Login\Models\PersonalAccessToken;
 use App\Modules\Login\Models\User;
@@ -64,6 +65,7 @@ class TokenLifecycleTest extends TestCase
                 if ($this->duringIntrospection) {
                     ($this->duringIntrospection)();
                 }
+
                 return Http::response(['active' => $this->upstreamActive, 'sub' => 'external-subject', 'sid' => 'external-session', 'client_id' => 'organization']);
             }
             if ($request['grant_type'] === 'refresh_token') {
@@ -132,7 +134,7 @@ class TokenLifecycleTest extends TestCase
         $otherSource = UserSource::factory()->create();
         $other = Member::factory()->create(['user_id' => $member->user_id, 'user_source_id' => $otherSource->id, 'uuid' => 'external-subject']);
         $otherToken = $other->user->tokens()->create(['name' => 'survivor', 'token' => hash('sha256', 'surviving-secret'), 'abilities' => ['login:access'], 'expires_at' => now()->addHour(), 'member_id' => $other->id, 'provider_sid' => 'external-session', 'provider_config_hash' => $otherSource->fingerprint(), 'oidc_data' => ['access_token' => 'access-secret', 'access_expires_at' => time() + 300]]);
-        app(\App\Modules\Login\Actions\ManageMemberConnections::class)->detach($member->user, $member);
+        app(ManageMemberConnections::class)->detach($member->user, $member);
         $this->withToken($bearer)->getJson('/api/login/me')->assertUnauthorized();
         $this->app['auth']->forgetGuards();
         $this->withToken($otherToken->id.'|surviving-secret')->getJson('/api/login/me')->assertOk();
@@ -149,7 +151,7 @@ class TokenLifecycleTest extends TestCase
         $member = Member::where('uuid', 'external-subject')->firstOrFail();
         $this->duringIntrospection = function () use ($member): void {
             $this->duringIntrospection = null;
-            app(\App\Modules\Login\Actions\ManageMemberConnections::class)->detach($member->user, $member);
+            app(ManageMemberConnections::class)->detach($member->user, $member);
         };
         $this->withToken($bearer)->getJson('/api/login/me')->assertUnauthorized();
         $this->assertDatabaseCount('personal_access_tokens', 0);

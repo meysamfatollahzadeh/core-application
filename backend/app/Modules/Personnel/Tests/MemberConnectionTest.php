@@ -11,6 +11,7 @@ use App\Modules\Login\Models\User;
 use App\Modules\Login\Models\UserSource;
 use App\Modules\Organization\Models\Company;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
@@ -47,7 +48,7 @@ class MemberConnectionTest extends TestCase
 
     private function remote(array $profile = []): void
     {
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::swap(new Factory);
         Http::preventStrayRequests();
         Http::fake(fn ($r) => str_ends_with($r->url(), '/token') ? Http::response(['access_token' => 'private']) : Http::response(['id' => 'subject', 'username' => 'remote', 'firstName' => 'Remote', 'enabled' => true, ...$profile]));
     }
@@ -142,7 +143,7 @@ class MemberConnectionTest extends TestCase
             $this->remote($profile);
             $this->postJson($url, ['source_slug' => 'primary', 'uuid' => 'subject'])->assertUnprocessable()->assertJsonPath('error', 'account_ineligible');
         }
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::swap(new Factory);
         Http::preventStrayRequests();
         Http::fake(function ($r) use ($source) {
             if (str_ends_with($r->url(), '/token')) {
