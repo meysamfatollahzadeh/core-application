@@ -3,7 +3,8 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-10 (Asia/Tehran).
-- Status: **Proposed; awaiting explicit user plan approval.**
+- Status: **Approved; implementation in progress.**
+- Explicit approval: the user approved this complete plan in chat on 2026-11-10 and requested implementation plus development permission synchronization. Completion approval remains pending.
 - Planning revision: the user requested explicit execution of permission synchronization in the development environment so the new administration section is ready for manual testing. This request does not approve the complete phase plan.
 - Implementation progress: **0 of 7 steps completed**.
 - Branch: `codex/feature/login-source-management`.
