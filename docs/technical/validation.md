@@ -1,5 +1,25 @@
 # Verification evidence
 
+## Phase 3 approved closeout — 2026-11-10
+
+The user explicitly approved phase completion after reviewing creation, account connections and the active-source indicator, and separately authorized documentation, integration and push. Final pre-integration PostgreSQL suite: **76 tests / 491 assertions** passed. All **10 frontend tests**, Nuxt typecheck and a fresh production build passed. Closeout synchronization evidence is recorded in PLAN.md. Existing nonfatal Volar and build-timing warnings remain.
+
+Coverage includes independent global permissions and creator location access, missing/inactive/mixed connection indicators with company boundaries, additive uniqueness migration and non-destructive conflict refusal, directory sanitization, remote eligibility/configuration changes, selective revocation, last-member deletion, rollback on deletion failure, import/dry-run conflicts and real multi-process attach/callback-removal races. Login callback still rejects unknown Members; reconnecting cannot revive deleted tokens.
+
+Read-only checks against the pinned running Keycloak verified username, first name, last name, email and exact-account lookup. Real Chrome/gateway checks covered creation, attach, occupied ownership, same-source search lockout, inactive-source last-member removal, provider failure messages, surviving other-Member authentication, self-detach with immediate anonymous SSR, mobile RTL, focus, light/dark/automatic appearance and dialog behavior. Disabled-account presentation and indicator-only fixtures used intercepted browser responses; backend tests separately verified their eligibility/database semantics. No actual Keycloak identity was created, changed or deleted. Temporary local fixtures and test credentials were cleaned up and test browsers closed.
+
+Reproduce ordinary non-disruptive checks from the repository root:
+
+```bash
+docker compose exec -T backend php artisan test --compact
+docker compose exec -T frontend node --experimental-strip-types --test tests/admin-navigation.test.ts tests/appearance.test.ts tests/management-errors.test.ts
+docker compose exec -T frontend npm run typecheck
+docker compose exec -T frontend npm run build
+docker compose restart frontend
+```
+
+Backend tests enforce a separate PostgreSQL database ending in `_test`. Restarting only frontend after the production build restores the development server's generated files. No infrastructure, dependency or application changes are part of documentation closeout. Post-rebase results and actual merge/push/branch deletion outcomes are recorded in the current [plan](../../PLAN.md) and the chat closeout. Current schema/business/API behavior is described in [Phase 3](personnel-account-connections.md).
+
 ## Phase 2 approved closeout — 2026-11-08
 
 The user explicitly approved the implementation and review changes. Latest implementation verification: PostgreSQL backend **52 tests / 332 assertions**, seven frontend tests, Nuxt typecheck and production build passed. The existing nonfatal vue-router/volar warning remains. Real browser checks covered SSR/403 and scoped menus, grouped dashboard, mobile drawer/focus, persistent theme without stored-dark light flash, full hierarchy labels in lists/forms, actual role-subject names, logout confirmation, overlay protection and Escape dismissal including nested menus.

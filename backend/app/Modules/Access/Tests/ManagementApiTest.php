@@ -40,6 +40,22 @@ class ManagementApiTest extends TestCase
         $this->getJson('/api/access/me')->assertUnauthorized();
     }
 
+    public function test_creator_can_read_locations_without_profile_edit_authority(): void
+    {
+        $this->login(['personnel.view', 'personnel.create']);
+        $this->getJson('/api/organization/location-options')->assertOk();
+        $this->patchJson('/api/personnel/'.User::first()->id, ['name' => 'Denied'])->assertForbidden();
+    }
+
+    public function test_sync_does_not_add_new_sensitive_permissions_to_existing_admin_role(): void
+    {
+        $role = Role::create(['key' => 'system-administrator', 'title' => 'Existing']);
+        $this->artisan('access:sync-permissions')->assertSuccessful();
+        $ids = Permission::whereIn('key', ['personnel.create', 'personnel.members.manage'])->pluck('id');
+        $this->assertCount(2, $ids);
+        $this->assertSame(0, DB::table('role_permission')->where('role_id', $role->id)->whereIn('permission_id', $ids)->count());
+    }
+
     public function test_company_grants_never_open_global_routes_or_other_companies(): void
     {
         $org = new ManageOrganization;

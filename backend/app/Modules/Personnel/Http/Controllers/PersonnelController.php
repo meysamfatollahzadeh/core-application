@@ -11,6 +11,7 @@ use App\Modules\Organization\Models\Position;
 use App\Modules\Organization\Services\PositionPaths;
 use App\Modules\Personnel\Actions\ManagePersonnel;
 use App\Modules\Personnel\Http\Requests\AssignmentRequest;
+use App\Modules\Personnel\Http\Requests\CreatePersonnelRequest;
 use App\Modules\Personnel\Http\Requests\PersonnelRequest;
 use App\Modules\Personnel\Models\UserPosition;
 use Illuminate\Http\Request;
@@ -30,6 +31,7 @@ class PersonnelController extends Controller
     {
         $d = $r->validate(['search' => ['nullable', 'string', 'max:100'], 'page' => ['nullable', 'integer', 'min:1'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100']]);
         $q = User::query()->join('building_areas', 'building_areas.id', '=', 'users.building_area_id')->join('buildings', 'buildings.id', '=', 'building_areas.building_id')->select('users.id', 'users.name', 'users.building_area_id')->selectRaw("buildings.title || ' / ' || building_areas.title as location_title");
+        $q->withExists(['members as has_active_member' => fn ($q) => $q->whereHas('userSource', fn ($source) => $source->where('is_active', true))]);
         if (! empty($d['search'])) {
             $q->where('users.name', 'ilike', '%'.$d['search'].'%');
         }
@@ -56,6 +58,13 @@ class PersonnelController extends Controller
         $this->allow($r, 'personnel.update');
 
         return response()->json(['data' => $this->change->user($user, $r->validated())->only(['id', 'name', 'building_area_id'])]);
+    }
+
+    public function store(CreatePersonnelRequest $r)
+    {
+        $user = $this->change->user(new User, $r->validated());
+
+        return response()->json(['data' => $user->only(['id', 'name', 'building_area_id'])], 201);
     }
 
     public function companyPeople(Request $r, Company $company)

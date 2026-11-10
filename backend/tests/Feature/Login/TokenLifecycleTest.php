@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Login;
 
+use App\Modules\Login\Actions\ManageMemberConnections;
 use App\Modules\Login\Models\Member;
 use App\Modules\Login\Models\PersonalAccessToken;
 use App\Modules\Login\Models\User;
@@ -38,6 +39,8 @@ class TokenLifecycleTest extends TestCase
 
     private int $accessTtl = 300;
 
+    private ?\Closure $duringIntrospection = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -59,6 +62,10 @@ class TokenLifecycleTest extends TestCase
                 return Http::response([], 503);
             }
             if (str_ends_with($request->url(), '/introspect')) {
+                if ($this->duringIntrospection) {
+                    ($this->duringIntrospection)();
+                }
+
                 return Http::response(['active' => $this->upstreamActive, 'sub' => 'external-subject', 'sid' => 'external-session', 'client_id' => 'organization']);
             }
             if ($request['grant_type'] === 'refresh_token') {
@@ -118,6 +125,37 @@ class TokenLifecycleTest extends TestCase
         $this->complete($this->start())->assertForbidden()->assertJsonPath('error', 'member_not_imported');
         $this->assertDatabaseCount('users', 0);
         $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
+    public function test_detaching_one_member_revokes_only_its_tokens_and_reconnection_does_not_revive_them(): void
+    {
+        $bearer = $this->login();
+        $member = Member::where('uuid', 'external-subject')->firstOrFail();
+        $otherSource = UserSource::factory()->create();
+        $other = Member::factory()->create(['user_id' => $member->user_id, 'user_source_id' => $otherSource->id, 'uuid' => 'external-subject']);
+        $otherToken = $other->user->tokens()->create(['name' => 'survivor', 'token' => hash('sha256', 'surviving-secret'), 'abilities' => ['login:access'], 'expires_at' => now()->addHour(), 'member_id' => $other->id, 'provider_sid' => 'external-session', 'provider_config_hash' => $otherSource->fingerprint(), 'oidc_data' => ['access_token' => 'access-secret', 'access_expires_at' => time() + 300]]);
+        app(ManageMemberConnections::class)->detach($member->user, $member);
+        $this->withToken($bearer)->getJson('/api/login/me')->assertUnauthorized();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($otherToken->id.'|surviving-secret')->getJson('/api/login/me')->assertOk();
+        $this->complete($this->start())->assertForbidden();
+        Member::create(['uuid' => 'external-subject', 'user_id' => $other->user_id, 'user_source_id' => $this->source->id]);
+        $this->app['auth']->forgetGuards();
+        $this->withToken($bearer)->getJson('/api/login/me')->assertUnauthorized();
+        $this->complete($this->start())->assertOk();
+    }
+
+    public function test_detach_during_upstream_check_cannot_authorize_a_stale_token(): void
+    {
+        $bearer = $this->login();
+        $member = Member::where('uuid', 'external-subject')->firstOrFail();
+        $this->duringIntrospection = function () use ($member): void {
+            $this->duringIntrospection = null;
+            app(ManageMemberConnections::class)->detach($member->user, $member);
+        };
+        $this->withToken($bearer)->getJson('/api/login/me')->assertUnauthorized();
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertDatabaseCount('members', 0);
     }
 
     public function test_binding_wrong_source_nonce_and_changed_configuration_are_rejected(): void

@@ -14,7 +14,7 @@ Successful object responses normally use HTTP 200. Token/transaction responses a
 | --- | --- | --- |
 | `GET /sources` | Public; 60/minute | Active source summaries, ordered by title |
 | `POST /sources/{slug}/authorize` | Public; 20/minute; browser binding | One authorization URL with source-bound state, nonce and PKCE |
-| `POST /sources/{slug}/callback` | Public; 30/minute; code/state/binding proof | Finite Sanctum credential for a verified imported Member |
+| `POST /sources/{slug}/callback` | Public; 30/minute; code/state/binding proof | Finite Sanctum credential for a verified pre-linked Member |
 | `GET /me` | Sanctum plus upstream validity middleware | Sanitized current user/source/member, including performances |
 | `PATCH /performances` | Sanctum plus upstream validity; 60/minute | Atomically update own theme |
 | `POST /logout` | Sanctum; 30/minute | Immediate local revocation and bounded RP logout handoff |
@@ -55,7 +55,7 @@ The five-minute Redis transaction records the selected slug, auth configuration 
 {"state":"<64-alphanumeric-characters>","code":"<provider-authorization-code>","browser_binding":"<same-browser-proof>"}
 ```
 
-State is exactly 64 ASCII alphanumeric characters; code is a nonempty string, at most 4096 characters. Binding validation and expiry/config/source checks precede single-use consumption. The code exchange and RS256 identity validation must succeed before membership lookup. Unknown membership returns `403 {"error":"member_not_imported"}` without creating User/Member/token records.
+State is exactly 64 ASCII alphanumeric characters; code is a nonempty string, at most 4096 characters. Binding validation and expiry/config/source checks precede single-use consumption. The code exchange and RS256 identity validation must succeed before membership lookup. Unknown membership returns `403 {"error":"member_not_imported"}` without creating User/Member/token records. A matching Member may have been created by explicit Personnel account attachment or bulk import; the historical member_not_imported error code is retained. See [personnel connection management](personnel-account-connections.md) for pairwise uniqueness and selective Member-token revocation.
 
 Success (consumed only by Nuxt's server or a trusted API consumer):
 

@@ -141,3 +141,20 @@
 .position-path-preview > span { font-size: 0.75rem; color: rgba(var(--v-theme-on-surface), 0.7); }
 .position-path-preview p { margin-top: 6px; font-size: 0.85rem; line-height: 2; }
 .grant-role-dialog .v-card-title { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; font-size: 1.1rem; line-height: 1.9; }
+.member-dialog .v-card-title { white-space: normal; overflow-wrap: anywhere; line-height: 1.9; font-size: 1.1rem; }
+.member-section-title { font-size: 0.95rem; margin-bottom: 16px; }
+.member-account-list { display: grid; gap: 12px; }
+.member-account-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; border: 1px solid rgba(var(--v-theme-on-surface), 0.14); border-radius: 10px; margin-block: 6px; }
+.member-account-details { min-width: 0; overflow-wrap: anywhere; line-height: 1.9; }
+.member-account-details p { margin-top: 4px; font-size: 0.85rem; }
+.member-owner { font-weight: 600; }
+.member-subject { font-size: 0.75rem !important; }
+.admin-table .personnel-connection-warning.v-chip { height: auto; min-height: 26px; max-width: 100%; padding-block: 3px; }
+.personnel-connection-warning .v-chip__content { white-space: normal; line-height: 1.8; }
+.member-search { display: flex; align-items: center; gap: 12px; }
+.member-pagination { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+@media (max-width: 600px) {
+  .member-search, .member-account-row { flex-direction: column; align-items: stretch; }
+  .member-account-row > .v-btn { align-self: flex-end; }
+  .member-pagination { flex-wrap: wrap; }
+}

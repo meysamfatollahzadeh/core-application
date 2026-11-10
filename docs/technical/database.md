@@ -1,6 +1,6 @@
 # Phase 1 database design and changes
 
-> Historical Phase 1 baseline. Current Organization/Personnel/Access and user-location/appearance changes are documented in [Phase 2](organization-personnel-access.md). Its additions supersede the former Login-only scope below.
+> Historical Phase 1 baseline. Current Organization/Personnel/Access and user-location/appearance changes are documented in [Phase 2](organization-personnel-access.md). Its additions supersede the former Login-only scope below. [Phase 3](personnel-account-connections.md) adds local personnel creation, per-source membership uniqueness, account management and member-specific token revocation.
 
 ## Ownership
 

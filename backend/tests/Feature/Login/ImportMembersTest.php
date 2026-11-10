@@ -72,6 +72,56 @@ class ImportMembersTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_real_import_and_dry_run_reject_same_source_batch_mapping_conflicts(): void
+    {
+        $source = UserSource::factory()->create(['slug' => 'primary']);
+        $source->update(['data' => [...$source->data, 'import_client_id' => 'reader', 'import_client_secret' => 'private', 'admin_base_url' => 'https://idp.example/admin/realms/test']]);
+        $user = User::factory()->create();
+        $path = tempnam(sys_get_temp_dir(), 'member-map-');
+        file_put_contents($path, json_encode(['subject-a' => $user->id, 'subject-b' => $user->id]));
+        Http::preventStrayRequests();
+        Http::fake(fn ($r) => str_ends_with($r->url(), '/token') ? Http::response(['access_token' => 'private']) : Http::response([
+            ['id' => 'subject-a', 'username' => 'a', 'enabled' => true],
+            ['id' => 'subject-b', 'username' => 'b', 'enabled' => true],
+        ]));
+        try {
+            $this->artisan('login:import-members', ['--source' => 'primary', '--mapping-file' => $path, '--dry-run' => true])->assertFailed();
+            $this->assertDatabaseCount('members', 0);
+            $this->artisan('login:import-members', ['--source' => 'primary', '--mapping-file' => $path])->assertFailed();
+            $this->assertDatabaseCount('members', 1);
+            $this->assertDatabaseHas('members', ['uuid' => 'subject-a', 'user_id' => $user->id]);
+            $this->assertDatabaseCount('users', 1);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function test_mapping_cannot_take_another_users_identity_or_add_to_an_occupied_source(): void
+    {
+        $member = Member::factory()->create(['uuid' => 'subject-a']);
+        $source = $member->userSource;
+        $source->update(['data' => [...$source->data, 'import_client_id' => 'reader', 'import_client_secret' => 'private', 'admin_base_url' => 'https://idp.example/admin/realms/test']]);
+        $other = User::factory()->create();
+        $path = tempnam(sys_get_temp_dir(), 'member-map-');
+        Http::preventStrayRequests();
+        Http::fake(fn ($r) => str_ends_with($r->url(), '/token') ? Http::response(['access_token' => 'private']) : Http::response([
+            ['id' => 'subject-a', 'username' => 'a', 'enabled' => true],
+            ['id' => 'subject-b', 'username' => 'b', 'enabled' => true],
+        ]));
+        try {
+            foreach ([['subject-a' => $other->id], ['subject-b' => $member->user_id]] as $mapping) {
+                file_put_contents($path, json_encode($mapping));
+                foreach ([true, false] as $dry) {
+                    $this->artisan('login:import-members', ['--source' => $source->slug, '--mapping-file' => $path, ...($dry ? ['--dry-run' => true] : [])])->assertFailed();
+                }
+            }
+            $this->assertDatabaseCount('members', 1);
+            $this->assertSame($member->user_id, $member->fresh()->user_id);
+        } finally {
+            unlink($path);
+        }
+    }
+
     private function areaId(): int
     {
         return DB::transaction(function () {

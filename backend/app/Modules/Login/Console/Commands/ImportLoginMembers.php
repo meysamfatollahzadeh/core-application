@@ -5,6 +5,7 @@ namespace App\Modules\Login\Console\Commands;
 use App\Modules\Login\Models\Member;
 use App\Modules\Login\Models\User;
 use App\Modules\Login\Models\UserSource;
+use App\Modules\Login\Services\LoginFailure;
 use App\Modules\Login\Services\ProviderClient;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,8 @@ class ImportLoginMembers extends Command
             $created = 0;
             $skipped = 0;
             $seen = [];
+            $pending = [];
+            $configuration = hash('sha256', json_encode($source->data, JSON_THROW_ON_ERROR));
             $dryRun = (bool) $this->option('dry-run');
             for ($first = 0; $first < 1000000; $first += $source->data['page_size']) {
                 $page = $provider->adminUsers($source, $first, $token);
@@ -58,15 +61,29 @@ class ImportLoginMembers extends Command
                         continue;
                     }
                     $seen[$subject] = true;
-                    $created += DB::transaction(function () use ($source, $remote, $subject, $mapping, $dryRun, $areaId): int {
-                        UserSource::where('slug', $source->slug)->lockForUpdate()->firstOrFail();
+                    $created += DB::transaction(function () use ($source, $remote, $subject, $mapping, $dryRun, $areaId, $configuration, &$pending): int {
+                        $current = UserSource::where('slug', $source->slug)->lockForUpdate()->firstOrFail();
+                        if (! $current->is_active || ! hash_equals($configuration, hash('sha256', json_encode($current->data, JSON_THROW_ON_ERROR)))) {
+                            throw new LoginFailure('source_changed', 409);
+                        }
+                        if (isset($mapping[$subject])) {
+                            User::whereKey($mapping[$subject])->lockForUpdate()->firstOrFail();
+                        }
                         $existing = Member::where('user_source_id', $source->id)->where('uuid', $subject)->first();
                         if ($existing) {
                             if (isset($mapping[$subject]) && $existing->user_id !== $mapping[$subject]) {
-                                throw new RuntimeException('Existing associations cannot be silently changed.');
+                                throw new LoginFailure('identity_already_connected', 409);
                             }
 
                             return 0;
+                        }
+                        if (isset($mapping[$subject])) {
+                            $userId = $mapping[$subject];
+                            if (Member::where('user_id', $userId)->where('user_source_id', $source->id)->exists()
+                                || (isset($pending[$userId]) && $pending[$userId] !== $subject)) {
+                                throw new LoginFailure('user_source_occupied', 409);
+                            }
+                            $pending[$userId] = $subject;
                         }
                         if (! isset($mapping[$subject]) && ! $areaId) {
                             throw new RuntimeException('New users require --building-area');
@@ -87,6 +104,10 @@ class ImportLoginMembers extends Command
                 }
             }
             throw new RuntimeException('Pagination limit exceeded.');
+        } catch (LoginFailure $failure) {
+            $this->error('errors=1 '.$failure->errorCode.'; import stopped; existing associations and completed entries preserved.');
+
+            return self::FAILURE;
         } catch (Throwable) {
             $this->error('errors=1 Import stopped; completed imports and existing associations were preserved.');
 
