@@ -6,7 +6,7 @@
 - Status: **Approved; implementation in progress.**
 - Explicit approval: the user approved this complete plan in chat on 2026-11-10 and requested implementation plus development permission synchronization. Completion approval remains pending.
 - Planning revision: the user requested explicit execution of permission synchronization in the development environment so the new administration section is ready for manual testing. This request does not approve the complete phase plan.
-- Implementation progress: **3 of 7 steps completed**.
+- Implementation progress: **4 of 7 steps completed**.
 - Branch: `codex/feature/login-source-management`.
 - Baseline: `e070cf820eae0a2449c79b30276235e51a1d18e6`.
 - Preparation: verified a clean master working tree, fetched origin, switched to master, updated using `git merge --ff-only origin/master` (already up to date), and created this feature branch before replacing PLAN.md.
@@ -143,3 +143,5 @@ Under the existing authenticated management API prefix, using the source slug fo
 - Initial source-management API checks: `docker compose exec -T backend php artisan test --compact --filter=SourceManagementTest` passed (11 tests, 106 assertions).
 - Step 2 completed: six protected source-management API routes, independent global permissions, sanitized summary/detail resources, private responses and focused API/CLI regression coverage.
 - Step 3 completed: exact Nuxt gateway route/method allowlist, sanitized lifecycle error reasons, shared typed source contracts and global-only admin navigation. Existing server Bearer exchange, CSRF and no-store controls remain in place.
+- Step 4 completed: Persian source list, create/edit forms, derived callback previews, retained-secret hints, optional directory configuration removal, impact confirmations and referenced-deletion guidance. Responsive dedicated CSS follows the existing panel.
+- Frontend verification so far: `npm run typecheck` exited 0 (existing Vue route-block plugin warning); 11 Node tests passed, including global-only source navigation.
