@@ -40,7 +40,7 @@ class CompleteLogin
             if (! $source->is_active || ! hash_equals($transaction['config'], $source->fingerprint())) {
                 throw new LoginFailure('source_changed');
             }
-            $member = Member::with('user')->where('user_source_id', $source->id)->where('uuid', $claims['sub'])->first();
+            $member = Member::with('user')->where('user_source_id', $source->id)->where('uuid', $claims['sub'])->lockForUpdate()->first();
             if (! $member) {
                 throw new LoginFailure('member_not_imported', 403);
             }
