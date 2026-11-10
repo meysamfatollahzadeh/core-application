@@ -6,7 +6,7 @@
 - Status: **Approved; implementation in progress.**
 - Explicit approval: the user approved this complete plan in chat on 2026-11-10 and requested implementation plus development permission synchronization. Completion approval remains pending.
 - Planning revision: the user requested explicit execution of permission synchronization in the development environment so the new administration section is ready for manual testing. This request does not approve the complete phase plan.
-- Implementation progress: **0 of 7 steps completed**.
+- Implementation progress: **1 of 7 steps completed**.
 - Branch: `codex/feature/login-source-management`.
 - Baseline: `e070cf820eae0a2449c79b30276235e51a1d18e6`.
 - Preparation: verified a clean master working tree, fetched origin, switched to master, updated using `git merge --ff-only origin/master` (already up to date), and created this feature branch before replacing PLAN.md.
@@ -136,3 +136,8 @@ Under the existing authenticated management API prefix, using the source slug fo
 - Public source selection, imported-member-only callbacks, existing Keycloak login/logout, upstream checks and personnel account management continue to work.
 - Browser verification covers create, edit without secret replacement, secret replacement, activity changes, deletion conflict, empty-source deletion, permission visibility and current-source deactivation. Check mobile layout and light/dark modes.
 - Actual commands and results will be recorded here during execution. No implementation checks have run at proposal time.
+
+## 10. Execution evidence
+
+- Step 1 completed: shared lifecycle actions and CLI integration, origin validation, encrypted/retained secrets, issuer immutability and transactional source token revocation. Existing callback, attachment and import paths already lock the source row; source mutations use the same lock order.
+- Initial source-management API checks: `docker compose exec -T backend php artisan test --compact --filter=SourceManagementTest` passed (11 tests, 106 assertions).

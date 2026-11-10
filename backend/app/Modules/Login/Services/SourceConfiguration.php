@@ -20,9 +20,9 @@ class SourceConfiguration
             'data.client_secret' => ['required', 'string', 'max:2048'],
             'data.callback_url' => ['required', 'url:http,https'],
             'data.post_logout_redirect_uri' => ['required', 'url:http,https'],
-            'data.import_client_id' => ['sometimes', 'required', 'string'],
-            'data.import_client_secret' => ['required_with:data.import_client_id', 'string'],
-            'data.admin_base_url' => ['required_with:data.import_client_id', 'url:http,https'],
+            'data.import_client_id' => ['required_with:data.import_client_secret,data.admin_base_url', 'string', 'max:255'],
+            'data.import_client_secret' => ['required_with:data.import_client_id,data.admin_base_url', 'string', 'max:2048'],
+            'data.admin_base_url' => ['required_with:data.import_client_id,data.import_client_secret', 'url:http,https'],
             'data.allowed_algorithms' => ['required', 'array', 'size:1'],
             'data.allowed_algorithms.*' => [Rule::in(['RS256'])],
             'data.timeout' => ['required', 'integer', 'between:1,30'],
@@ -35,7 +35,7 @@ class SourceConfiguration
         }
         foreach (['issuer', 'internal_issuer', 'admin_base_url'] as $key) {
             $url = $valid['data'][$key] ?? null;
-            if ($url && (parse_url($url, PHP_URL_USER) || parse_url($url, PHP_URL_QUERY) || parse_url($url, PHP_URL_FRAGMENT))) {
+            if ($url && (parse_url($url, PHP_URL_PASS) || parse_url($url, PHP_URL_USER) || parse_url($url, PHP_URL_QUERY) || parse_url($url, PHP_URL_FRAGMENT))) {
                 throw ValidationException::withMessages(['data.'.$key => 'Provider URLs must not contain credentials, queries or fragments.']);
             }
             if ($url && app()->isProduction() && parse_url($url, PHP_URL_SCHEME) !== 'https') {
@@ -44,5 +44,25 @@ class SourceConfiguration
         }
 
         return $valid;
+    }
+
+    public function validateOrigins(array $data, array $previous = []): void
+    {
+        $allowed = array_map(fn ($url) => $this->origin($url), config('login.allowed_origins', []));
+        foreach (['issuer', 'internal_issuer', 'admin_base_url'] as $key) {
+            $url = $data[$key] ?? null;
+            if ($url && $url !== ($previous[$key] ?? null) && ! in_array($this->origin($url), $allowed, true)) {
+                throw ValidationException::withMessages(['data.'.$key => 'This provider origin is not allowed. Ask the operator to update LOGIN_SOURCE_ALLOWED_ORIGINS.']);
+            }
+        }
+    }
+
+    private function origin(string $url): string
+    {
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $port = parse_url($url, PHP_URL_PORT) ?: ($scheme === 'https' ? 443 : 80);
+
+        return $scheme.'://'.$host.':'.$port;
     }
 }
