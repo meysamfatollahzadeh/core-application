@@ -3,8 +3,9 @@
 ## 1. Status, baseline and approval gates
 
 - Prepared: 2026-11-10 (Asia/Tehran).
-- Status: **Proposed; awaiting explicit user approval of this phase plan.**
-- Implementation progress: **0 of 8 steps completed**. No application or infrastructure implementation is authorized yet.
+- Status: **Approved; implementation in progress.**
+- Explicit plan approval received in chat on 2026-11-10; implementation authorized. Completion approval remains pending.
+- Implementation progress: **0 of 8 steps completed**.
 - Branch: `codex/feature/personnel-account-linking`.
 - Baseline: `84e6f4c1bd143a6da7fe6902922cf94a25534240`.
 - Planning preparation: verified a clean working tree on master; fetched origin successfully; switched to master; `git merge --ff-only origin/master` reported already up to date; created the feature branch before replacing this file. HEAD and origin/master both matched the baseline.
@@ -181,4 +182,4 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 - Keycloak search/account reads will follow the official [Keycloak Admin REST API](https://www.keycloak.org/docs-api/latest/rest-api/index.html#_users), including users search fields, pagination and user-by-ID lookup; verify behavior against the repository's pinned 26.7.3 runtime rather than assuming latest-documentation compatibility.
 - Planning checks only: clean-tree inspection, current code/schema/route inspection, successful origin fetch and fast-forward synchronization, and feature-branch creation. Application tests and live Keycloak behavior have not been run for this proposed phase.
 - No application code, infrastructure, development data, phase closeout documentation, role grants or credentials were changed during planning.
-- Pending: explicit user approval of this plan before step 1.
+- Approval gate satisfied by explicit user approval in chat on 2026-11-10; step 1 may begin after committing this approval record.
