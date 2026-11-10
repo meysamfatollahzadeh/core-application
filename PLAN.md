@@ -3,10 +3,10 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-10 (Asia/Tehran).
-- Status: **Approved; implementation in progress.**
+- Status: **Implementation verified; awaiting explicit completion approval.**
 - Explicit approval: the user approved this complete plan in chat on 2026-11-10 and requested implementation plus development permission synchronization. Completion approval remains pending.
 - Planning revision: the user requested explicit execution of permission synchronization in the development environment so the new administration section is ready for manual testing. This request does not approve the complete phase plan.
-- Implementation progress: **5 of 7 steps completed**.
+- Implementation progress: **6 of 7 steps completed**.
 - Branch: `codex/feature/login-source-management`.
 - Baseline: `e070cf820eae0a2449c79b30276235e51a1d18e6`.
 - Preparation: verified a clean master working tree, fetched origin, switched to master, updated using `git merge --ff-only origin/master` (already up to date), and created this feature branch before replacing PLAN.md.
@@ -158,3 +158,4 @@ Under the existing authenticated management API prefix, using the source slug fo
 - Gateway failures initially lost no-store through Nuxt's generic error renderer. Source-specific handled JSON failures now retain private/no-store headers, including validation, CSRF and unknown-method errors; the real gateway acceptance passed after the correction.
 - Browser automation fallback: the Playwright CLI package fetch failed due unavailable npm DNS; verification continued successfully with the connected in-app browser. Transient automatic access-review timeouts succeeded on their permitted retry; no remaining access blocker exists.
 - Manual-test entry point: `http://localhost:8081/admin/login-sources`, or Management → Access → Login sources. Existing system-administrator access is ready; source endpoints outside the configured allowlist require operator configuration before saving.
+- Step 6 completed: backend, frontend, environment configuration and verification changes are committed separately on the feature branch, and the implementation is presented for user review. Completion approval is pending. No final phase documentation, rebase, merge, push or branch deletion has been performed; step 7 remains gated by explicit completion approval.
