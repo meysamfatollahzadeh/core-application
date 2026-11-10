@@ -3,8 +3,8 @@
 ## 1. Status, baseline and approval gates
 
 - Prepared: 2026-11-10 (Asia/Tehran).
-- Status: **Implementation and verification finished; awaiting explicit user completion approval.**
-- Explicit plan approval received in chat on 2026-11-10; implementation authorized. Completion approval remains pending.
+- Status: **Completion approved; documentation and integration in progress.**
+- Explicit plan approval and separate completion approval received in chat on 2026-11-10. Completion approval includes the reviewed connection indicator and explicitly authorizes phase documentation, integration into master and push.
 - Implementation progress: **7 of 8 steps completed**.
 - Branch: `codex/feature/personnel-account-linking`.
 - Baseline: `84e6f4c1bd143a6da7fe6902922cf94a25534240`.
@@ -261,3 +261,7 @@ Revision progress: **2 of 2 steps completed**. No phase closeout documentation o
 - Nuxt typecheck, all 10 existing frontend tests, final production build and git diff --check passed. The existing nonfatal Volar warning remains. Named Chrome checks verified missing/inactive rows marked and active rows unmarked, desktop light and 390px dark appearance, no horizontal document overflow or clipped label text, and removal of the marker after account-dialog close refreshes changed list data. UI scenarios used intercepted responses; actual database semantics were verified by the 24 PostgreSQL tests in step 1.
 - Ignored screenshots output/playwright/personnel-indicator-desktop.png and personnel-indicator-mobile-dark.png were visually inspected. No personnel, Member, source or role data was created or changed for browser testing; the isolated login was logged out, its encrypted cookie fixture removed and its browser closed. Frontend dev was restarted after build.
 - Revision step 2 of 2 completed; main phase remains 7 of 8 pending explicit completion approval. No docs/ closeout, rebase, merge, push or branch deletion performed.
+
+## Approved phase closeout — 2026-11-10
+
+The user explicitly confirmed reviewing the changes and approved phase completion, documentation, integration into master and push. This satisfies the separate completion gate and supersedes earlier pending-approval notes, which remain historical evidence. Step 8 is now authorized. Record actual validation, rebase, merge, push and cleanup outcomes; do not infer successful integration before executing it.
