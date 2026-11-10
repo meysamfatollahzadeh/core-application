@@ -5,7 +5,7 @@
 - Prepared: 2026-11-10 (Asia/Tehran).
 - Status: **Approved; implementation in progress.**
 - Explicit plan approval received in chat on 2026-11-10; implementation authorized. Completion approval remains pending.
-- Implementation progress: **1 of 8 steps completed**.
+- Implementation progress: **2 of 8 steps completed**.
 - Branch: `codex/feature/personnel-account-linking`.
 - Baseline: `84e6f4c1bd143a6da7fe6902922cf94a25534240`.
 - Planning preparation: verified a clean working tree on master; fetched origin successfully; switched to master; `git merge --ff-only origin/master` reported already up to date; created the feature branch before replacing this file. HEAD and origin/master both matched the baseline.
@@ -151,7 +151,7 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 ## 8. Ordered implementation steps
 
 1. [x] **Database invariants and permission foundation.** Add conflict preflight and the User/source unique constraint; extend permission catalog/labels and creation location-options authorization. Verify fresh migration/rollback and conflict refusal on PostgreSQL. Commit scoped backend changes and plan evidence.
-2. [ ] **Live Keycloak account reads.** Add reusable sanitized search/account lookup using configured read clients, bounded pagination, disabled/service-account handling and explicit provider failures. Test the requested search fields and the pinned Keycloak runtime's behavior. Commit Login changes and plan evidence.
+2. [x] **Live Keycloak account reads.** Add reusable sanitized search/account lookup using configured read clients, bounded pagination, disabled/service-account handling and explicit provider failures. Test the requested search fields and the pinned Keycloak runtime's behavior. Commit Login changes and plan evidence.
 3. [ ] **Personnel creation and connection APIs.** Implement create/list/sources/search/attach/detach endpoints, independent global authorization, nested ownership, live attach validation, stable reason codes, transactional uniqueness and member-specific token deletion. Add focused API/integrity tests; commit backend work and evidence.
 4. [ ] **Import and authentication concurrency compatibility.** Bring bulk import/dry-run under the same constraints, cover pending batch conflicts, coordinate callback/removal locking, and verify selective revocation and fresh credential checks. Commit scoped backend changes and plan evidence.
 5. [ ] **Nuxt gateway and Personnel interface.** Extend allowlisted routes/error transport, add creation and account dialogs/actions, permission-based controls, result eligibility/owner labels and resilient source/profile states. Keep frontend commits separate from backend commits; commit evidence.
@@ -188,3 +188,8 @@ Extend the gateway allowlist and forward only the validated search/pagination in
 
 - Added additive member uniqueness migration with locked conflict preflight and non-destructive rollback; preserved existing external identity uniqueness. Added independent permissions, protected existing admin roles from implicit new grants, and enabled location options for creators.
 - PostgreSQL targeted tests: 15 passed / 109 assertions (MemberIntegrityTest and ManagementApiTest), covering migration conflict refusal/reapplication and independent location access. No development associations reconciled or deleted.
+
+### Step 2 evidence — 2026-11-10
+
+- Added sanitized source-configured directory search and exact subject lookup, service-account filtering, disabled-account visibility, raw-page continuation and safe provider errors. Profile results omit credentials/configuration.
+- AccountDirectoryTest: 3 passed / 10 assertions. Read-only checks against the running pinned Keycloak succeeded for username, first name, last name, email and exact user lookup; no identity data was changed.
