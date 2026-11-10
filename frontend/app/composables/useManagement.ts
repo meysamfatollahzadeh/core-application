@@ -4,6 +4,9 @@ export function managementError(error: unknown): string {
   const payload = (error as { data?: { reason?: string; data?: { reason?: string } } }).data
   const reason = payload?.data?.reason ?? payload?.reason
   const reasons: Record<string, string> = {
+    source_has_members: 'این سورس حساب متصل دارد و قابل حذف نیست. می‌توانید آن را غیرفعال کنید.',
+    source_conflict: 'شناسه تکراری است یا اطلاعات هم‌زمان تغییر کرده است. فهرست را تازه کنید.',
+    source_save_failed: 'ذخیره تغییرات سورس ممکن نشد. دوباره تلاش کنید.',
     source_inactive: 'این منبع غیرفعال است؛ منبع فعال دیگری انتخاب کنید.',
     source_changed: 'تنظیمات منبع تغییر کرده است. دوباره جست‌وجو کنید.',
     user_source_occupied: 'این فرد از این منبع حساب متصل دارد. ابتدا اتصال قبلی را حذف کنید.',

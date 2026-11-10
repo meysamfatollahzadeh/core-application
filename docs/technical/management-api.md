@@ -2,6 +2,8 @@
 
 These implemented routes extend [Login](login-api.md). Base URL: `http://localhost:8081/api`. Protected requests require `Accept: application/json`, Bearer authentication and a valid upstream grant. Browser code uses the equivalent `/gateway/manage/{path}`; Nuxt forwards Bearer internally and requires same-origin Origin plus X-CSRF-Token for POST/PUT/PATCH/DELETE. Credentials are never returned in management responses.
 
+Phase 4 source configuration routes are documented in [login source administration](login-source-management.md). They use source slugs and independent global permissions; mutations return summaries, never credentials or configuration.
+
 ## Routes and authority
 
 `R` below denotes a resource operation suffix: view for GET, create for POST, update for PATCH/PUT and delete for DELETE. A global grant satisfies its corresponding company check.
@@ -9,6 +11,8 @@ These implemented routes extend [Login](login-api.md). Base URL: `http://localho
 | Methods / path | Required permission |
 | --- | --- |
 | GET, POST /companies; GET, PATCH, DELETE /companies/{company} | global companies.R |
+| GET, POST /login-sources; GET, PATCH, DELETE /login-sources/{slug} | global login_sources.view/create/update/delete as applicable |
+| PATCH /login-sources/{slug}/activity | global login_sources.activate |
 | GET /access/me | authenticated; effective global/company keys and visible company summaries |
 | GET, POST /companies/{company}/positions; GET, PATCH, DELETE .../positions/{position} | positions.R in company; nested ownership enforced |
 | GET, POST /buildings; GET, PATCH, DELETE /buildings/{building}; same methods on /buildings/{building}/areas[/{area}] | global buildings.R |

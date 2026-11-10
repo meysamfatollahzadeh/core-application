@@ -2,6 +2,8 @@
 
 > Historical Phase 1 baseline. Current Organization/Personnel/Access and user-location/appearance changes are documented in [Phase 2](organization-personnel-access.md). Its additions supersede the former Login-only scope below. [Phase 3](personnel-account-connections.md) adds local personnel creation, per-source membership uniqueness, account management and member-specific token revocation.
 
+> Phase 4 introduces no schema migrations. Current source lifecycle, permission catalog additions, encrypted-secret updates and restrictive deletion behavior are documented in [login source administration](login-source-management.md). The full configuration-file format below remains applicable to the CLI.
+
 ## Ownership
 
 Laravel owns `organization_app`. Keycloak primary/secondary and Camunda own their separate databases and migrations. Redis is used for cache, throttling and bounded protocol/lock records, not Laravel browser sessions. This phase introduces the Login domain and Sanctum storage; no tables for another business module, local passwords or password resets are introduced.

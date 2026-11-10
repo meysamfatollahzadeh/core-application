@@ -1,5 +1,17 @@
 # Verification evidence
 
+## Phase 4 approved closeout — 2026-11-10
+
+The user confirmed successful manual testing and explicitly approved completion, documentation, integration into master and push. Implementation verification passed **89 backend tests / 621 assertions**, **12 frontend tests**, Nuxt typecheck and production build. After colocating the new tests with Login and registering that directory in phpunit.xml, the focused suite passed **13 tests / 130 assertions**. Post-rebase verification again passed **89 backend tests / 621 assertions**, **12 frontend tests**, Nuxt typecheck and a fresh production build. The feature branch was already current on origin/master, with no conflicts. Frontend was restarted after build to restore development generation. Synchronization details are recorded in [PLAN.md](../../PLAN.md).
+
+Coverage includes independent global permissions, company-grant rejection, sanitized source resources, immutable slug/connected-source issuer, allowed provider origins, encrypted and preserved secrets, complete optional directory groups, source-scoped credential revocation, inactive-source rejection, restrictive deletion and shared CLI safeguards. Independent PostgreSQL processes cover callback/deactivation and attachment/deletion in both lock orders.
+
+Real OIDC-backed gateway acceptance verified authenticated initial SSR without credentials, source pagination/detail, CSRF and method allowlisting, secret retention/replacement, activity changes and 409/204 deletion cases. Current-source invalidation used a fresh OIDC-backed token with a temporary local source/Member for the same authority, leaving the actual primary source and other credentials unchanged. Temporary fixtures were removed. Browser checks covered administrator login/navigation, create/edit, blank-secret hints, referenced-deletion guidance, desktop/mobile RTL and dark mode; automatic theme was restored. Browser-discovered form initialization and no-store error-response issues were fixed and rechecked.
+
+Development synchronization actually ran: `docker compose exec -T backend php artisan access:sync-permissions`, exit 0. Verified five login_sources permissions on the existing system-administrator role and effective access for one existing global administrator; no user grants or custom-role expansions were created. All nine running services reported healthy. The local screenshot is ignored validation output, not a committed document.
+
+Run the ordinary checks shown below; the new focused command is `docker compose exec -T backend php artisan test --compact app/Modules/Login/Tests`. All backend tests enforce the separate PostgreSQL test database. Existing nonfatal Vue route-block plugin and build timing warnings remain. Phase 4 database/business/API behavior is documented in [login source administration](login-source-management.md), with [Persian operational guidance](../guides/login-sources.fa.md).
+
 ## Phase 3 approved closeout — 2026-11-10
 
 The user explicitly approved phase completion after reviewing creation, account connections and the active-source indicator, and separately authorized documentation, integration and push. Final pre-integration PostgreSQL suite: **76 tests / 491 assertions** passed. All **10 frontend tests**, Nuxt typecheck and a fresh production build passed. Closeout synchronization evidence is recorded in PLAN.md. Existing nonfatal Volar and build-timing warnings remain.

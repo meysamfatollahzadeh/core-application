@@ -1,288 +1,170 @@
-# Phase 3 — Personnel Creation and Keycloak Account Connections
+# Phase 4 — Login Source Administration
 
-## 1. Status, baseline and approval gates
+## 1. Status and approval gates
 
 - Prepared: 2026-11-10 (Asia/Tehran).
-- Status: **Complete and integrated after explicit completion approval.**
-- Explicit plan approval and separate completion approval received in chat on 2026-11-10. Completion approval includes the reviewed connection indicator and explicitly authorizes phase documentation, integration into master and push.
-- Implementation progress: **8 of 8 steps completed**.
-- Branch: `codex/feature/personnel-account-linking`.
-- Baseline: `84e6f4c1bd143a6da7fe6902922cf94a25534240`.
-- Planning preparation: verified a clean working tree on master; fetched origin successfully; switched to master; `git merge --ff-only origin/master` reported already up to date; created the feature branch before replacing this file. HEAD and origin/master both matched the baseline.
-- This is the only current root plan. The completed Phase 2 plan remains in Git history.
-- The user clarified business requirements one question at a time. Those answers define this proposal; they do not constitute approval of the finished plan or phase.
-- Commit this plan and every subsequent plan update, including approval, progress and evidence. Keep all phase work on this feature branch.
-- Obtain explicit plan approval before application code, migrations, tests implementing the new behavior, or infrastructure changes. Record and commit approval before implementation.
-- After each implementation step, report in Persian: “مرحله X از ۸ تکمیل شد.”
-- Step 7 ends at the review gate. Step 8, phase documentation, closeout and integration require separate explicit completion approval. Plan approval alone does not authorize integration.
+- Status: **Complete after explicit user completion approval; approved closeout prepared for Git integration.**
+- Explicit approval: the user approved this complete plan in chat on 2026-11-10 and requested implementation plus development permission synchronization. The user separately confirmed successful manual testing, approved phase completion, and explicitly authorized documentation, master integration and push in chat on 2026-11-10.
+- Planning revision: the user requested explicit execution of permission synchronization in the development environment so the new administration section is ready for manual testing. This request does not approve the complete phase plan.
+- Implementation progress: **7 of 7 phase deliverables completed**; final merge/push/branch-cleanup execution is reported in the closeout chat..
+- Branch: `codex/feature/login-source-management`.
+- Baseline: `e070cf820eae0a2449c79b30276235e51a1d18e6`.
+- Preparation: verified a clean master working tree, fetched origin, switched to master, updated using `git merge --ff-only origin/master` (already up to date), and created this feature branch before replacing PLAN.md.
+- The previous completed Phase 3 plan remains in Git history. This is the only current root plan.
+- Commit every plan update, including approval, progress and verification evidence.
+- Obtain explicit approval of this plan before writing application code, migrations, implementation tests or infrastructure changes. Record and commit approval first.
+- After each implementation step, report in Persian: “مرحله X از ۷ تکمیل شد.”
+- Step 6 ends at the completion-review gate. Step 7 requires separate explicit approval of completed implementation; plan approval does not authorize documentation closeout or integration.
 
-## 2. Subject, outcome and scope
+## 2. Subject and scope
 
-Allow operators to create a local User from the Personnel interface first, then explicitly connect existing accounts found directly in a selected Keycloak source. One User may have accounts from several sources, but at most one Member per source. A Keycloak identity may belong to only one local User.
+Provide a Persian administrative section for listing, adding, editing, activating, deactivating and deleting application login sources. A source continues to represent one independently configured Keycloak realm/client integration.
 
 In scope:
 
-- Create personnel using the existing canonical Login User model, with mandatory local name and current building area.
-- A personnel-row action titled `حساب‌های ورود` for listing, adding and deleting local Member connections.
-- Live, paginated Keycloak search by username, first/last name and email, with selection eligibility and existing local owner names.
-- Independent global permissions for creation and account-connection management.
-- Database enforcement, transactional conflict handling, member-specific token revocation and concurrency protection.
-- Preserve bulk import and enforce the same invariants there, including dry-run validation.
-- Focused regressions, real-browser verification, and post-approval English technical and Persian usage/operations documentation.
+- Admin navigation, paginated source list, configuration form, activity controls and confirmed deletion.
+- Global permissions for viewing, creating, updating, changing activity and deleting sources.
+- Protected Laravel management APIs and Nuxt server gateway integration.
+- Shared validation and lifecycle behavior between the admin API and existing `login:sources:upsert` command.
+- Secret-preserving updates, encrypted storage, sanitized resources, source identity protection and local credential revocation.
+- Focused automated checks and real-browser acceptance verification.
 
 Out of scope:
 
-- Creating, editing, enabling, disabling or deleting Keycloak users; password management; source-configuration CRUD; automatic callback registration; automatic identity matching by name or email.
-- Deleting local Users, transferring an occupied account directly between Users, automatically replacing a same-source connection, or synchronizing local profile data from Keycloak.
-- New personnel profile fields, employment histories, new company membership, role/position changes, or Camunda workflows.
-- Dependency upgrades, replacement identity/authentication protocols, new services or public ports, and changes to existing role-deletion/last-administrator protections outside Member removal.
-
-## 3. Confirmed business behavior
-
-### Personnel creation
-
-1. Save a User before connecting any Member. A User with zero Members is valid and remains visible in the global personnel list.
-2. The creation form contains only `نام و نام خانوادگی` and `ساختمان و ناحیه استقرار`; both are mandatory. Store the existing `building_area_id`, rather than adding a redundant building column.
-3. Preserve current local defaults, including automatic theme preference. Creation does not assign company membership, positions, roles or credentials.
-4. Connection and import mapping to an existing User never overwrite that User's name or location. Keycloak profile information is for account identification and selection.
-
-### Connections and search
-
-1. Every Member belongs to exactly one User and one UserSource and identifies one Keycloak subject by `(uuid, user_source_id)`.
-2. Each User can have at most one Member from each source. If a connection already exists for that source, disable search and connection for that User/source until the Member is deleted. Enforce this on the server before making any remote search request as well as in the UI.
-3. Search directly in the selected source's Keycloak, not in an imported local directory. Only active sources may be searched or used for new connections.
-4. Display username, first name, last name and email in results. Preserve missing fields as empty/absent values rather than inventing identity data.
-5. Accounts already connected to another User remain visible but cannot be selected; display the connected personnel name. Never silently reassign an occupied identity.
-6. Disabled Keycloak accounts remain visible but cannot be selected. Exclude service accounts from search results. Validate eligibility again on submission using a fresh server-side account lookup.
-7. Existing connections remain visible and deletable even when their source is inactive or the provider cannot be reached. Source inactivity must not hide local Member records.
-8. Source identity in public routes, resources and configuration remains the stable slug. Numeric `user_source_id` is internal to the database.
-9. Use explicit search submission and bounded pagination. Preserve truthful continuation after excluding service accounts; an empty filtered page must not incorrectly imply that the upstream result set is exhausted.
-
-### Removal and authentication
-
-1. Delete only the local Member and its own application tokens. The remote Keycloak account remains unchanged; do not call Keycloak user-deletion, remote session-termination or profile-write APIs for this operation.
-2. Revoke every local Sanctum token whose `member_id` matches the deleted connection, regardless of browser/device. Tokens belonging to other Members of the same User remain valid, subject to normal upstream checks.
-3. Commit token deletion and Member deletion atomically. After commit, revoked credentials must fail subsequent protected requests. Requests already authorized before commit are not retroactively cancelled.
-4. If the operator removes the Member used by their current browser, complete the deletion and let the existing unauthenticated flow clear the protected browser credential and return to login.
-5. Removing the last Member is explicitly allowed, including for an administrator and even if no administrator retains a connection. Preserve the User, location, positions, reporting assignments, preferences and roles. Do not introduce a last-login-connection guard.
-6. A later login without a matching Member remains forbidden by the existing callback. Removing and later reconnecting an account never revives old application tokens.
-
-### Bulk import
-
-1. Keep `login:import-members`, including source slugs, pagination, building-area requirements, explicit mapping, repeat-safe imports and `--dry-run`.
-2. Retain both uniqueness rules for every write path. An explicit mapping cannot connect a second account from the same source to a User, or take an account already connected to another User.
-3. A conflicting entry fails with a clear sanitized conflict report and a nonzero exit code; preserve existing associations and already completed entries. Do not silently merge Users, replace connections or delete tokens on import conflicts.
-4. Dry-run performs the same logical conflict checks, including conflicts among entries within the pending batch, without creating Users, Members or tokens. Track pending mappings so two subjects mapped to the same User/source are detected even without writes.
-5. Importing an already-connected identity with the same mapping stays repeat-safe; importing a new identity without an explicit mapping retains the existing new-User behavior and mandatory building area.
-
-## 4. Architecture and authorization
-
-- Preserve Laravel modular APIs, Nuxt/Vuetify, Redis, PostgreSQL, Keycloak and Camunda and all existing container/service versions.
-- Keep personnel orchestration, requests, controllers, routes and feature tests in Personnel; reusable provider reads, membership integrity/lifecycle, migrations and import changes in Login; permission catalog changes in Access. Extend Organization's existing location-options authorization narrowly for personnel creation.
-- Keep existing `personnel.view` for directory access and `personnel.update` for profile changes. Add independent permissions:
-  - `personnel.create` — create a local User, without implying edit or connection authority.
-  - `personnel.members.manage` — inspect and manage account connections, including source choices, remote search, attach and detach, without implying profile creation/edit authority.
-- Both new operations require global grants because User and Member are shared across companies. A company-scoped grant must not satisfy them. Directory navigation still requires the applicable existing `personnel.view`; creation and management controls require their own permission. Global managers may use a row's connection action in either personnel list; creation appears on the global personnel page.
-- Location-option reads accept global `personnel.create` OR global `personnel.update`, returning only existing sanitized location choices. Creation must work for an actor with view/create and no update permission.
-- Sync the permission catalog using the existing mechanism. Do not automatically add new permissions to existing roles or broaden their grants. Explicit role assignment remains an operational action by an authorized administrator.
-- All new APIs retain Sanctum Bearer authentication and current provider-grant validity checks. Nuxt exchanges its protected browser cookie for a Bearer header only on its server. Preserve SSR authentication resolution, CSRF enforcement for mutations, private/no-store responses and the Nginx `8081` origin.
-- Use each source's existing configured import/admin read client for Keycloak queries. Fail with a sanitized provider-configuration/unavailable response if that source lacks working read credentials; do not fall back to another source or hard-coded credentials.
-- Use configured provider URLs and bounded timeouts; never accept a client-supplied provider URL, access token, source numeric ID, local owner or remote profile as authority.
-- Search responses expose only the specified profile fields, external subject, selection state/reasons and authorized existing owner ID/name. Never expose raw Keycloak representations, configuration, secrets or protocol tokens. Remote text must render as escaped text.
-- Return stable machine-readable reasons for connection conflicts and provider errors through the Nuxt gateway, with targeted Persian messages. Do not collapse all 409 cases into the current unrelated assignment/role error message.
-
-## 5. PostgreSQL database design and integrity
-
-| Table | Planned changes / invariant |
-| --- | --- |
-| users | No schema changes. Continue required name and building_area_id, current preferences default and existing relations. |
-| user_sources | No schema changes. Keep unique stable slug, activity flag and protected configuration. |
-| members | Preserve bigint PK, uuid, numeric user_source_id FK, user_id FK and timestamps. Preserve existing UNIQUE(uuid, user_source_id). Add named UNIQUE(user_id, user_source_id). |
-| personal_access_tokens | No schema/FK changes planned. Preserve member_id and restrictive FK; explicitly delete matching tokens before deleting the Member in the same transaction. |
-| permissions and role pivots | Add catalog entries via existing permission synchronization. No new schema or implicit role grants. |
-
-The two pairwise unique constraints enforce the confirmed requirements and imply uniqueness of `(uuid, user_id, user_source_id)`. A separate triple index would be redundant and would not alone prevent the forbidden associations.
-
-Migration safety:
-
-- Before adding the new constraint, check for multiple Members per `(user_id, user_source_id)` and report conflicting local identifiers without credentials.
-- If conflicts exist, abort without modifying/deleting associations, Users or tokens. Request an explicit operator decision before data reconciliation; this plan does not authorize automatic destructive cleanup.
-- Use an additive migration in Login; retain the prior identity constraint and all foreign keys. Rollback removes only the newly added constraint.
-- Do not add cached identity-profile columns or store slugs in members. Local connection listing must always be available using source title/slug and uuid; remote profile enrichment is best effort and may display an unavailable state without blocking removal.
-
-Concurrency and transaction strategy:
-
-- Reuse a consistent source-row lock followed by relevant User/Member locks for attach, detach, callback and import writes. Freshly recheck source status, same-source occupancy and external identity ownership under the lock before inserting.
-- Coordinate with the callback's existing source lock so detach cannot race token issuance to create a live token for a deleted Member. Preserve GrantVerifier's fresh-token checks and test concurrent refresh/deletion behavior.
-- Perform remote account eligibility reads before the short write transaction, then verify local source configuration/activity under lock against the configuration used for the lookup. Do not hold a database transaction open during slow provider requests.
-- Enforce the two constraints in PostgreSQL as the final concurrency boundary and convert unique-constraint races into stable conflict responses without leaking SQL.
-- Removing a Member locks the source/Member, deletes its tokens and then the Member atomically. Keep the restrictive FK as an integrity backstop rather than allowing orphaned tokens.
-
-## 6. Proposed API contracts
-
-All paths below are under `/api/` and use the existing protected API route registration. Nuxt exposes only explicitly allowlisted counterparts under `/gateway/manage/`.
-
-| Method and path | Permission | Request / success |
-| --- | --- | --- |
-| POST personnel | global personnel.create | `{name, building_area_id}`; 201 with sanitized local User fields. Required trimmed nonempty name, max 255, existing building area. No Member is created. |
-| GET personnel/{user}/members | global personnel.members.manage | 200 with local connections, source slug/title/activity and uuid; optional sanitized live profile/status with explicit unavailable fallback. Includes inactive sources. |
-| GET personnel/{user}/member-sources | global personnel.members.manage | 200 with active source slug/title, existing-connection state and can_search. An occupied source remains visibly unavailable for search. |
-| GET personnel/{user}/member-sources/{source:slug}/accounts | global personnel.members.manage | Validated search and bounded page/per_page; 200 with sanitized remote results, selection reasons, local owner where applicable, and truthful pagination continuation. Reject inactive or occupied source before remote I/O. |
-| POST personnel/{user}/members | global personnel.members.manage | `{source_slug, uuid}`; fresh remote account validation; 201 with the created connection. Never trust eligibility or owner fields from the client. |
-| DELETE personnel/{user}/members/{member} | global personnel.members.manage | Validate nested ownership; atomic token and Member deletion; 204. Works without contacting Keycloak. |
-
-Common failures: 401 for absent/revoked credentials; 403 for insufficient global authority; 404 for unknown/nested-owner mismatch; 409 for occupied identity, existing User/source connection, or source activity/configuration changing during attachment; 422 for invalid input or ineligible/missing remote account; 429 for bounded search rate limits; 503 for unavailable/misconfigured provider reads. Resolve an unknown or inactive search source without making provider calls. A remote account deleted after search cannot be attached by submitting its old uuid.
-
-Extend the gateway allowlist and forward only the validated search/pagination inputs. Preserve stable sanitized reason codes and bounded error information. Use no-store for identity searches; do not place provider credentials or app Bearer tokens in URLs, browser storage or SSR payloads.
-
-## 7. Frontend behavior
-
-- Add `افزودن پرسنل` on the global personnel list for authorized creators. Reuse existing form layout/location chooser, validation, loading and explicit cancellation. Successful creation refreshes the list; it does not require a Member or grant a role.
-- Update the existing empty-state explanation, which currently says all new accounts arrive from identity imports.
-- Add a row action `حساب‌های ورود` for authorized connection managers. Its dialog identifies the selected personnel by name, lists current connections and offers the active source selector/search flow.
-- Display each connection's source title, account identifiers/profile when available, activity/unavailable status and explicit delete action. Confirm deletion and explain that it removes the local connection and its active application access while retaining the Keycloak account.
-- Disable search for an occupied source with a clear explanation that its existing connection must first be removed. Refresh source eligibility after successful attach/detach and recover cleanly from concurrent conflicts.
-- Search results show username, full name and email, disabled-account status, and the name of the already-connected personnel where applicable. Only eligible results offer connection. Require explicit selection and save, preserving local User profile data.
-- Discard stale asynchronous results when the selected User/source/query changes; prevent duplicate submissions. Handle empty, loading, conflict, provider-unavailable and retry states explicitly.
-- An empty or unavailable remote profile never hides an existing connection or disables its local deletion. Membership deletion remains usable during provider outages for an otherwise valid authenticated request, subject to the existing upstream authentication checks on that request.
-- Preserve Persian RTL, Vuetify, locally stored Vazirmatn/assets, accessible labels/focus, responsive layouts and light/dark/automatic themes. Keep CSS in dedicated files, with no component style blocks, inline styles or JavaScript style bindings.
-- Preserve overlay-click protection, explicit cancel controls and current Escape behavior, including busy-state guards and nested choices.
-
-## 8. Ordered implementation steps
-
-1. [x] **Database invariants and permission foundation.** Add conflict preflight and the User/source unique constraint; extend permission catalog/labels and creation location-options authorization. Verify fresh migration/rollback and conflict refusal on PostgreSQL. Commit scoped backend changes and plan evidence.
-2. [x] **Live Keycloak account reads.** Add reusable sanitized search/account lookup using configured read clients, bounded pagination, disabled/service-account handling and explicit provider failures. Test the requested search fields and the pinned Keycloak runtime's behavior. Commit Login changes and plan evidence.
-3. [x] **Personnel creation and connection APIs.** Implement create/list/sources/search/attach/detach endpoints, independent global authorization, nested ownership, live attach validation, stable reason codes, transactional uniqueness and member-specific token deletion. Add focused API/integrity tests; commit backend work and evidence.
-4. [x] **Import and authentication concurrency compatibility.** Bring bulk import/dry-run under the same constraints, cover pending batch conflicts, coordinate callback/removal locking, and verify selective revocation and fresh credential checks. Commit scoped backend changes and plan evidence.
-5. [x] **Nuxt gateway and Personnel interface.** Extend allowlisted routes/error transport, add creation and account dialogs/actions, permission-based controls, result eligibility/owner labels and resilient source/profile states. Keep frontend commits separate from backend commits; commit evidence.
-6. [x] **Automated verification.** Run targeted and full PostgreSQL backend suites, meaningful concurrency/integrity regressions, existing frontend tests, Nuxt typecheck/build and diff checks. Fix failures on this branch and record actual results and limitations.
-7. [x] **Browser acceptance and review handoff.** Verify creation, remote search, successful and blocked connections, inactive/disabled sources/accounts, same-source search lockout, local-only deletion, selective revocation and self-detach across the gateway. Check desktop/mobile, RTL, themes, focus and dialog behavior. Use isolated fixtures and preserve unrelated development data; record actual cleanup. Pause for explicit user completion approval; small requested fixes repeat relevant checks.
-8. [x] **Approved documentation, closeout and integration.** Only after explicit completion approval, update English technical docs for schema, business behavior and API contracts and Persian usage/operations guides, including permission assignment, import conflicts and reconnecting Users with no Members. Record and commit closeout. Fetch origin, rebase feature onto latest origin/master, resolve conflicts with git rebase --continue and repeat relevant validation. Update master with --ff-only, merge the verified feature using --no-ff and push master. If upstream advances, repeat synchronization/rebase/validation before retrying; never reset or force-push master. Delete local feature with git branch -d and any published remote feature only after successful integration/push. Report actual results and preserve the branch if blocked.
-
-## 9. Acceptance criteria and verification matrix
-
-- Create a User with only mandatory name/area, with zero Members and intact defaults; reject empty/overlong name and invalid/missing area without partial writes. Creation with view/create but no update or members-manage succeeds, including location selection.
-- New permissions are independently enforceable. Existing update does not imply create/manage; company-only grants never authorize the global operations. Unauthorized calls do not trigger remote searches or expose account owners.
-- Connect one identity from source A and another from B to the same User. A second account from A fails both through the API and direct database writes; occupied-source search fails before remote I/O.
-- A single `(uuid, source)` cannot be linked to two Users, including concurrent attempts. The same uuid in different independently configured sources remains a distinct identity.
-- Search demonstrates username, first name, last name and email behavior against Keycloak; shows disabled and occupied accounts with correct reasons/owner labels, excludes service accounts, and paginates without false exhaustion. No identity or profile is silently created/updated remotely.
-- Attach rejects forged/stale remote identity, missing/disabled/service account, inactive source, changed source configuration and conflicting local ownership. Preserve the local name/location and existing connections on every failure.
-- Existing inactive-source connections remain visible and removable. Remote profile failure has an explicit local fallback. Detach itself makes no Keycloak calls or changes.
-- Deleting a Member removes exactly its tokens and local row atomically. Other Members' tokens continue passing validity checks. Callback/refresh races cannot restore revoked tokens; removing/reconnecting never revives old tokens. Test rollback on deletion failure.
-- Deleting the last Member, including one's own administrator connection, succeeds while preserving all User/domain/role data; the affected browser transitions to login on its next protected request.
-- Bulk import preserves repeat safety, explicit mapping, required area, skip behavior for disabled/service accounts and no automatic merging. Real import and dry-run detect both database conflicts and within-batch mapping conflicts; failed entries do not overwrite established associations.
-- Upgrade with valid existing data succeeds. A conflicting fixture aborts before destructive changes. PostgreSQL constraints and rollback behavior are verified on isolated test data, not by deleting development associations.
-- Existing login/logout, upstream validity, SSR, CSRF, role assignments, organization, appearance, and navigation regressions pass. No service/port changes, remote asset dependencies, component styles or credential leaks are introduced.
-- Browser evidence covers desktop/mobile RTL, light/dark/auto appearance, keyboard/focus/overlay/Escape behavior, permission visibility, provider failures and creation/connection success states. Record fixtures and actual test cleanup.
-- Commit implementation and plan evidence on this feature branch. Stop after step 7 until the user explicitly approves completion; documentation and integration only follow that approval.
-
-## 10. Planning references and current evidence
-
-- Repository findings: existing User has a members relationship and mandatory building area; Member already has UNIQUE(uuid, user_source_id); tokens already have member_id with restrictive deletion; callback and importer already lock source rows. Personnel currently supports list/edit but no create or Member management API. The Nuxt management proxy currently rejects POST personnel and Member routes, and location options currently require personnel.update.
-- Keycloak search/account reads will follow the official [Keycloak Admin REST API](https://www.keycloak.org/docs-api/latest/rest-api/index.html#_users), including users search fields, pagination and user-by-ID lookup; verify behavior against the repository's pinned 26.7.3 runtime rather than assuming latest-documentation compatibility.
-- Planning checks only: clean-tree inspection, current code/schema/route inspection, successful origin fetch and fast-forward synchronization, and feature-branch creation. Application tests and live Keycloak behavior have not been run for this proposed phase.
-- No application code, infrastructure, development data, phase closeout documentation, role grants or credentials were changed during planning.
-- Approval gate satisfied by explicit user approval in chat on 2026-11-10; step 1 may begin after committing this approval record.
-
-### Step 1 evidence — 2026-11-10
-
-- Added additive member uniqueness migration with locked conflict preflight and non-destructive rollback; preserved existing external identity uniqueness. Added independent permissions, protected existing admin roles from implicit new grants, and enabled location options for creators.
-- PostgreSQL targeted tests: 15 passed / 109 assertions (MemberIntegrityTest and ManagementApiTest), covering migration conflict refusal/reapplication and independent location access. No development associations reconciled or deleted.
-
-### Step 2 evidence — 2026-11-10
-
-- Added sanitized source-configured directory search and exact subject lookup, service-account filtering, disabled-account visibility, raw-page continuation and safe provider errors. Profile results omit credentials/configuration.
-- AccountDirectoryTest: 3 passed / 10 assertions. Read-only checks against the running pinned Keycloak succeeded for username, first name, last name, email and exact user lookup; no identity data was changed.
-
-### Step 3 evidence — 2026-11-10
-
-- Added independent creation and connection-management APIs, source-slug binding, remote eligibility/configuration rechecks, per-source search guards, sanitized owner labels and local fallback listing. Attach/detach use source/User/Member locking; removal atomically deletes only matching tokens and the Member.
-- MemberConnectionTest: 9 passed / 75 assertions, including invalid creation, independent/global grants, cross-source connections, occupied identity rejection, inactive-source behavior, profile preservation, selective/last-member deletion, nested ownership and rollback on injected deletion failure.
-
-### Step 4 evidence — 2026-11-10
-
-- Import now checks source configuration/activity under lock, protects mapped Users and detects existing and within-batch User/source conflicts in dry-run and real runs. Conflicts report stable sanitized codes and preserve completed entries. Callback locks the matched Member while its source lock serializes token issuance with detach.
-- ImportMembersTest, TokenLifecycleTest and MemberConcurrencyTest: 18 passed / 152 assertions. Two real PostgreSQL process races verified exactly one successful connection for competing identity owners and competing same-source accounts. Lifecycle tests covered surviving other-Member credentials, unknown membership rejection, non-revival after reconnect and detach during upstream introspection.
-
-### Step 5 evidence — 2026-11-10
-
-- Added global personnel creation and the account-connections dialog, source occupancy lockout, live search/pagination, owner/disabled-account indicators, explicit attachment, confirmed local removal, profile fallback and self-detach login-state refresh. New CSS is confined to the dedicated admin stylesheet.
-- Gateway allows only the new explicit routes/methods and transports allowlisted reason codes into actionable Persian messages. Existing CSRF, credential transport and no-store behavior remain in place. Nuxt typecheck and production build passed; all 10 frontend tests passed, including reason transport/error-message regressions. Real browser acceptance is still pending step 7.
-
-### Step 6 evidence — 2026-11-10
-
-- Full isolated PostgreSQL suite passed twice, including after formatting: 73 tests / 461 assertions. Ten frontend tests passed; Nuxt typecheck and production build passed. The existing nonfatal vue-router/volar plugin warning remains. Pint checked the 19 changed PHP files and fixed five style issues; git diff --check passed.
-- Development uniqueness migration completed successfully without conflicts or data reconciliation. Catalog sync registered new permissions while preserving existing roles from implicit new grants. Frontend dev service restarted after production build.
-- Browser tooling uses the already cached Playwright CLI and installed Chrome; no dependency/runtime changes were made. Browser acceptance remains in progress.
-
-### Step 7 verification additions — 2026-11-10
-
-- Added actual two-process callback/detach overlap coverage: callback issues a token while holding its source lock; waiting detach then removes that Member and the just-issued token. Added API checks for inactive attach and a remotely deleted account. Full PostgreSQL suite now passes 75 tests / 473 assertions; Pint passes both added test files.
-- Browser acceptance found a client-navigation race after self-detach. The frontend fix uses a full same-origin navigation to obtain anonymous SSR HTML; a repeat browser test verified the login button appears immediately after deleting the final current Member. No authentication mechanism or remote account behavior changed. Browser fixture cleanup and final evidence are still pending.
-
-### Step 7 final evidence and review handoff — 2026-11-10
-
-- Real Chrome acceptance through Nginx 8081 verified creation using only view/create/manage permissions (no profile-update grant), source selection, live account search/attachment, preservation of local name, same-source search lockout, occupied-owner labeling with disabled selection, inactive-source listing and deletion of the last Member, and a sanitized provider failure message through the gateway.
-- Verified nested confirmation Escape closes only the confirmation and explicit overlay clicks preserve unsaved creation data. At 390px, RTL, automatic light/dark device-theme updates, focus containment and absence of document/dialog horizontal overflow passed. Desktop and mobile screenshots were inspected in ignored output/playwright/. Disabled-account presentation used an intercepted response to avoid changing any actual Keycloak identity; backend tests verify real eligibility enforcement with provider fakes. Live username/name/email search was independently verified in step 2.
-- A valid OIDC-backed alternate Member credential for the same temporary User remained authenticated after the first connection was removed; SSR displayed the correct identity without credentials. Removing the final current Member then showed the anonymous login control immediately with a full same-origin navigation. The navigation fix passed browser acceptance, Nuxt typecheck and a fresh production build. Existing nonfatal Volar and build-timing warnings remain.
-- Backend final result: 75 passed / 473 assertions, including actual concurrent attach and callback/detach process tests. Frontend: 10 tests passed; typecheck/build and git diff --check passed. No unresolved implementation failures remain.
-- Test isolation: created temporary local operator/personnel records, three temporary source configurations pointing at the existing read-only directory and a temporary role. No existing User, Member or role grants were changed. All temporary Users, sources, role, connections, test application tokens and encrypted browser fixtures were removed; a guarded post-cleanup check confirmed the original two Users and two Members remain. Normal OIDC logout closed test SSO sessions, including cleanup of a failed fixture-setup attempt. The named test browser was closed. No Keycloak account was created, edited or deleted.
-- Development migration and catalog synchronization are applied. New capabilities were deliberately not assigned to pre-existing roles: personnel.create and personnel.members.manage require an explicit operational grant before their controls appear to those users.
-- Step 7 of 8 completed. Review handoff: phase closeout documentation, feature rebase, merge, push and branch deletion have NOT been performed. Step 8 requires the user's separate explicit completion approval. All work stays on codex/feature/personnel-account-linking.
-
-### Explicit review-access grant — 2026-11-10
-
-- The user explicitly authorized assigning both `personnel.create` and `personnel.members.manage` to the existing `system-administrator` role titled `مدیر سامانه` so they can review the implementation.
-- Applied both grants atomically in the development database after checking the exact role key/title and existing permission catalog. Two role-permission rows were added; verified that both grants exist and all prior role permissions remain unchanged. No user-role assignments or application code changed.
-- This explicit operational grant supersedes the earlier pending-assignment note for this role only. Permission synchronization still does not implicitly grant the new capabilities to other existing roles. Authorization resolves current database grants on subsequent requests; refreshing the Personnel page exposes authorized controls without requiring a new login.
-- Completion approval is still pending. Progress remains 7 of 8; no phase closeout documentation or Git integration is authorized by this access-grant approval.
-
-## Authorized review revision — Personnel connection indicator
-
-The user explicitly requested marking personnel who have no Member, or whose Members are all associated with inactive sources. This is a bounded review revision within the current phase, authorized by the user's request. Main phase progress remains 7 of 8 and completion approval is still pending.
-
-- Scope and method: add a sanitized boolean `has_active_member` to the existing global/company personnel list responses using a database EXISTS query against Members and active UserSources. Show a warning chip with a local disconnected-link icon and Persian text `فاقد اتصال به منبع فعال` next to affected personnel. Status depends on local source activity, not remote account availability. Refresh the directory after closing account management so connection changes are reflected.
-- Database design: no migrations or stored status columns; derive the boolean from current data without remote Keycloak calls. Existing directory permissions and company filtering remain unchanged. Do not expose Member/source identities to directory-only readers.
-- Acceptance: zero Members and inactive-only connections are marked; at least one active-source connection removes the marker, including mixed active/inactive connections. Verify status changes after attach/detach or source activity changes, correct company filtering and boolean serialization. Verify readable RTL light/dark/mobile presentation without relying on color alone.
-
-1. [x] Add the list indicator API and focused regressions; commit backend changes and evidence.
-2. [x] Add the frontend chip and directory refresh; verify typecheck/build and browser presentation; commit frontend changes and evidence.
-
-Revision progress: **2 of 2 steps completed**. No phase closeout documentation or integration is authorized by this revision.
-
-### Connection-indicator revision step 1 evidence
-
-- Added `has_active_member` using a correlated EXISTS query against active local sources; no Keycloak queries, schema changes or Member identity disclosure. Global and company directories share the calculation.
-- PostgreSQL MemberConnectionTest and ManagementApiTest: 24 passed / 203 assertions. Covered no Members, inactive-only and mixed connections, loss of the active connection, source activation, boolean output, directory-only authority and company boundaries. Pint passed both changed PHP files.
-
-### Connection-indicator revision step 2 evidence
-
-- Added the warning-colored disconnected-link icon and Persian text next to personnel without an active-source connection. Text remains readable without color; dedicated CSS allows multiline labels without clipping at mobile widths. Account-dialog close refreshes the directory so successful connection changes update the indicator.
-- Nuxt typecheck, all 10 existing frontend tests, final production build and git diff --check passed. The existing nonfatal Volar warning remains. Named Chrome checks verified missing/inactive rows marked and active rows unmarked, desktop light and 390px dark appearance, no horizontal document overflow or clipped label text, and removal of the marker after account-dialog close refreshes changed list data. UI scenarios used intercepted responses; actual database semantics were verified by the 24 PostgreSQL tests in step 1.
-- Ignored screenshots output/playwright/personnel-indicator-desktop.png and personnel-indicator-mobile-dark.png were visually inspected. No personnel, Member, source or role data was created or changed for browser testing; the isolated login was logged out, its encrypted cookie fixture removed and its browser closed. Frontend dev was restarted after build.
-- Revision step 2 of 2 completed; main phase remains 7 of 8 pending explicit completion approval. No docs/ closeout, rebase, merge, push or branch deletion performed.
-
-## Approved phase closeout — 2026-11-10
-
-The user explicitly confirmed reviewing the changes and approved phase completion, documentation, integration into master and push. This satisfies the separate completion gate and supersedes earlier pending-approval notes, which remain historical evidence. Step 8 is now authorized. Record actual validation, rebase, merge, push and cleanup outcomes; do not infer successful integration before executing it.
-
-### Step 8 documentation and pre-synchronization evidence
-
-- Added English Phase 3 technical documentation covering database changes, business behavior, all connection API contracts, authorization, concurrency, token removal and explicitly unchanged categories. Added a Persian usage/operations guide for creation, connections, indicator, migration conflicts, permission grants and import/dry-run behavior. Updated the documentation index and existing API, development, organization, usage and historical-baseline pointers to remove current import-only assumptions.
-- Full PostgreSQL suite: 76 passed / 491 assertions. Ten frontend tests, Nuxt typecheck, fresh production build and git diff --check passed. All 52 local Markdown links/anchors in 12 documentation files passed; the operational PHP example passed lint without executing its permission grant. Existing nonfatal Volar/build-timing warnings remain.
-- No application or infrastructure code changed during documentation closeout. Documentation is ready to commit on the feature branch; synchronization, rebase and integration are not yet claimed.
-
-### Synchronization and post-rebase verification
-
-- Documentation committed as `abc756a`; working tree was clean before fetching origin. Fetch succeeded and origin/master remained at `84e6f4c1bd143a6da7fe6902922cf94a25534240`.
-- `git rebase origin/master` reported the feature already up to date, without conflicts. Verified unchanged application trees: backend `0170c26fe58526b423a0137f660ec5ba338906c9`, frontend `ec348af8d1720c878fe7e4b116c33b64210b9cba`.
-- After rebase: full PostgreSQL suite again passed 76 tests / 491 assertions; Nuxt typecheck and all 10 frontend tests passed. The fresh successful production build applies to these identical application trees. All 52 documentation links/anchors and the PHP example lint passed again. No unresolved conflicts or failing checks remain.
-- Ready for the approved no-ff merge and push. Actual integration and branch cleanup results are not yet claimed.
-
-## Final integration result
-
-- Step 8 of 8 completed after separate explicit completion approval. English technical documentation, Persian usage/operations guidance, implementation, review changes and verification evidence were committed on the feature branch.
-- Origin fetch succeeded; feature rebase was already up to date with no conflicts. Post-rebase PostgreSQL checks passed 76 tests / 491 assertions, Nuxt typecheck and all 10 frontend tests passed, and the production build passed on the identical application tree. Documentation links and PHP example lint passed. No application or infrastructure changes were introduced by closeout.
-- Master was updated with `git merge --ff-only origin/master` and the verified feature merged with `--no-ff`. Merge `a11cda178ef6e26229b07e024479deabd12b2dd3` was successfully pushed to origin/master (`84e6f4c..a11cda1`).
-- This final plan-only audit is being committed on the retained feature after fast-forwarding it to the successful merge. Its publication will follow the same fetch/rebase/documentation-check/no-ff/push workflow. Backend/frontend trees remain `0170c26fe58526b423a0137f660ec5ba338906c9` and `ec348af8d1720c878fe7e4b116c33b64210b9cba`; no additional application retest is needed for the audit if these trees remain identical.
-- After successful audit publication, delete the fully integrated local feature branch and any published phase counterpart. Final audit push and actual branch-cleanup results will be reported in the chat closeout; they are not claimed in advance here.
+- Direct Google, generic OAuth2, generic OIDC or Laravel Passport provider drivers.
+- Configuring Keycloak identity brokering or introducing additional external providers in this phase.
+- Creating/deleting remote realms, clients, users or credentials; remote user lifecycle changes.
+- Automatic local registration, automatic identity matching, password management or changing personnel account-connection rules.
+- Bulk deletion of Members, transferring identities, or a new last-login-source/administrator protection policy.
+- Dependency upgrades, new public ports, replacement services or authentication-session changes.
+
+## 3. Existing behavior and provider compatibility
+
+- UserSource already stores stable slug, title, activity and JSON configuration; client secrets are encrypted by the model.
+- The existing command creates/updates sources and revokes local source tokens on security-configuration changes or deactivation.
+- The public login source list exposes active sources for login selection; it is not an administrative configuration API.
+- ProviderClient builds Keycloak-specific `/protocol/openid-connect/*` endpoints. Identity validation requires ID tokens with a session identifier; protected requests use upstream token introspection. Account lookup/import use Keycloak Admin APIs.
+- Consequently, changing a source URL does not enable direct Google or Passport support. Such support needs a separately approved design covering provider capabilities, identity lookup, current grant validity and logout semantics.
+- Google via Keycloak identity brokering is a possible future route while keeping the application integrated with Keycloak. Local Members would still identify Keycloak subjects and must pre-exist. Brokering does not automatically guarantee propagation of an external provider's logout; that must be assessed separately.
+
+## 4. Proposed business behavior
+
+### Listing and permissions
+
+- Add a global admin section named `سورس‌های ورود`, with title, slug, active state and local connection count. Both active and inactive sources remain visible to authorized administrators.
+- Add independent global permissions `login_sources.view`, `login_sources.create`, `login_sources.update`, `login_sources.activate`, and `login_sources.delete`.
+- Company-scoped grants must not authorize these global operations. Controls reflect individual permissions; the backend enforces them independently.
+- Use the existing permission synchronization mechanism and preserve its established bootstrap-role behavior. Do not automatically assign roles to users or broaden existing custom-role grants.
+
+### Create and edit
+
+- A source has a required Persian display title and a unique immutable slug matching the existing format. Default new sources to inactive, with activation available as a separate authorized operation.
+- Creation accepts the existing required OIDC client and operational settings, with optional complete admin-read/import credentials. Explain that admin-read settings are needed for personnel account search/import.
+- Show callback and post-logout URLs derived from the fixed gateway and slug, rather than accepting arbitrary redirect destinations.
+- Preserve the current RS256-only contract and bounded timeout/page-size validation.
+- For updates, omitted or blank secret inputs retain stored secrets. Never return stored secret values, encrypted values or fake password placeholders; expose only configured/not-configured indicators. Explicit removal of the optional directory configuration removes its complete credential group.
+- Do not return secrets through resources, validation errors, browser logs, SSR payloads or application logs. Use server-side credentials for upstream requests only.
+- Once any Member references a source, its public issuer is immutable: changing the identity authority under existing local mappings could connect a different person with the same subject. Require a new source and explicit personnel connections for an authority change. Slug remains immutable for every existing source.
+- Changes to client/security settings use the existing fingerprint and revoke local source tokens transactionally. Display a clear confirmation before submitting an edit that invalidates current credentials.
+- Title-only and directory-only changes do not unnecessarily revoke application tokens. Internal endpoint changes must continue to represent the same public issuer.
+- No new network requests are required to save or toggle a source; unavailable providers must not prevent deactivation or correction of settings. Activation is configuration enablement, not a claim that connectivity has been verified.
+
+### Activity and deletion
+
+- Deactivation hides the source from public login selection, rejects new authorization/callbacks and new personnel connections/search, and revokes all local Sanctum tokens belonging to that source. Preserve Users, Members and remote accounts.
+- Existing in-flight protocol transactions must not issue usable credentials after a concurrent deactivation or relevant configuration change. Recheck source activity/configuration at credential issuance and retain existing protected-request checks.
+- Reactivation permits new logins and connections; previously revoked credentials stay revoked.
+- An administrator may deactivate their current source, including the last active source, after a clear impact confirmation. Do not invent a new last-source guard. Explain that the current browser will lose access and operational recovery may require the existing CLI.
+- Hard deletion is allowed only for sources with zero Members. Return HTTP 409 when connections exist and suggest deactivation instead. Never cascade-delete personnel or connections, and never call remote deletion APIs.
+- Confirm deletion with the displayed source title/slug. Preserve database foreign-key restrictions and handle concurrent connection creation/deletion safely.
+
+## 5. Implementation method and security boundaries
+
+- Keep source controllers, requests, resources, reusable management actions/services and tests in the Login module. Extend Access's permission catalog and the existing admin navigation without adding a new framework.
+- The API and CLI must share source validation and lifecycle safeguards, including immutability, revocation and locking. Preserve the CLI's complete-config create/update contract while making API partial secret updates explicit.
+- Use transactions and row locking for source mutations; coordinate with existing membership and token issuance paths where necessary. Keep unique-slug and membership foreign-key enforcement as final database safeguards.
+- Extend the existing Nuxt management gateway with an explicit allowlist of source-management routes and methods. Require the existing protected browser credential, server-side Bearer conversion, mutation CSRF checks and private/no-store responses.
+- Continue server-resolved initial authentication, upstream validity checks, bearer-only Laravel authentication and the Nginx port 8081 application origin.
+- Administrative provider URLs cause server-side HTTP requests. Validate URL syntax, exclude userinfo/query/fragment, enforce production HTTPS and retain no-redirect requests. Add an explicit deployment-controlled allowlist of permitted provider origins for writes, including the known Docker Keycloak origin and gateway origin in development. Do not allow the admin form to choose arbitrary internal services or bypass this allowlist. Provide environment examples without secrets and a clear validation error when an origin is not allowed. Preserve existing configured sources for reads; require allowlist compliance when endpoint settings are changed.
+- Use Nuxt/Vuetify, local icons/fonts, Vazirmatn, Persian RTL forms, all existing theme modes, accessible focus/labels and responsive dialogs. Keep CSS in dedicated project files; no Vue style blocks, inline styles or JavaScript style bindings.
+
+## 6. Database design
+
+- Reuse `user_sources.id`, unique `slug`, `title`, `is_active`, encrypted-secret `data` and timestamps. No new source or credential tables are planned.
+- Preserve numeric `members.user_source_id` referencing `user_sources.id` with restrictive deletion and uniqueness of `(uuid, user_source_id)` and `(user_id, user_source_id)`.
+- Preserve PersonalAccessToken membership references; revoke source credentials through their Member relationship in the same transaction as source invalidation.
+- Add the five permission catalog entries using the existing synchronization mechanism and existing permission/role tables.
+- No new application schema migration is expected. If implementation reveals a necessary schema or scope change, update and commit this plan and obtain approval before implementing that change.
+
+## 7. Proposed API contracts
+
+Under the existing authenticated management API prefix, using the source slug for binding:
+
+| Method | Relative route | Permission | Result |
+| --- | --- | --- | --- |
+| GET | `login-sources` | `login_sources.view` | Paginated sanitized summaries |
+| GET | `login-sources/{source:slug}` | `login_sources.view` | Sanitized editable configuration and secret-presence flags |
+| POST | `login-sources` | `login_sources.create` | Create inactive source; HTTP 201 |
+| PATCH | `login-sources/{source:slug}` | `login_sources.update` | Update title/configuration; exclude activity and slug changes |
+| PATCH | `login-sources/{source:slug}/activity` | `login_sources.activate` | Set required boolean `is_active` |
+| DELETE | `login-sources/{source:slug}` | `login_sources.delete` | Delete unreferenced source; HTTP 204 |
+
+- A mutation response must not disclose configuration requiring separate view permission; return a minimal sanitized summary or no content as appropriate.
+- Preserve established API error conventions: 401 for unauthenticated/invalid upstream grant, 403 for insufficient global permission, 404 for unknown source, 409 for a referenced deletion or lifecycle conflict, and 422 for invalid configuration or immutable identity changes.
+- Keep the existing public login-source API unchanged; never expose admin configuration there.
+
+## 8. Ordered execution steps
+
+1. **Source lifecycle and validation:** implement shared safe create/update/activity/delete behavior, secret preservation, origin validation, issuer immutability, transactional revocation and concurrency safeguards; align the CLI.
+2. **Authorization and management API:** register global permissions, add protected requests/controllers/resources/routes, sanitized errors and API coverage for permissions and data exposure.
+3. **Nuxt gateway and management state:** allowlist the new API contracts, add typed server-mediated calls, permission-aware navigation and SSR-safe data loading.
+4. **Admin interface:** implement Persian source listing, create/edit forms, secret-presence handling, activity confirmation and restricted deletion with meaningful errors.
+5. **Verification and manual-test preparation:** after registering the new permissions, execute `docker compose exec -T backend php artisan access:sync-permissions` against the running development database, rather than only documenting the command or running it in tests. Verify that all five `login_sources.*` permissions exist and are attached to the existing `system-administrator` role according to the command's established behavior. Confirm that an existing administrator with that global role can access the section and its actions; do not create new user grants or silently modify custom roles. If no suitable existing administrator is assigned, report the missing role assignment explicitly. Run appropriate backend tests, frontend checks and real-browser scenarios against development services; fix failures and record the synchronization command, exit status, permission/role verification and actual validation results in this plan. Include the CLI and existing login/personnel regressions. Before presenting completion for review, leave the development environment ready for the user's manual test and report the panel route and any remaining access prerequisites.
+6. **Review gate:** prepare appropriately scoped backend/frontend/configuration commits, update and commit progress/evidence, and present the implemented behavior for explicit completion approval. Stop before final phase documentation or integration.
+7. **Approved closeout:** after explicit completion approval, write English technical documentation covering database behavior, business rules and API contracts, and Persian usage/operations guidance including recovery. Commit documentation and final plan status; fetch origin, rebase the feature branch onto latest origin/master, resolve conflicts on the feature branch and repeat relevant checks. Fast-forward master from origin/master, merge using `--no-ff`, push master, then delete integrated local and any published remote feature branches. Report actual outcomes and preserve the branch if blocked.
+
+## 9. Acceptance criteria and verification evidence
+
+- An authorized global administrator can list, add, edit, activate, deactivate and delete an unreferenced source from the admin panel.
+- Permission synchronization has actually run successfully in the development environment; all five source permissions are present and available through the existing system-administrator role. Record the execution result and verify administrative access before requesting completion review, or explicitly report any blocked prerequisite. Merely adding permission keys to code does not satisfy this criterion.
+- Unauthorized actors and actors with only company-scoped source grants cannot perform global operations, including direct API attempts.
+- Existing secrets survive blank/omitted update fields and are never exposed through API/SSR/errors. Optional directory credentials can be explicitly removed as a group.
+- Slugs cannot be renamed; an issuer with existing Members cannot be changed. Invalid origins, redirect destinations, algorithms and malformed settings are rejected.
+- Deactivation and relevant configuration changes revoke only the affected source's local credentials; reactivation does not restore them. Confirm concurrent token issuance cannot create a surviving stale credential.
+- Inactive sources disappear from login selection and reject new connections, while existing personnel connections remain manageable under their current rules.
+- Referenced-source deletion returns 409 without deleting or modifying Users/Members/remote identities. Concurrent attachment cannot leave orphaned relationships.
+- Public source selection, imported-member-only callbacks, existing Keycloak login/logout, upstream checks and personnel account management continue to work.
+- Browser verification covers create, edit without secret replacement, secret replacement, activity changes, deletion conflict, empty-source deletion, permission visibility and current-source deactivation. Check mobile layout and light/dark modes.
+- Actual execution results are recorded below. The proposed acceptance scope has been implemented and verified; separate completion approval has now been received.
+
+## 10. Execution evidence
+
+- Step 1 completed: shared lifecycle actions and CLI integration, origin validation, encrypted/retained secrets, issuer immutability and transactional source token revocation. Existing callback, attachment and import paths already lock the source row; source mutations use the same lock order.
+- Initial source-management API checks: `docker compose exec -T backend php artisan test --compact --filter=SourceManagementTest` passed (11 tests, 106 assertions).
+- Step 2 completed: six protected source-management API routes, independent global permissions, sanitized summary/detail resources, private responses and focused API/CLI regression coverage.
+- Step 3 completed: exact Nuxt gateway route/method allowlist, sanitized lifecycle error reasons, shared typed source contracts and global-only admin navigation. Existing server Bearer exchange, CSRF and no-store controls remain in place.
+- Step 4 completed: Persian source list, create/edit forms, derived callback previews, retained-secret hints, optional directory configuration removal, impact confirmations and referenced-deletion guidance. Responsive dedicated CSS follows the existing panel.
+- Frontend verification so far: `npm run typecheck` exited 0 (existing Vue route-block plugin warning); 11 Node tests passed, including global-only source navigation.
+
+- Step 5 completed: verification and manual-test preparation finished.
+- Development permission synchronization actually executed: `docker compose exec -T backend php artisan access:sync-permissions`, exit 0, output `Catalog synchronized; no user grants created.` Verified exactly five `login_sources.*` entries, all five attached to the existing system-administrator role, and one existing direct global administrator with effective source-view access. No new user grants or custom-role expansions were created.
+- Applied the configured allowlist using `docker compose up -d --no-deps backend`; three development provider origins are configured. All nine running services subsequently reported healthy.
+- Full backend suite: `docker compose exec -T backend php artisan test --compact`, exit 0, **89 tests / 621 assertions**. The new tests were then colocated under Login's Tests directory and registered in phpunit.xml; `docker compose exec -T backend php artisan test --compact app/Modules/Login/Tests` passed **13 tests / 130 assertions** from their final location.
+- PostgreSQL concurrency tests use independent processes and source-row barriers. Both callback/deactivation lock orders leave zero tokens; both attachment/deletion lock orders preserve source/member integrity.
+- Final frontend checks: `docker compose exec -T frontend npm run typecheck`, exit 0; `docker compose exec -T frontend npm run build`, exit 0; Node test runner over admin-navigation, appearance and management-errors passed **12 tests**. Typecheck emits a Vue route-block plugin warning and build emits plugin timing warnings; neither caused a failure.
+- Real OIDC-backed HTTP/gateway acceptance verified authenticated initial SSR, no credential leakage, source pagination/detail sanitization, CSRF rejection, disallowed gateway methods, blank-secret retention, secret replacement, activation/deactivation, referenced-source deletion 409 and empty-source deletion 204.
+- Current-source deactivation acceptance used a fresh real OIDC-backed token and a temporary local source/Member pointing to the same authority, isolating the test from the actual primary source and other credentials. Deactivation invalidated that browser token immediately; the subsequent identity response was anonymous. Temporary source/Member/token fixtures were removed; existing source configuration, personnel and grants were preserved.
+- Browser UI acceptance on the 8081 origin verified existing administrator login, navigation, creation of an inactive disposable source, edit-form loading, title change without secret replacement and referenced-deletion guidance. A stale form-state issue found during reopen was corrected and rechecked. Visual checks covered desktop, 390px mobile list/form and dark mode; automatic theme was restored afterward. Local screenshot: `output/playwright/phase4-login-sources.jpg` (ignored artifact).
+- Gateway failures initially lost no-store through Nuxt's generic error renderer. Source-specific handled JSON failures now retain private/no-store headers, including validation, CSRF and unknown-method errors; the real gateway acceptance passed after the correction.
+- Browser automation fallback: the Playwright CLI package fetch failed due unavailable npm DNS; verification continued successfully with the connected in-app browser. Transient automatic access-review timeouts succeeded on their permitted retry; no remaining access blocker exists.
+- Manual-test entry point: `http://localhost:8081/admin/login-sources`, or Management → Access → Login sources. Existing system-administrator access is ready; source endpoints outside the configured allowlist require operator configuration before saving.
+- Step 6 completed: backend, frontend, environment configuration and verification changes are committed separately on the feature branch, and the implementation is presented for user review. At the review handoff, completion approval was pending and documentation/integration had not begun. The later explicit approval recorded below authorized step 7.
+
+- Closeout authorization: the user confirmed manual testing and explicitly approved completion, documentation, integration into master and push on 2026-11-10. Step 7 is now authorized and in progress.
+- Approved documentation closeout prepared: English source administration/database/business/API reference, Persian usage/permissions/origin-allowlist/CLI-recovery guide, index and cross-reference updates, and validation evidence. All local documentation links and new JSON examples passed checks; no application or schema changes were introduced during closeout.
+
+- Step 7 approved documentation and final validation completed: technical English and Persian usage/operations documentation are committed; database category explicitly records no schema changes.
+- Final synchronization: `git fetch origin` succeeded; `git rebase origin/master` reported the feature branch up to date on `e070cf820eae0a2449c79b30276235e51a1d18e6`, with no conflicts. Working tree was clean before rebase.
+- Post-rebase verification: full PostgreSQL backend suite passed **89 tests / 621 assertions** (52.34s); all **12 frontend tests**, Nuxt typecheck and fresh production build passed. Existing nonfatal Vue/plugin timing warnings remain. Documentation verification passed **67 local links** and JSON examples. Frontend was restarted after build to restore development generation.
+- The feature branch has not been published remotely (`git ls-remote --heads origin codex/feature/login-source-management` returned no ref), so no remote feature deletion is needed unless publication state changes.
+- This final feature-branch closeout commit precedes the authorized `master` fast-forward, `--no-ff` merge, normal push and local integrated-branch deletion. Do not infer those outcomes from this commit; the actual merge hash, push confirmation and cleanup results are reported in the final chat and visible in Git history. No force-push or master reset is authorized or required.

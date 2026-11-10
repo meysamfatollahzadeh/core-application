@@ -151,3 +151,7 @@ Browser POST/PATCH/PUT/DELETE gateway requests must send exact application `Orig
 Module protocol failures use `{"error":"<machine-code>"}`. Laravel validation uses its normal `message`/`errors` envelope; unauthenticated/unknown-route responses use framework JSON. Do not assume every failure has the same envelope. Nuxt sanitizes forwarded errors and never forwards raw provider credentials/error bodies.
 
 `GET /api/health` is a separate readiness API checking PostgreSQL/Redis and returning infrastructure status. `/up` is framework health routing. The former session prototype `/api/auth/*` is removed. Organization, Personnel and Access APIs are documented in [management-api.md](management-api.md).
+
+## Administrative source management
+
+Phase 4 adds separately authorized `/api/login-sources` routes and `/admin/login-sources`; the public `/api/login/sources` contract above is unchanged. See [login source administration](login-source-management.md) for configuration/secret handling, lifecycle revocation, deletion restrictions and full API contracts.

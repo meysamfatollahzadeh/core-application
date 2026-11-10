@@ -43,3 +43,13 @@ test('unavailable or revoked access clears all menu groups', () => {
   assert.deepEqual(buildAdminNavigation({ ...original, status: 'anonymous' }), [])
   assert.deepEqual(buildAdminNavigation({ ...original, global: [] }), [])
 })
+
+
+test('login sources require global view permission and stay in the access group', () => {
+  assert.equal(canOpenAdminSection(state([], { '7': ['login_sources.view'] }), 'login-sources'), false)
+  assert.equal(canOpenAdminSection(state(['login_sources.create']), 'login-sources'), false)
+  const allowed = state(['login_sources.view'])
+  assert.equal(canOpenAdminSection(allowed, 'login-sources'), true)
+  assert.equal(canOpenAdminSection(allowed, 'login-sources', 7), false)
+  assert.deepEqual(buildAdminNavigation(allowed).map(group => [group.key, group.children.map(child => child.key)]), [['access', ['login-sources']]])
+})

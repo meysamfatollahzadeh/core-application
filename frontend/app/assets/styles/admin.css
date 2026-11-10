@@ -158,3 +158,14 @@
   .member-account-row > .v-btn { align-self: flex-end; }
   .member-pagination { flex-wrap: wrap; }
 }
+
+
+/* Login-source forms keep endpoint identifiers readable within the Persian UI. */
+.source-identity { display: grid; gap: 0.3rem; padding-block: 0.8rem; }
+.source-identity bdi { text-align: start; }
+.source-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 1.25rem; }
+.source-form-wide { grid-column: 1 / -1; }
+.source-redirects { display: grid; gap: 0.4rem; padding: 1rem; border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); border-radius: 8px; }
+.source-redirects span { color: rgba(var(--v-theme-on-surface), 0.72); font-size: 0.85rem; }
+.source-redirects bdi { overflow-wrap: anywhere; text-align: left; font-size: 0.9rem; }
+@media (max-width: 600px) { .source-form-grid { grid-template-columns: minmax(0, 1fr); } }
