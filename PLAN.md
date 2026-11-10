@@ -4,6 +4,7 @@
 
 - Prepared: 2026-11-10 (Asia/Tehran).
 - Status: **Proposed; awaiting explicit user plan approval.**
+- Planning revision: the user requested explicit execution of permission synchronization in the development environment so the new administration section is ready for manual testing. This request does not approve the complete phase plan.
 - Implementation progress: **0 of 7 steps completed**.
 - Branch: `codex/feature/login-source-management`.
 - Baseline: `e070cf820eae0a2449c79b30276235e51a1d18e6`.
@@ -117,13 +118,14 @@ Under the existing authenticated management API prefix, using the source slug fo
 2. **Authorization and management API:** register global permissions, add protected requests/controllers/resources/routes, sanitized errors and API coverage for permissions and data exposure.
 3. **Nuxt gateway and management state:** allowlist the new API contracts, add typed server-mediated calls, permission-aware navigation and SSR-safe data loading.
 4. **Admin interface:** implement Persian source listing, create/edit forms, secret-presence handling, activity confirmation and restricted deletion with meaningful errors.
-5. **Verification:** run appropriate backend tests, frontend checks and real-browser scenarios against development services; fix failures and record actual results in this plan. Include the CLI and existing login/personnel regressions.
+5. **Verification and manual-test preparation:** after registering the new permissions, execute `docker compose exec -T backend php artisan access:sync-permissions` against the running development database, rather than only documenting the command or running it in tests. Verify that all five `login_sources.*` permissions exist and are attached to the existing `system-administrator` role according to the command's established behavior. Confirm that an existing administrator with that global role can access the section and its actions; do not create new user grants or silently modify custom roles. If no suitable existing administrator is assigned, report the missing role assignment explicitly. Run appropriate backend tests, frontend checks and real-browser scenarios against development services; fix failures and record the synchronization command, exit status, permission/role verification and actual validation results in this plan. Include the CLI and existing login/personnel regressions. Before presenting completion for review, leave the development environment ready for the user's manual test and report the panel route and any remaining access prerequisites.
 6. **Review gate:** prepare appropriately scoped backend/frontend/configuration commits, update and commit progress/evidence, and present the implemented behavior for explicit completion approval. Stop before final phase documentation or integration.
 7. **Approved closeout:** after explicit completion approval, write English technical documentation covering database behavior, business rules and API contracts, and Persian usage/operations guidance including recovery. Commit documentation and final plan status; fetch origin, rebase the feature branch onto latest origin/master, resolve conflicts on the feature branch and repeat relevant checks. Fast-forward master from origin/master, merge using `--no-ff`, push master, then delete integrated local and any published remote feature branches. Report actual outcomes and preserve the branch if blocked.
 
 ## 9. Acceptance criteria and verification evidence
 
 - An authorized global administrator can list, add, edit, activate, deactivate and delete an unreferenced source from the admin panel.
+- Permission synchronization has actually run successfully in the development environment; all five source permissions are present and available through the existing system-administrator role. Record the execution result and verify administrative access before requesting completion review, or explicitly report any blocked prerequisite. Merely adding permission keys to code does not satisfy this criterion.
 - Unauthorized actors and actors with only company-scoped source grants cannot perform global operations, including direct API attempts.
 - Existing secrets survive blank/omitted update fields and are never exposed through API/SSR/errors. Optional directory credentials can be explicitly removed as a group.
 - Slugs cannot be renamed; an issuer with existing Members cannot be changed. Invalid origins, redirect destinations, algorithms and malformed settings are rejected.
