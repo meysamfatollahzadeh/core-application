@@ -61,7 +61,7 @@ function submitSearch() { page.value = 1; query.value = search.value ?? '' }
       <tr v-if="!data?.data.length && status !== 'pending'"><td colspan="4" class="admin-empty">{{ query ? 'سورسی با این عنوان یا شناسه پیدا نشد.' : 'هنوز سورسی ثبت نشده است. برای شروع، سورس ورود اضافه کنید.' }}</td></tr>
     </tbody></v-table>
     <v-pagination v-if="(data?.meta.last_page ?? 1) > 1" v-model="page" :length="data?.meta.last_page ?? 1" :total-visible="5" aria-label="صفحه‌بندی سورس‌ها" />
-    <AdminSourceEditor v-if="editing" :source="current" @close="closeEditor" @saved="saved" />
+    <AdminSourceEditor v-if="editing" :key="current?.slug ?? 'new'" :source="current" @close="closeEditor" @saved="saved" />
     <v-dialog :model-value="!!pending" :persistent="busy" max-width="520" @keydown.esc="!busy && (pending = null)" @update:model-value="!$event && !busy && (pending = null)"><v-card :title="pending?.action === 'delete' ? 'حذف سورس ورود' : pending?.source.is_active ? 'غیرفعال‌کردن سورس' : 'فعال‌کردن سورس'"><v-card-text>
       <p class="mb-4">{{ pending?.source.title }} <bdi class="admin-muted">({{ pending?.source.slug }})</bdi></p>
       <template v-if="pending?.action === 'delete'"><v-alert v-if="pending.source.members_count" type="warning" variant="tonal">این سورس {{ pending.source.members_count.toLocaleString('fa-IR') }} حساب متصل دارد و قابل حذف نیست. برای بستن ورود، آن را غیرفعال کنید.</v-alert><p v-else>این سورس از سامانه حذف شود؟ این عملیات هیچ حسابی را در Keycloak حذف نمی‌کند.</p></template>

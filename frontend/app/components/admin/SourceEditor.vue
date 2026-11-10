@@ -20,6 +20,15 @@ const busy = ref(false)
 const notice = ref('')
 const errors = ref<Record<string, string[]>>({})
 const confirm = ref(false)
+watch(() => props.source, source => {
+  title.value = source?.title ?? ''; slug.value = source?.slug ?? ''
+  issuer.value = source?.data.issuer ?? ''; internalIssuer.value = source?.data.internal_issuer ?? ''
+  clientId.value = source?.data.client_id ?? ''; clientSecret.value = ''
+  directory.value = !!source?.data.import_client_id; importClientId.value = source?.data.import_client_id ?? ''
+  importClientSecret.value = ''; adminBaseUrl.value = source?.data.admin_base_url ?? ''
+  timeout.value = source?.data.timeout ?? 10; pageSize.value = source?.data.page_size ?? 100
+  errors.value = {}; notice.value = ''; confirm.value = false
+}, { immediate: true })
 const gateway = useRequestURL().origin
 const callback = computed(() => `${gateway}/login/callback/${slug.value || 'source-slug'}`)
 const securityChanged = computed(() => !!props.source && (

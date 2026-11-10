@@ -16,3 +16,9 @@ test('unknown server error text is not rendered and existing status messages rem
   assert.doesNotMatch(managementError({ statusCode: 503, data: { reason: '<secret>' } }), /secret/)
   assert.match(managementError({ statusCode: 403 }), /مجوز/)
 })
+
+
+test('source deletion conflicts guide the operator toward deactivation', () => {
+  assert.match(managementError({ statusCode: 409, data: { data: { reason: 'source_has_members' } } }), /غیرفعال/)
+  assert.match(managementError({ statusCode: 409, data: { data: { reason: 'source_conflict' } } }), /شناسه تکراری/)
+})
