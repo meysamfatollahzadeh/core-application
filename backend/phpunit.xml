@@ -7,6 +7,7 @@
     <testsuites>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <directory>app/Modules/Login/Tests</directory>
             <directory>app/Modules/Organization/Tests</directory>
             <directory>app/Modules/Personnel/Tests</directory>
             <directory>app/Modules/Access/Tests</directory>

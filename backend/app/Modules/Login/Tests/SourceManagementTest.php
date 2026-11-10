@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Login;
+namespace App\Modules\Login\Tests;
 
 use App\Modules\Access\Models\Permission;
 use App\Modules\Access\Models\Role;
