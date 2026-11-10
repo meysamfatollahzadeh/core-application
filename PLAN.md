@@ -3,8 +3,8 @@
 ## 1. Status and approval gates
 
 - Prepared: 2026-11-10 (Asia/Tehran).
-- Status: **Implementation verified; awaiting explicit completion approval.**
-- Explicit approval: the user approved this complete plan in chat on 2026-11-10 and requested implementation plus development permission synchronization. Completion approval remains pending.
+- Status: **Completion approved; documentation and integration closeout in progress.**
+- Explicit approval: the user approved this complete plan in chat on 2026-11-10 and requested implementation plus development permission synchronization. The user separately confirmed successful manual testing, approved phase completion, and explicitly authorized documentation, master integration and push in chat on 2026-11-10.
 - Planning revision: the user requested explicit execution of permission synchronization in the development environment so the new administration section is ready for manual testing. This request does not approve the complete phase plan.
 - Implementation progress: **6 of 7 steps completed**.
 - Branch: `codex/feature/login-source-management`.
@@ -135,7 +135,7 @@ Under the existing authenticated management API prefix, using the source slug fo
 - Referenced-source deletion returns 409 without deleting or modifying Users/Members/remote identities. Concurrent attachment cannot leave orphaned relationships.
 - Public source selection, imported-member-only callbacks, existing Keycloak login/logout, upstream checks and personnel account management continue to work.
 - Browser verification covers create, edit without secret replacement, secret replacement, activity changes, deletion conflict, empty-source deletion, permission visibility and current-source deactivation. Check mobile layout and light/dark modes.
-- Actual execution results are recorded below. The proposed acceptance scope has been implemented and verified; separate completion approval is still required.
+- Actual execution results are recorded below. The proposed acceptance scope has been implemented and verified; separate completion approval has now been received.
 
 ## 10. Execution evidence
 
@@ -159,3 +159,5 @@ Under the existing authenticated management API prefix, using the source slug fo
 - Browser automation fallback: the Playwright CLI package fetch failed due unavailable npm DNS; verification continued successfully with the connected in-app browser. Transient automatic access-review timeouts succeeded on their permitted retry; no remaining access blocker exists.
 - Manual-test entry point: `http://localhost:8081/admin/login-sources`, or Management → Access → Login sources. Existing system-administrator access is ready; source endpoints outside the configured allowlist require operator configuration before saving.
 - Step 6 completed: backend, frontend, environment configuration and verification changes are committed separately on the feature branch, and the implementation is presented for user review. Completion approval is pending. No final phase documentation, rebase, merge, push or branch deletion has been performed; step 7 remains gated by explicit completion approval.
+
+- Closeout authorization: the user confirmed manual testing and explicitly approved completion, documentation, integration into master and push on 2026-11-10. Step 7 is now authorized and in progress.
